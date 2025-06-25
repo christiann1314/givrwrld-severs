@@ -1,24 +1,29 @@
-import React, { useState } from 'react';
-import { X, CreditCard, Shield, Loader2 } from 'lucide-react';
+import React from 'react';
+import { X, Check } from 'lucide-react';
 import { Button } from './ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   gameData: {
     name: string;
-    icon: string;
+    icon: string | React.ReactNode;
+    basePrice: number;
+    features: string[];
   };
   selectedPlan: {
     ram: string;
     price: number;
+    description: string;
+    recommended?: boolean;
   };
   billingPeriod: string;
-  addOns: { [key: string]: boolean };
+  addOns: Record<string, boolean>;
   addOnOptions: Array<{
     key: string;
     name: string;
+    description: string;
     price: number;
   }>;
   serverName: string;
@@ -34,7 +39,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   addOns,
   addOnOptions,
   serverName,
-  location
+  location,
 }) => {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -58,12 +63,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const getBillingDiscount = () => {
-    switch (billingPeriod) {
-      case '3months': return 0.05; // 5% discount
-      case '6months': return 0.10; // 10% discount
-      case '12months': return 0.20; // 20% discount
-      default: return 0;
-    }
+    const billingOptions = [
+      { value: 'monthly', discountPercent: 0 },
+      { value: '3months', discountPercent: 5 },
+      { value: '6months', discountPercent: 10 },
+      { value: '12months', discountPercent: 20 },
+    ];
+    const option = billingOptions.find(opt => opt.value === billingPeriod);
+    return option ? option.discountPercent / 100 : 0;
   };
 
   const calculateSubtotal = () => {
@@ -77,250 +84,124 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     return total;
   };
 
-  const subtotal = calculateSubtotal();
-  const multiplier = getBillingMultiplier();
-  const discount = getBillingDiscount();
-  const discountAmount = subtotal * multiplier * discount;
-  const totalBeforeDiscount = subtotal * multiplier;
-  const finalTotal = totalBeforeDiscount - discountAmount;
-
-  const getBillingLabel = () => {
-    switch (billingPeriod) {
-      case '3months': return '3 Months';
-      case '6months': return '6 Months';
-      case '12months': return '12 Months';
-      default: return 'Monthly';
-    }
-  };
-
-  const handlePurchase = async () => {
-    setIsProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    // Close modal and redirect to success page
-    onClose();
-    navigate('/success');
+  const calculateActualTotal = () => {
+    const subtotal = calculateSubtotal();
+    const multiplier = getBillingMultiplier();
+    const discount = getBillingDiscount();
+    const totalBeforeDiscount = subtotal * multiplier;
+    const discountAmount = totalBeforeDiscount * discount;
+    return totalBeforeDiscount - discountAmount;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/80" onClick={!isProcessing ? onClose : undefined} />
-      <div className="relative bg-gray-800/95 backdrop-blur-md border border-gray-600/50 rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">Complete Your Purchase</h2>
-          {!isProcessing && (
-            <button
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl bg-gray-800 border-gray-600">
+        <DialogHeader>
+          <DialogTitle className="text-white text-xl">Complete Your Order</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Server Summary */}
+          <div className="bg-gray-700/50 rounded-lg p-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-gray-600/50 rounded-lg flex items-center justify-center">
+                {typeof gameData.icon === 'string' ? gameData.icon : gameData.icon}
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">{gameData.name} Server</h3>
+                <p className="text-gray-400 text-sm">{serverName}</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-400">RAM:</span>
+                <span className="text-white ml-2">{selectedPlan.ram}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Location:</span>
+                <span className="text-white ml-2">US West</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Billing Summary */}
+          <div className="bg-gray-700/50 rounded-lg p-4">
+            <h4 className="text-white font-semibold mb-3">Billing Summary</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Server Plan</span>
+                <span className="text-white">${selectedPlan.price.toFixed(2)}/month</span>
+              </div>
+              
+              {Object.entries(addOns).map(([key, enabled]) => {
+                if (!enabled) return null;
+                const addOn = addOnOptions.find(option => option.key === key);
+                if (!addOn) return null;
+                return (
+                  <div key={key} className="flex justify-between">
+                    <span className="text-gray-400">{addOn.name}</span>
+                    <span className="text-white">${addOn.price.toFixed(2)}/month</span>
+                  </div>
+                );
+              })}
+              
+              <div className="border-t border-gray-600 pt-2 mt-2">
+                <div className="flex justify-between">
+                  <span className="text-white font-semibold">Total</span>
+                  <span className="text-emerald-400 font-bold">${calculateActualTotal().toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Form */}
+          <div className="space-y-4">
+            <h4 className="text-white font-semibold">Payment Information</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Card Number"
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="MM/YY"
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="CVC"
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="ZIP Code"
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
             >
-              <X size={24} />
-            </button>
-          )}
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white"
+            >
+              Complete Purchase
+            </Button>
+          </div>
         </div>
-
-        {isProcessing ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 size={48} className="text-emerald-400 animate-spin mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Processing Payment...</h3>
-            <p className="text-gray-400 text-center">Please wait while we process your payment and set up your server.</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Order Summary */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Order Summary</h3>
-              
-              <div className="bg-gray-700/50 rounded-lg p-4">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-10 h-10 bg-gray-600/50 rounded-lg flex items-center justify-center text-xl">
-                    {gameData.icon}
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">{gameData.name} Server</div>
-                    <div className="text-gray-400 text-sm">{serverName}</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Bundle:</span>
-                    <span className="text-white">{gameData.name} Server</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Duration:</span>
-                    <span className="text-white">{getBillingLabel()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">RAM:</span>
-                    <span className="text-white">{selectedPlan.ram}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Location:</span>
-                    <span className="text-white">{location === 'us-west' ? 'US West' : 'US East'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-700/50 rounded-lg p-4">
-                <h4 className="text-white font-medium mb-3">Billing Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Server Resources ({getBillingLabel()})</span>
-                    <span className="text-white">${totalBeforeDiscount.toFixed(2)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-emerald-400">
-                      <span>Discount ({(discount * 100).toFixed(0)}%)</span>
-                      <span>-${discountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-600/50 pt-2">
-                    <div className="flex justify-between">
-                      <span className="text-white font-semibold">Total</span>
-                      <span className="text-emerald-400 font-bold text-lg">${finalTotal.toFixed(2)}</span>
-                    </div>
-                    <div className="text-gray-400 text-xs">${(finalTotal / multiplier).toFixed(2)}/month effective rate</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Form */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Payment Method</h3>
-              
-              <div className="space-y-3">
-                <div
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                    paymentMethod === 'card' 
-                      ? 'border-emerald-500 bg-emerald-500/10' 
-                      : 'border-gray-600/50 bg-gray-700/30'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      paymentMethod === 'card' ? 'border-emerald-500 bg-emerald-500' : 'border-gray-400'
-                    }`} />
-                    <CreditCard size={20} className="text-gray-300" />
-                    <span className="text-white">Credit / Debit Card</span>
-                  </div>
-                </div>
-                
-                <div
-                  onClick={() => setPaymentMethod('paypal')}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                    paymentMethod === 'paypal' 
-                      ? 'border-emerald-500 bg-emerald-500/10' 
-                      : 'border-gray-600/50 bg-gray-700/30'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      paymentMethod === 'paypal' ? 'border-emerald-500 bg-emerald-500' : 'border-gray-400'
-                    }`} />
-                    <span className="text-blue-400 font-bold">PayPal</span>
-                  </div>
-                </div>
-                
-                <div
-                  onClick={() => setPaymentMethod('crypto')}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                    paymentMethod === 'crypto' 
-                      ? 'border-emerald-500 bg-emerald-500/10' 
-                      : 'border-gray-600/50 bg-gray-700/30'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      paymentMethod === 'crypto' ? 'border-emerald-500 bg-emerald-500' : 'border-gray-400'
-                    }`} />
-                    <span className="text-orange-400">₿ Cryptocurrency</span>
-                  </div>
-                </div>
-              </div>
-
-              {paymentMethod === 'card' && (
-                <div className="space-y-4 mt-6">
-                  <h4 className="text-white font-medium">Payment Details</h4>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">Cardholder Name</label>
-                    <input
-                      type="text"
-                      value={cardDetails.name}
-                      onChange={(e) => setCardDetails({...cardDetails, name: e.target.value})}
-                      className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">Card Number</label>
-                    <input
-                      type="text"
-                      value={cardDetails.number}
-                      onChange={(e) => setCardDetails({...cardDetails, number: e.target.value})}
-                      className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50"
-                      placeholder="XXXX XXXX XXXX XXXX"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm text-gray-300 mb-2">Expiration Date</label>
-                      <input
-                        type="text"
-                        value={cardDetails.expiry}
-                        onChange={(e) => setCardDetails({...cardDetails, expiry: e.target.value})}
-                        className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50"
-                        placeholder="MM/YY"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-300 mb-2">CVV</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cvv}
-                        onChange={(e) => setCardDetails({...cardDetails, cvv: e.target.value})}
-                        className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50"
-                        placeholder="123"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-4">
-                <p className="text-xs text-gray-400 mb-4 flex items-center">
-                  <Shield size={14} className="mr-2" />
-                  By proceeding with this purchase, you agree to our Terms of Service and Privacy Policy.
-                </p>
-                
-                <Button
-                  onClick={handlePurchase}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    'Complete Purchase'
-                  )}
-                </Button>
-                
-                <div className="flex items-center justify-center mt-3 text-xs text-gray-400">
-                  <Shield size={12} className="mr-1" />
-                  Secure payment processing
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
