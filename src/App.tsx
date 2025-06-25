@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,6 +32,8 @@ import DashboardSupport from "./pages/DashboardSupport";
 import DashboardAffiliate from "./pages/DashboardAffiliate";
 import DashboardOrder from "./pages/DashboardOrder";
 import DashboardServices from "./pages/DashboardServices";
+import DashboardSettings from "./pages/DashboardSettings";
+import DashboardBilling from "./pages/DashboardBilling";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,8 @@ const App = () => (
           <Route path="/dashboard/affiliate" element={<ProtectedRoute><DashboardAffiliate /></ProtectedRoute>} />
           <Route path="/dashboard/order" element={<ProtectedRoute><DashboardOrder /></ProtectedRoute>} />
           <Route path="/dashboard/services" element={<ProtectedRoute><DashboardServices /></ProtectedRoute>} />
+          <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
+          <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardBilling /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
