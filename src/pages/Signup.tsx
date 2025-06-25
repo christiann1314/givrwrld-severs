@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { UserPlus, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,11 +11,15 @@ const Signup = () => {
     confirmPassword: '',
     agreeToTerms: false
   });
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signup logic
     console.log('Signup submitted:', formData);
+    login();
+    navigate('/success');
   };
 
   return (

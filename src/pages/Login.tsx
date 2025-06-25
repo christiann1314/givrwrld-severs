@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { LogIn, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -9,11 +10,15 @@ const Login = () => {
     password: '',
     rememberMe: false
   });
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle login logic
     console.log('Login submitted:', formData);
+    login();
+    navigate('/dashboard');
   };
 
   return (
@@ -46,7 +51,7 @@ const Login = () => {
               <span className="text-2xl font-bold text-white">GIVRwrld</span>
             </div>
             <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to access your game panel</p>
+            <p className="text-gray-400">Sign in to access your user dashboard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -100,7 +105,7 @@ const Login = () => {
               className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center space-x-2"
             >
               <LogIn size={20} />
-              <span>Access Game Panel</span>
+              <span>Access User Dashboard</span>
             </button>
           </form>
 

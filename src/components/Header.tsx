@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown } from 'lucide-react';
+import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings } from 'lucide-react';
 
 const Header = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -38,6 +38,10 @@ const Header = () => {
             <Link to="/support" className="flex items-center space-x-1 text-gray-300 hover:text-emerald-400 transition-colors">
               <Users size={16} />
               <span>Support</span>
+            </Link>
+            <Link to="/dashboard" className="flex items-center space-x-1 text-gray-300 hover:text-emerald-400 transition-colors">
+              <Settings size={16} />
+              <span>User Dashboard</span>
             </Link>
           </nav>
 

@@ -67,9 +67,12 @@ const Success = () => {
             </h1>
             <p className="text-xl text-gray-300 mb-8">🎮 ⚡ Your server is live and ready! ⚡ 🎮</p>
             
-            <button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
-              Access Your Game Panel
-            </button>
+            <Link
+              to="/dashboard"
+              className="inline-block bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
+            >
+              Access Your User Dashboard
+            </Link>
           </div>
 
           {/* Server Specs */}
@@ -157,9 +160,12 @@ const Success = () => {
             </div>
             
             <div className="mt-4">
-              <button className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+              <Link
+                to="/dashboard"
+                className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
                 📊 Manage Your Servers
-              </button>
+              </Link>
             </div>
           </div>
         </div>

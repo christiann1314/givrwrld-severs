@@ -32,6 +32,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardSupport from "./pages/DashboardSupport";
 import DashboardAffiliate from "./pages/DashboardAffiliate";
 import DashboardOrder from "./pages/DashboardOrder";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -65,10 +66,11 @@ const App = () => (
           <Route path="/upgrade/game-expansion-pack" element={<GameExpansionPack />} />
           <Route path="/upgrade/community-pack" element={<CommunityPack />} />
           <Route path="/purchase-confirmed" element={<PurchaseConfirmed />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/support" element={<DashboardSupport />} />
-          <Route path="/dashboard/affiliate" element={<DashboardAffiliate />} />
-          <Route path="/dashboard/order" element={<DashboardOrder />} />
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/support" element={<ProtectedRoute><DashboardSupport /></ProtectedRoute>} />
+          <Route path="/dashboard/affiliate" element={<ProtectedRoute><DashboardAffiliate /></ProtectedRoute>} />
+          <Route path="/dashboard/order" element={<ProtectedRoute><DashboardOrder /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
