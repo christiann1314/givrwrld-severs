@@ -13,6 +13,9 @@ import Discord from "./pages/Discord";
 import Support from "./pages/Support";
 import FAQ from "./pages/FAQ";
 import Deploy from "./pages/Deploy";
+import MinecraftConfig from "./pages/MinecraftConfig";
+import FiveMConfig from "./pages/FiveMConfig";
+import PalworldConfig from "./pages/PalworldConfig";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +36,9 @@ const App = () => (
           <Route path="/support" element={<Support />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/deploy" element={<Deploy />} />
+          <Route path="/configure/minecraft" element={<MinecraftConfig />} />
+          <Route path="/configure/fivem" element={<FiveMConfig />} />
+          <Route path="/configure/palworld" element={<PalworldConfig />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

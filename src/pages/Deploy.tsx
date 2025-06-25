@@ -2,7 +2,7 @@
 import React from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Users, Cpu, HardDrive, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Deploy = () => {
   const gameServers = [
@@ -18,7 +18,8 @@ const Deploy = () => {
       ],
       price: '$6.99',
       buttonText: 'Deploy Minecraft Server',
-      buttonColor: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500'
+      buttonColor: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500',
+      configPath: '/configure/minecraft'
     },
     {
       id: 'fivem',
@@ -32,7 +33,8 @@ const Deploy = () => {
       ],
       price: '$6.5',
       buttonText: 'Deploy FiveM Server',
-      buttonColor: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500'
+      buttonColor: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500',
+      configPath: '/configure/fivem'
     },
     {
       id: 'palworld',
@@ -46,7 +48,8 @@ const Deploy = () => {
       ],
       price: '$15.4',
       buttonText: 'Deploy Palworld Server',
-      buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500'
+      buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500',
+      configPath: '/configure/palworld'
     }
   ];
 
@@ -69,9 +72,9 @@ const Deploy = () => {
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="mb-8">
-            <a href="/" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
+            <Link to="/" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
               ← Back to Home
-            </a>
+            </Link>
           </div>
           
           <h1 className="text-5xl lg:text-6xl font-bold mb-6">
@@ -123,9 +126,12 @@ const Deploy = () => {
                   </div>
 
                   {/* Deploy Button */}
-                  <button className={`w-full ${server.buttonColor} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}>
+                  <Link 
+                    to={server.configPath}
+                    className={`block w-full ${server.buttonColor} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center`}
+                  >
                     {server.buttonText}
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
@@ -140,12 +146,18 @@ const Deploy = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-gray-700/60 hover:bg-gray-600/60 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50">
+              <Link 
+                to="/discord"
+                className="bg-gray-700/60 hover:bg-gray-600/60 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50"
+              >
                 Ask Our Community
-              </button>
-              <button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
+              </Link>
+              <Link 
+                to="/support"
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
+              >
                 Contact Support
-              </button>
+              </Link>
             </div>
           </div>
         </section>

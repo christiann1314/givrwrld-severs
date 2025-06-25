@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface ServerCardProps {
   game: string;
@@ -23,6 +24,19 @@ const ServerCard: React.FC<ServerCardProps> = ({
     blue: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-blue-500/25"
   };
 
+  const getConfigPath = (game: string) => {
+    switch (game.toLowerCase()) {
+      case 'minecraft':
+        return '/configure/minecraft';
+      case 'fivem':
+        return '/configure/fivem';
+      case 'palworld':
+        return '/configure/palworld';
+      default:
+        return '/deploy';
+    }
+  };
+
   return (
     <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
       <div className="flex items-start justify-between mb-4">
@@ -41,9 +55,12 @@ const ServerCard: React.FC<ServerCardProps> = ({
         </div>
       </div>
       
-      <button className={`w-full ${buttonStyles[buttonColor]} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl`}>
+      <Link 
+        to={getConfigPath(game)}
+        className={`block w-full ${buttonStyles[buttonColor]} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center`}
+      >
         Configure
-      </button>
+      </Link>
     </div>
   );
 };
