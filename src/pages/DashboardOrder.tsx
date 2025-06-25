@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import ServerCard from '../components/ServerCard';
 import { Link } from 'react-router-dom';
 import { 
   Server, 
@@ -34,28 +33,97 @@ const DashboardOrder = () => {
 
   const gameServers = [
     {
-      game: 'minecraft',
-      icon: '⛏️',
-      title: 'Minecraft',
+      name: 'Minecraft',
       description: 'Build, explore, survive',
-      price: '$6.99',
-      buttonColor: 'emerald' as const
+      image: '/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png',
+      features: [
+        'Up to 10 players',
+        'Ryzen 9 5950X CPU',
+        '75 GB NVMe SSD',
+        'DDoS Protection'
+      ],
+      plans: [
+        {
+          ram: '2GB',
+          price: '$6.99/mo',
+          description: 'Perfect for small groups',
+          recommended: false
+        },
+        {
+          ram: '4GB',
+          price: '$12.99/mp',
+          description: 'Great for medium servers',
+          recommended: true
+        },
+        {
+          ram: '8GB',
+          price: '$24.99/mo',
+          description: 'Best for large communities',
+          recommended: false
+        }
+      ]
     },
     {
-      game: 'fivem',
-      icon: '🚗',
-      title: 'FiveM',
+      name: 'FiveM',
       description: 'GTA roleplay server',
-      price: '$15.99',
-      buttonColor: 'blue' as const
+      image: '/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png',
+      features: [
+        'Up to 32 players',
+        'Ryzen 9 5950X CPU',
+        '100 GB NVMe SSD',
+        'Anti-cheat included'
+      ],
+      plans: [
+        {
+          ram: '4GB',
+          price: '$15.99/mo',
+          description: 'Basic roleplay server',
+          recommended: false
+        },
+        {
+          ram: '8GB',
+          price: '$29.99/mo',
+          description: 'Enhanced performance',
+          recommended: true
+        },
+        {
+          ram: '16GB',
+          price: '$54.99/mo',
+          description: 'Premium roleplay experience',
+          recommended: false
+        }
+      ]
     },
     {
-      game: 'palworld',
-      icon: '🎮',
-      title: 'Palworld',
+      name: 'Palworld',
       description: 'Creature collection survival',
-      price: '$9.99',
-      buttonColor: 'emerald' as const
+      image: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+      features: [
+        'Up to 8 players',
+        'Ryzen 9 5950X CPU',
+        '50 GB NVMe SSD',
+        'Mod support'
+      ],
+      plans: [
+        {
+          ram: '4GB',
+          price: '$9.99/mo',
+          description: 'Small group adventures',
+          recommended: false
+        },
+        {
+          ram: '8GB',
+          price: '$18.99/mo',
+          description: 'Smooth multiplayer',
+          recommended: true
+        },
+        {
+          ram: '12GB',
+          price: '$32.99/mo',
+          description: 'Large world exploration',
+          recommended: false
+        }
+      ]
     }
   ];
 
@@ -207,17 +275,60 @@ const DashboardOrder = () => {
 
             {/* Game Servers Tab */}
             {activeTab === 'servers' && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              <div className="grid lg:grid-cols-3 gap-8 mb-12">
                 {gameServers.map((server) => (
-                  <ServerCard
-                    key={server.game}
-                    game={server.game}
-                    icon={server.icon}
-                    title={server.title}
-                    description={server.description}
-                    price={server.price}
-                    buttonColor={server.buttonColor}
-                  />
+                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden">
+                    {/* Server Header */}
+                    <div 
+                      className="h-48 bg-cover bg-center relative"
+                      style={{ backgroundImage: `url(${server.image})` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+                      <div className="absolute bottom-4 left-4">
+                        <h3 className="text-2xl font-bold text-white mb-1">{server.name}</h3>
+                        <p className="text-gray-300 text-sm">{server.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Server Features */}
+                    <div className="p-6">
+                      <div className="space-y-2 mb-6">
+                        {server.features.map((feature, index) => (
+                          <div key={index} className="flex items-center text-gray-300 text-sm">
+                            <Check size={16} className="text-emerald-400 mr-3 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Pricing Plans */}
+                      <div className="space-y-4">
+                        {server.plans.map((plan, index) => (
+                          <div key={index} className={`border rounded-lg p-4 transition-all duration-200 ${
+                            plan.recommended 
+                              ? 'border-emerald-500/50 bg-emerald-500/10' 
+                              : 'border-gray-600/50 bg-gray-700/30'
+                          }`}>
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-semibold text-white">{plan.ram}</span>
+                                {plan.recommended && (
+                                  <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
+                                    Recommended
+                                  </span>
+                                )}
+                              </div>
+                              <span className="font-bold text-white">{plan.price}</span>
+                            </div>
+                            <p className="text-gray-400 text-xs mb-3">{plan.description}</p>
+                            <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                              Deploy Server
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -266,30 +377,6 @@ const DashboardOrder = () => {
                 ))}
               </div>
             )}
-
-            {/* Help Section */}
-            <div className="glass-panel-strong rounded-xl p-8 text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">Need Help Choosing?</h3>
-              <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-                All our game servers come with premium hardware, instant setup, and 24/7 support. 
-                You can always upgrade or modify your plan later.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link 
-                  to="/discord"
-                  className="bg-gray-700/60 hover:bg-gray-600/60 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50"
-                >
-                  Join Our Discord
-                </Link>
-                <Link 
-                  to="/dashboard/support"
-                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
-                >
-                  Contact Support
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
 
