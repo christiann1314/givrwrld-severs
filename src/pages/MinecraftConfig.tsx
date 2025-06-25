@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const MinecraftConfig = () => {
   const minecraftData = {
     name: 'Minecraft',
-    icon: <img src="/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Minecraft" className="w-8 h-8 rounded" />,
+    icon: <img src="/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png" alt="Minecraft" className="w-8 h-8 rounded" />,
     basePrice: 3.50,
     features: [
       '99.9% uptime SLA',
