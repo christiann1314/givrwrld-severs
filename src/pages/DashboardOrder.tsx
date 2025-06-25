@@ -16,6 +16,7 @@ import {
   Zap,
   Check
 } from 'lucide-react';
+import { Switch } from '../components/ui/switch';
 
 const DashboardOrder = () => {
   const [activeTab, setActiveTab] = useState('servers');
@@ -178,6 +179,37 @@ const DashboardOrder = () => {
     }
   ];
 
+  const optionalAddons = [
+    {
+      id: 'automatic-backups',
+      name: 'Automatic Backups',
+      price: '+$2.99/month',
+      description: 'Daily backups with 7-day retention to prevent data loss.',
+      enabled: false
+    },
+    {
+      id: 'discord-integration',
+      name: 'Discord Integration',
+      price: '+$1.49/month',
+      description: 'Sync server status and chat with your Discord.',
+      enabled: false
+    },
+    {
+      id: 'advanced-analytics',
+      name: 'Advanced Analytics',
+      price: '+$3.99/month',
+      description: 'Real-time player activity, mod/resource usage, and crash stats.',
+      enabled: false
+    },
+    {
+      id: 'additional-ssd',
+      name: 'Additional SSD Storage',
+      price: '+$2.5/month',
+      description: 'Expand your NVMe storage incrementally for more world files or modpacks. (+50 GB per addon)',
+      enabled: false
+    }
+  ];
+
   const tabs = [
     { id: 'servers', label: 'Game Servers', icon: Server },
     { id: 'upgrades', label: 'Upgrades & Add-ons', icon: Zap }
@@ -334,46 +366,73 @@ const DashboardOrder = () => {
 
             {/* Upgrades & Add-ons Tab */}
             {activeTab === 'upgrades' && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {upgradePackages.map((pkg) => (
-                  <div key={pkg.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10 relative">
-                    {pkg.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                          Most Popular
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-bold text-white mb-2">{pkg.name}</h3>
-                      <div className="text-3xl font-bold text-emerald-400 mb-1">{pkg.price}</div>
-                      <div className="text-gray-400 text-sm">{pkg.description}</div>
-                    </div>
-
-                    <div className="space-y-3 mb-6">
-                      {pkg.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-gray-300 text-sm">
-                          <Check size={16} className="text-emerald-400 mr-3 flex-shrink-0" />
-                          <span>{feature}</span>
+              <div className="space-y-8 mb-12">
+                {/* Upgrade Packages */}
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-6">Upgrade Packages</h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {upgradePackages.map((pkg) => (
+                      <div key={pkg.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10 relative">
+                        {pkg.popular && (
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                            <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                              Most Popular
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="text-center mb-6">
+                          <h3 className="text-xl font-bold text-white mb-2">{pkg.name}</h3>
+                          <div className="text-3xl font-bold text-emerald-400 mb-1">{pkg.price}</div>
+                          <div className="text-gray-400 text-sm">{pkg.description}</div>
                         </div>
-                      ))}
-                    </div>
 
-                    <Link 
-                      to={pkg.link}
-                      className={`block w-full text-center font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                        pkg.buttonColor === 'emerald' 
-                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/25'
-                          : pkg.buttonColor === 'blue'
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white shadow-blue-500/25'
-                          : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-purple-500/25'
-                      }`}
-                    >
-                      Add to Cart
-                    </Link>
+                        <div className="space-y-3 mb-6">
+                          {pkg.features.map((feature, index) => (
+                            <div key={index} className="flex items-center text-gray-300 text-sm">
+                              <Check size={16} className="text-emerald-400 mr-3 flex-shrink-0" />
+                              <span>{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <Link 
+                          to={pkg.link}
+                          className={`block w-full text-center font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            pkg.buttonColor === 'emerald' 
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/25'
+                              : pkg.buttonColor === 'blue'
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white shadow-blue-500/25'
+                              : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white shadow-purple-500/25'
+                          }`}
+                        >
+                          Add Upgrade
+                        </Link>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {/* Optional Add-ons */}
+                <div>
+                  <h3 className="text-2xl font-bold text-white mb-6">Optional Add-ons</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {optionalAddons.map((addon) => (
+                      <div key={addon.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/30 transition-all duration-300">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h4 className="text-xl font-bold text-white mb-2">{addon.name}</h4>
+                            <p className="text-gray-300 text-sm mb-3">{addon.description}</p>
+                            <div className="text-emerald-400 font-bold text-lg">{addon.price}</div>
+                          </div>
+                          <div className="ml-4">
+                            <Switch />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
