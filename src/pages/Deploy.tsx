@@ -25,7 +25,7 @@ const Deploy = () => {
       id: 'fivem',
       name: 'FiveM',
       subtitle: 'GTA roleplay server',
-      image: '/lovable-uploads/15be664c-b249-4de1-bac0-3bb10b545fab.png',
+      image: '/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png',
       features: [
         'Low pop',
         '1x server & 8-pack Protected',
