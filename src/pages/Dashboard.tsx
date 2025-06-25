@@ -28,7 +28,7 @@ const Dashboard = () => {
       status: "Online",
       specs: "8GB RAM • 4 vCPU • US East",
       icon: "🎮",
-      gameIcon: "/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png" // Correct Palworld game icon
+      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" // Updated Palworld game icon
     }
   ];
 

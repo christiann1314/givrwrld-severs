@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const PalworldConfig = () => {
   const palworldData = {
     name: 'Palworld',
-    icon: <img src="/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Palworld" className="w-8 h-8 rounded" />,
+    icon: <img src="/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded" />,
     basePrice: 12.00,
     features: [
       '99.9% uptime SLA',

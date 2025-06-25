@@ -37,12 +37,20 @@ const ServerCard: React.FC<ServerCardProps> = ({
     }
   };
 
+  // Updated icon logic to use the new Palworld icon
+  const getGameIcon = () => {
+    if (game.toLowerCase() === 'palworld') {
+      return <img src="/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded object-cover" />;
+    }
+    return typeof icon === 'string' ? icon : icon;
+  };
+
   return (
     <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl">
-            {typeof icon === 'string' ? icon : icon}
+            {getGameIcon()}
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{title}</h3>
