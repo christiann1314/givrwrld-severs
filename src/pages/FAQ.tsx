@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -124,69 +125,56 @@ const FAQ = () => {
           </p>
           
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative">
+          <div className="max-w-md mx-auto mb-12">
             <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search the knowledge base..."
+                placeholder="Search FAQs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-lg px-6 py-4 pr-12 text-white placeholder-gray-400 focus:border-emerald-500 focus:outline-none transition-colors"
+                className="w-full bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25"
               />
-              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             </div>
           </div>
         </section>
 
-        {/* FAQ Categories */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {filteredCategories.map((category, categoryIndex) => (
-            <div key={categoryIndex} className="mb-12">
-              <h2 className="text-3xl font-bold text-white mb-8 flex items-center">
-                <HelpCircle className="text-emerald-400 mr-3" size={32} />
-                {category.title}
-              </h2>
-              
-              <div className="space-y-4">
-                {category.questions.map((faq) => (
-                  <div key={faq.id} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
-                      className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-700/30 transition-colors"
-                    >
-                      <span className="text-white font-semibold text-lg pr-4">{faq.question}</span>
-                      {openFaq === faq.id ? (
-                        <ChevronDown className="text-emerald-400 flex-shrink-0" size={24} />
-                      ) : (
-                        <ChevronRight className="text-gray-400 flex-shrink-0" size={24} />
-                      )}
-                    </button>
-                    {openFaq === faq.id && (
-                      <div className="px-6 pb-6 border-t border-gray-600/30">
-                        <div className="pt-4">
+        {/* FAQ Content */}
+        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+          {filteredCategories.length === 0 ? (
+            <div className="text-center py-12">
+              <HelpCircle className="mx-auto mb-4 text-gray-400" size={48} />
+              <h3 className="text-xl font-semibold text-white mb-2">No results found</h3>
+              <p className="text-gray-400">Try adjusting your search terms or browse all categories.</p>
+            </div>
+          ) : (
+            filteredCategories.map((category, categoryIndex) => (
+              <div key={categoryIndex} className="mb-12">
+                <h2 className="text-2xl font-bold text-emerald-400 mb-6">{category.title}</h2>
+                <div className="space-y-4">
+                  {category.questions.map((faq) => (
+                    <div key={faq.id} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/30 rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setOpenFaq(openFaq === faq.id ? null : faq.id)}
+                        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-700/30 transition-colors"
+                      >
+                        <span className="text-white font-medium">{faq.question}</span>
+                        {openFaq === faq.id ? (
+                          <ChevronDown className="text-emerald-400 flex-shrink-0" size={20} />
+                        ) : (
+                          <ChevronRight className="text-gray-400 flex-shrink-0" size={20} />
+                        )}
+                      </button>
+                      {openFaq === faq.id && (
+                        <div className="px-6 pb-4">
                           <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-          
-          {filteredCategories.length === 0 && searchTerm && (
-            <div className="text-center py-12">
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
-                <HelpCircle className="mx-auto mb-4 text-gray-400" size={48} />
-                <h3 className="text-xl font-semibold text-white mb-2">No results found</h3>
-                <p className="text-gray-400 mb-6">
-                  We couldn't find any FAQs matching "{searchTerm}". Try a different search term or contact our support team.
-                </p>
-                <button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300">
-                  Contact Support
-                </button>
-              </div>
-            </div>
+            ))
           )}
         </section>
 
