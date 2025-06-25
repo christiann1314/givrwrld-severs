@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const FiveMConfig = () => {
   const fivemData = {
     name: 'GTA FiveM',
-    icon: '🏙️',
+    icon: <img src="/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png" alt="FiveM" className="w-8 h-8 rounded" />,
     basePrice: 6.50,
     features: [
       '99.9% uptime SLA',

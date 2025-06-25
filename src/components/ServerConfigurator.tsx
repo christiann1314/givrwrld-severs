@@ -10,7 +10,7 @@ interface ServerConfiguratorProps {
   gameType: 'minecraft' | 'fivem' | 'palworld';
   gameData: {
     name: string;
-    icon: string;
+    icon: string | React.ReactNode;
     basePrice: number;
     features: string[];
     planOptions: Array<{
@@ -155,7 +155,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         <h3 className="text-lg font-semibold text-white mb-4">Game & Server Name</h3>
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-12 h-12 bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl">
-            {gameData.icon}
+            {typeof gameData.icon === 'string' ? gameData.icon : gameData.icon}
           </div>
           <div>
             <div className="text-sm text-gray-400">Selected Game</div>
@@ -306,7 +306,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       <div className="bg-gray-800/60 rounded-lg p-6">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-12 h-12 bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl">
-            {gameData.icon}
+            {typeof gameData.icon === 'string' ? gameData.icon : gameData.icon}
           </div>
           <div>
             <h4 className="text-white font-semibold">{gameData.name} Server</h4>
