@@ -1,41 +1,42 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const footerSections = [
     {
       title: "Hosting",
       links: [
-        "Minecraft Hosting",
-        "FiveM Hosting", 
-        "Palworld Hosting"
+        { name: "Minecraft Hosting", path: "/configure/minecraft" },
+        { name: "FiveM Hosting", path: "/configure/fivem" }, 
+        { name: "Palworld Hosting", path: "/configure/palworld" }
       ]
     },
     {
       title: "Company",
       links: [
-        "About Us",
-        "Blog",
-        "Affiliate Program",
-        "Contact"
+        { name: "About Us", path: "/about" },
+        { name: "Blog", path: "/blog" },
+        { name: "Affiliate Program", path: "/affiliate" },
+        { name: "Contact", path: "/support" }
       ]
     },
     {
       title: "Support", 
       links: [
-        "Help Center",
-        "Discord Server",
-        "Status Page",
-        "FAQ"
+        { name: "Help Center", path: "/support" },
+        { name: "Discord Server", path: "/discord" },
+        { name: "Status Page", path: "#" },
+        { name: "FAQ", path: "/faq" }
       ]
     },
     {
       title: "Legal",
       links: [
-        "Terms of Service",
-        "Privacy Policy", 
-        "SLA",
-        "Refund Policy"
+        { name: "Terms of Service", path: "#" },
+        { name: "Privacy Policy", path: "#" }, 
+        { name: "SLA", path: "#" },
+        { name: "Refund Policy", path: "#" }
       ]
     }
   ];
@@ -50,9 +51,15 @@ const Footer = () => {
               <ul className="space-y-2">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
-                    <a href="#" className="text-gray-400 hover:text-emerald-400 transition-colors text-sm">
-                      {link}
-                    </a>
+                    {link.path.startsWith('#') ? (
+                      <a href={link.path} className="text-gray-400 hover:text-emerald-400 transition-colors text-sm">
+                        {link.name}
+                      </a>
+                    ) : (
+                      <Link to={link.path} className="text-gray-400 hover:text-emerald-400 transition-colors text-sm">
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
