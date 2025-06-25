@@ -24,6 +24,10 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import SLA from "./pages/SLA";
 import Refund from "./pages/Refund";
+import GivrwrldEssentials from "./pages/GivrwrldEssentials";
+import GameExpansionPack from "./pages/GameExpansionPack";
+import CommunityPack from "./pages/CommunityPack";
+import PurchaseConfirmed from "./pages/PurchaseConfirmed";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +57,10 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/sla" element={<SLA />} />
           <Route path="/refund" element={<Refund />} />
+          <Route path="/upgrade/givrwrld-essentials" element={<GivrwrldEssentials />} />
+          <Route path="/upgrade/game-expansion-pack" element={<GameExpansionPack />} />
+          <Route path="/upgrade/community-pack" element={<CommunityPack />} />
+          <Route path="/purchase-confirmed" element={<PurchaseConfirmed />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
