@@ -87,7 +87,7 @@ const HeroSection = () => {
           
           <ServerCard
             game="Palworld"
-            icon="🦄"
+            icon={<img src="/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Palworld" className="w-8 h-8 rounded" />}
             title="Palworld Server"
             description="Creature survival"
             price="$15.40"

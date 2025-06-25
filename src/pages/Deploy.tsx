@@ -40,7 +40,7 @@ const Deploy = () => {
       id: 'palworld',
       name: 'Palworld',
       subtitle: 'Creature collection survival',
-      image: '/lovable-uploads/15be664c-b249-4de1-bac0-3bb10b545fab.png',
+      image: '/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png',
       features: [
         '4-6 players',
         'Ryzen 9 5950X CPU',
@@ -95,7 +95,12 @@ const Deploy = () => {
             {gameServers.map((server) => (
               <div key={server.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
                 {/* Game Image */}
-                <div className="h-48 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden">
+                <div 
+                  className="h-48 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url("${server.image}")`
+                  }}
+                >
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
                     <h3 className="text-2xl font-bold text-white mb-1">{server.name}</h3>

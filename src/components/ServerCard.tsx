@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 interface ServerCardProps {
   game: string;
-  icon: string;
+  icon: string | React.ReactNode;
   title: string;
   description: string;
   price: string;
@@ -42,7 +42,7 @@ const ServerCard: React.FC<ServerCardProps> = ({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gray-700/50 rounded-lg flex items-center justify-center text-2xl">
-            {icon}
+            {typeof icon === 'string' ? icon : icon}
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{title}</h3>
