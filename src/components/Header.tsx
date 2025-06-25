@@ -12,8 +12,12 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">G</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png"
+                alt="GIVRwrld"
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <span className="text-2xl font-bold text-white">GIVRwrld</span>
             <span className="bg-emerald-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
