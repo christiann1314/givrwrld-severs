@@ -1,155 +1,187 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import UpgradePaymentModal from '../components/UpgradePaymentModal';
-import { ArrowLeft, Gamepad2, Download, Users, CheckCircle, Star } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Check, Gamepad2, Zap, Shield, ArrowLeft } from 'lucide-react';
 
 const GameExpansionPack = () => {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const navigate = useNavigate();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const features = [
     {
-      icon: Gamepad2,
-      title: "Pre-installed Game Mods",
-      description: "Popular mods and plugins pre-configured for optimal performance"
+      icon: <Gamepad2 className="w-6 h-6" />,
+      title: "Game Templates",
+      description: "Pre-configured setups for popular games"
     },
     {
-      icon: Download,
-      title: "One-Click Mod Installation",
-      description: "Install new mods with just one click from our curated library"
+      icon: <Zap className="w-6 h-6" />,
+      title: "Performance Boost", 
+      description: "Enhanced server performance and optimization"
     },
     {
-      icon: Users,
-      title: "Custom Game Modes",
-      description: "Access to exclusive custom game modes and scenarios"
+      icon: <Shield className="w-6 h-6" />,
+      title: "Advanced Security",
+      description: "Enhanced DDoS protection and security features"
     }
   ];
 
   const benefits = [
-    "50+ pre-installed popular mods",
-    "One-click mod installation system",
-    "Custom game modes and scenarios",
-    "Regular mod updates and patches",
-    "Mod compatibility testing",
-    "Performance optimization tools",
-    "Community-created content access",
-    "Mod conflict resolution"
+    "Advanced game templates library",
+    "Performance optimization tools", 
+    "Enhanced DDoS protection",
+    "Priority technical support",
+    "Custom mod integration",
+    "Advanced analytics dashboard",
+    "Automated backup systems",
+    "Multi-region deployment"
   ];
 
   const packageData = {
-    name: "Game Expansion Pack",
-    price: 9.99,
-    originalPrice: 14.99,
-    features: features,
-    benefits: benefits
+    name: 'Game Expansion Pack',
+    price: '$24.99/mo',
+    features: benefits
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Fantasy Forest Background */}
+      {/* Fantasy Sword Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png")',
+          backgroundImage: 'url("/lovable-uploads/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-blue-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-cyan-900/20"></div>
       </div>
       
       <div className="relative z-10">
         <Header />
         
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-8">
-            <Link to="/dashboard" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
-              <ArrowLeft size={20} className="mr-2" />
-              Back to Dashboard
-            </Link>
+            <button 
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6"
+            >
+              <ArrowLeft className="mr-2" size={20} />
+              Back
+            </button>
           </div>
 
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <Gamepad2 className="text-blue-400 mr-2" size={32} />
-              <h1 className="text-4xl font-bold">
-                <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-                  Game Expansion Pack
-                </span>
-              </h1>
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/20 rounded-full mb-4">
+              <Gamepad2 className="w-8 h-8 text-emerald-400" />
             </div>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Expand your gaming experience with pre-installed mods and custom content
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                Game Expansion Pack
+              </span>
+            </h1>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
+              Unlock advanced gaming features and premium server capabilities
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 mb-12">
-            {/* Features */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Key Features</h2>
-              <div className="space-y-6">
+          {/* Pricing Card */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-8 mb-12">
+              <div className="text-center mb-8">
+                <div className="text-5xl font-bold text-white mb-2">
+                  $24.99
+                  <span className="text-lg font-normal text-gray-400 ml-2">/month</span>
+                </div>
+                <div className="text-emerald-400 font-semibold mb-4">Advanced Gaming Package</div>
+                <p className="text-gray-300">Professional-grade tools for serious gamers and communities</p>
+              </div>
+
+              {/* Feature Grid */}
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <feature.icon className="text-blue-400" size={24} />
+                  <div key={index} className="text-center p-4 bg-gray-700/30 rounded-lg">
+                    <div className="text-emerald-400 mb-3 flex justify-center">
+                      {feature.icon}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                      <p className="text-gray-300">{feature.description}</p>
-                    </div>
+                    <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
+                    <p className="text-gray-300 text-sm">{feature.description}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Benefits */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">What's Included</h2>
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/30 rounded-xl p-6">
-                <div className="space-y-3">
+              {/* Benefits List */}
+              <div className="mb-8">
+                <h3 className="text-white font-semibold mb-4">Package Benefits:</h3>
+                <div className="grid md:grid-cols-2 gap-2">
                   {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <CheckCircle className="text-blue-400 flex-shrink-0" size={20} />
-                      <span className="text-gray-300">{benefit}</span>
+                    <div key={index} className="flex items-center text-gray-300 text-sm">
+                      <Check size={16} className="text-emerald-400 mr-3 flex-shrink-0" />
+                      <span>{benefit}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Pricing */}
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-xl p-8 text-center">
-            <div className="mb-6">
-              <div className="text-gray-400 line-through text-lg">${packageData.originalPrice}/month</div>
-              <div className="text-4xl font-bold text-blue-400 mb-2">${packageData.price}/month</div>
-              <div className="text-red-400 font-semibold">Save 33%</div>
+              <div className="text-center">
+                <Button
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-4 px-8 text-lg"
+                >
+                  Upgrade for $24.99/mo
+                </Button>
+              </div>
             </div>
-            
-            <button
-              onClick={() => setShowPaymentModal(true)}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 text-lg w-full max-w-md"
-            >
-              Get Expansion Pack
-            </button>
-            
-            <p className="text-gray-400 text-sm mt-4">
-              30-day money-back guarantee • Cancel anytime
-            </p>
+
+            {/* Why Upgrade Section */}
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6">
+                <h3 className="text-white font-semibold mb-4">Advanced Performance</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Get access to high-performance servers with advanced optimization tools and enhanced capabilities.
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center text-gray-300">
+                    <Check size={14} className="text-emerald-400 mr-2" />
+                    <span>Premium hardware allocation</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={14} className="text-emerald-400 mr-2" />
+                    <span>Advanced caching systems</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6">
+                <h3 className="text-white font-semibold mb-4">Professional Support</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Priority support with dedicated assistance for complex configurations and troubleshooting.
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center text-gray-300">
+                    <Check size={14} className="text-emerald-400 mr-2" />
+                    <span>24/7 priority support</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={14} className="text-emerald-400 mr-2" />
+                    <span>Dedicated account manager</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
 
         <Footer />
       </div>
 
-      {showPaymentModal && (
-        <UpgradePaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          packageData={packageData}
-        />
-      )}
+      <UpgradePaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        packageData={packageData}
+      />
     </div>
   );
 };
