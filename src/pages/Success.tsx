@@ -10,19 +10,22 @@ const Success = () => {
       name: "GIVRwrld Essentials",
       price: "$6.99",
       features: ["Complete server management toolkit", "Daily automatic backups", "Discord bridge integration", "Analytics dashboard"],
-      color: "emerald"
+      color: "emerald",
+      route: "/upgrade/givrwrld-essentials"
     },
     {
       name: "Game Expansion Pack", 
       price: "$14.99",
       features: ["Cross-deploy to multiple game types", "Shared resource allocation", "Cross-game player management"],
-      color: "blue"
+      color: "blue",
+      route: "/upgrade/game-expansion-pack"
     },
     {
       name: "Community Pack",
       price: "$4.99", 
       features: ["Connect with creators", "Creator spotlights, dev blog access", "Priority support"],
-      color: "purple"
+      color: "purple",
+      route: "/upgrade/community-pack"
     }
   ];
 
@@ -119,9 +122,12 @@ const Success = () => {
                     ))}
                   </ul>
                   
-                  <button className={`w-full ${getColorStyles(pkg.color)} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg`}>
+                  <Link 
+                    to={pkg.route}
+                    className={`block w-full ${getColorStyles(pkg.color)} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-center`}
+                  >
                     Upgrade Now
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>
