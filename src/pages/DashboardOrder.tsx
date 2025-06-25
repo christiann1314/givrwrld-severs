@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -66,7 +65,7 @@ const DashboardOrder = () => {
     {
       name: 'FiveM',
       description: 'GTA roleplay server',
-      image: '/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png',
+      image: '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
       features: [
         'Up to 32 players',
         'Ryzen 9 5950X CPU',
