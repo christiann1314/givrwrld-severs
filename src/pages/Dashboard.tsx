@@ -173,9 +173,12 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                        🎮
-                      </div>
+                      <div 
+                        className="w-16 h-16 rounded-lg bg-cover bg-center bg-no-repeat border-2 border-emerald-500/30"
+                        style={{
+                          backgroundImage: 'url("/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png")'
+                        }}
+                      ></div>
                       <div>
                         <div className="text-white font-semibold">Palworld HQ</div>
                         <div className="text-gray-400 text-sm">8GB RAM • 4 vCPU • US East</div>
@@ -196,9 +199,12 @@ const Dashboard = () => {
                   
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                        🚗
-                      </div>
+                      <div 
+                        className="w-16 h-16 rounded-lg bg-cover bg-center bg-no-repeat border-2 border-red-500/30"
+                        style={{
+                          backgroundImage: 'url("/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png")'
+                        }}
+                      ></div>
                       <div>
                         <div className="text-white font-semibold">FiveM RP City</div>
                         <div className="text-gray-400 text-sm">8GB RAM • 4 vCPU • US East</div>
