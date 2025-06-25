@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -104,15 +103,15 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Fantasy Forest Background */}
+      {/* Fantasy Sword Background - Updated to match rest of website */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2000&auto=format&fit=crop")',
+          backgroundImage: 'url("/lovable-uploads/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-blue-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-cyan-900/20"></div>
       </div>
       
       <div className="relative z-10">
@@ -122,7 +121,7 @@ const Support = () => {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <h1 className="text-5xl lg:text-6xl font-bold mb-6">
             <span className="text-white">Support</span>{' '}
-            <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
               Center
             </span>
           </h1>
@@ -135,7 +134,7 @@ const Support = () => {
 
         {/* FAQ Section */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8 mb-16">
+          <div className="glass-panel-strong rounded-xl p-8 mb-16">
             <div className="flex items-center mb-6">
               <HelpCircle className="text-emerald-400 mr-3" size={28} />
               <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
@@ -170,7 +169,7 @@ const Support = () => {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
+            <div className="glass-panel-strong rounded-xl p-8">
               <div className="flex items-center mb-6">
                 <MessageCircle className="text-emerald-400 mr-3" size={28} />
                 <h3 className="text-2xl font-bold text-white">Contact Support</h3>
@@ -234,7 +233,7 @@ const Support = () => {
                 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center"
+                  className="w-full btn-primary text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center"
                 >
                   <Send size={18} className="mr-2" />
                   Send Message
@@ -245,7 +244,7 @@ const Support = () => {
             {/* Response Times & Security */}
             <div className="space-y-8">
               {/* Response Times */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
+              <div className="glass-panel-strong rounded-xl p-8">
                 <div className="flex items-center mb-6">
                   <Clock className="text-emerald-400 mr-3" size={28} />
                   <h3 className="text-2xl font-bold text-white">Response Times</h3>
@@ -268,7 +267,7 @@ const Support = () => {
               </div>
 
               {/* Security Information */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
+              <div className="glass-panel-strong rounded-xl p-8">
                 <div className="flex items-center mb-6">
                   <Shield className="text-emerald-400 mr-3" size={28} />
                   <h3 className="text-2xl font-bold text-white">Security Information</h3>
