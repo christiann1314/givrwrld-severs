@@ -42,7 +42,7 @@ const GameExpansionPack = () => {
 
   const packageData = {
     name: 'Game Expansion Pack',
-    price: '$24.99/mo',
+    price: '$14.99/mo',
     features: benefits
   };
 
@@ -92,7 +92,7 @@ const GameExpansionPack = () => {
             <div className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-8 mb-12">
               <div className="text-center mb-8">
                 <div className="text-5xl font-bold text-white mb-2">
-                  $24.99
+                  $14.99
                   <span className="text-lg font-normal text-gray-400 ml-2">/month</span>
                 </div>
                 <div className="text-emerald-400 font-semibold mb-4">Advanced Gaming Package</div>
@@ -130,7 +130,7 @@ const GameExpansionPack = () => {
                   onClick={() => setIsPaymentModalOpen(true)}
                   className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-4 px-8 text-lg"
                 >
-                  Upgrade for $24.99/mo
+                  Upgrade for $14.99/mo
                 </Button>
               </div>
             </div>
