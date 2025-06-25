@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Updated neon green color palette
+				emerald: {
+					50: '#ecfdf5',
+					100: '#d1fae5',
+					200: '#a7f3d0',
+					300: '#6ee7b7',
+					400: '#00ff88', // Bright neon green
+					500: '#00e676', // Primary neon green
+					600: '#00d265',
+					700: '#00b454',
+					800: '#009644',
+					900: '#006b32',
+					950: '#003d1a'
 				}
 			},
 			borderRadius: {
