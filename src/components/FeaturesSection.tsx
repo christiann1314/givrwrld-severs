@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Shield, Headphones, Zap, Package, Gamepad2, Users } from 'lucide-react';
 
 const FeaturesSection = () => {
@@ -98,9 +99,9 @@ const FeaturesSection = () => {
           Launch your custom game server in minutes with our simple setup process. 
           High performance, low latency, and 24/7 support included.
         </p>
-        <button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
+        <Link to="/deploy" className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 inline-block">
           Deploy Your Server
-        </button>
+        </Link>
       </div>
     </section>
   );

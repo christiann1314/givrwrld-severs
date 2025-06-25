@@ -12,6 +12,7 @@ import About from "./pages/About";
 import Discord from "./pages/Discord";
 import Support from "./pages/Support";
 import FAQ from "./pages/FAQ";
+import Deploy from "./pages/Deploy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/discord" element={<Discord />} />
           <Route path="/support" element={<Support />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/deploy" element={<Deploy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

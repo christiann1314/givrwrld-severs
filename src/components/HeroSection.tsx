@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Play, ArrowRight, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import ServerCard from './ServerCard';
 
 const HeroSection = () => {
@@ -29,17 +30,17 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
+            <Link to="/deploy" className="group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
               <div className="flex items-center justify-center space-x-2">
                 <Play size={20} />
                 <span>Start Your Server</span>
                 <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
               </div>
-            </button>
+            </Link>
             
-            <button className="bg-gray-800/60 backdrop-blur-sm hover:bg-gray-700/60 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50">
+            <Link to="/about" className="bg-gray-800/60 backdrop-blur-sm hover:bg-gray-700/60 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50 text-center">
               Learn More
-            </button>
+            </Link>
           </div>
 
           {/* Server Stats */}
@@ -95,10 +96,10 @@ const HeroSection = () => {
 
           {/* Configure Server Bar */}
           <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-lg p-4 mt-6">
-            <button className="w-full flex items-center justify-between text-white hover:text-emerald-400 transition-colors group">
+            <Link to="/deploy" className="w-full flex items-center justify-between text-white hover:text-emerald-400 transition-colors group">
               <span className="font-medium">Configure Your Server</span>
               <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
