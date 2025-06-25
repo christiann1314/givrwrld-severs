@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -40,7 +41,7 @@ const Dashboard = () => {
   ];
 
   const quickActions = [
-    { title: "Order New Server", icon: Plus, color: "emerald", link: "/deploy" },
+    { title: "Order New Server", icon: Plus, color: "emerald", link: "/dashboard/order" },
     { title: "Create Support Ticket", icon: LifeBuoy, color: "gray", link: "/dashboard/support" },
     { title: "View Affiliate Program", icon: UserPlus, color: "purple", link: "/dashboard/affiliate" }
   ];
@@ -206,7 +207,7 @@ const Dashboard = () => {
                   <h2 className="text-xl font-bold text-white">Your Active Servers</h2>
                 </div>
                 <Link 
-                  to="/deploy"
+                  to="/dashboard/order"
                   className="btn-primary text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm"
                 >
                   <Plus size={16} className="mr-2" />
