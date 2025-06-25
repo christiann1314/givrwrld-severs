@@ -106,22 +106,17 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     return total;
   };
 
-  const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const multiplier = getBillingMultiplier();
-    const discount = getBillingDiscount();
-    const totalBeforeDiscount = subtotal * multiplier;
-    const discountAmount = totalBeforeDiscount * discount;
-    return (totalBeforeDiscount - discountAmount) / multiplier; // Return monthly equivalent for display
-  };
-
   const calculateActualTotal = () => {
     const subtotal = calculateSubtotal();
     const multiplier = getBillingMultiplier();
     const discount = getBillingDiscount();
     const totalBeforeDiscount = subtotal * multiplier;
     const discountAmount = totalBeforeDiscount * discount;
-    return totalBeforeDiscount - discountAmount; // Return actual total to be paid
+    return totalBeforeDiscount - discountAmount;
+  };
+
+  const calculateMonthlyEquivalent = () => {
+    return calculateActualTotal() / getBillingMultiplier();
   };
 
   const renderStepIndicator = () => (
@@ -362,8 +357,8 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               </div>
               <div className="text-gray-400 text-sm">
                 {billingPeriod === 'monthly' 
-                  ? `$${calculateTotal().toFixed(2)}/month` 
-                  : `$${calculateActualTotal().toFixed(2)} for ${getBillingMultiplier()} months ($${calculateTotal().toFixed(2)}/month effective)`
+                  ? `$${calculateMonthlyEquivalent().toFixed(2)}/month` 
+                  : `$${calculateMonthlyEquivalent().toFixed(2)}/month effective rate`
                 }
               </div>
             </div>
@@ -429,13 +424,18 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
             <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
               <div className="text-right mb-4">
                 <div className="text-3xl font-bold text-white">
-                  ${calculateTotal().toFixed(2)}
-                  <span className="text-lg font-normal text-gray-400">/mo</span>
+                  ${calculateActualTotal().toFixed(2)}
+                  {billingPeriod === 'monthly' && <span className="text-lg font-normal text-gray-400">/mo</span>}
                 </div>
                 <div className="text-gray-400 text-sm">
                   {billingPeriod !== 'monthly' && (
                     <div className="text-emerald-400">
                       Save ${(calculateSubtotal() * getBillingMultiplier() * getBillingDiscount()).toFixed(2)} with {billingOptions.find(opt => opt.value === billingPeriod)?.label} billing
+                    </div>
+                  )}
+                  {billingPeriod !== 'monthly' && (
+                    <div className="text-gray-400">
+                      ${calculateMonthlyEquivalent().toFixed(2)}/month effective rate
                     </div>
                   )}
                   Looking for a lifetime plan? Inquire now
@@ -477,14 +477,14 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Subtotal:</span>
-                  <span className="text-white">${calculateTotal().toFixed(2)}</span>
+                  <span className="text-white">${calculateSubtotal().toFixed(2)}</span>
                 </div>
                 <div className="border-t border-gray-600/50 pt-2">
                   <div className="flex justify-between">
                     <span className="text-white font-semibold">Total</span>
-                    <span className="text-emerald-400 font-bold">${calculateTotal().toFixed(2)}</span>
+                    <span className="text-emerald-400 font-bold">${calculateActualTotal().toFixed(2)}</span>
                   </div>
-                  <div className="text-gray-400 text-xs">${calculateTotal().toFixed(2)}/month effective rate</div>
+                  <div className="text-gray-400 text-xs">${calculateMonthlyEquivalent().toFixed(2)}/month effective rate</div>
                 </div>
               </div>
 

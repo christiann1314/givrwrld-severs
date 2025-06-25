@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Shield } from 'lucide-react';
 import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   serverName,
   location
 }) => {
+  const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardDetails, setCardDetails] = useState({
     name: '',
@@ -92,9 +94,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handlePurchase = () => {
-    // Simulate purchase completion
-    alert('Purchase completed successfully! Your server will be deployed shortly.');
+    // Simulate purchase completion and redirect to success page
     onClose();
+    navigate('/success');
   };
 
   return (
@@ -165,7 +167,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     <span className="text-white font-semibold">Total</span>
                     <span className="text-emerald-400 font-bold text-lg">${finalTotal.toFixed(2)}</span>
                   </div>
-                  <div className="text-gray-400 text-xs">${finalTotal.toFixed(2)} {multiplier > 1 ? `for ${multiplier} months` : 'monthly effective rate'}</div>
+                  <div className="text-gray-400 text-xs">${(finalTotal / multiplier).toFixed(2)}/month effective rate</div>
                 </div>
               </div>
             </div>
