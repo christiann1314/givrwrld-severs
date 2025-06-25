@@ -28,6 +28,10 @@ import GivrwrldEssentials from "./pages/GivrwrldEssentials";
 import GameExpansionPack from "./pages/GameExpansionPack";
 import CommunityPack from "./pages/CommunityPack";
 import PurchaseConfirmed from "./pages/PurchaseConfirmed";
+import Dashboard from "./pages/Dashboard";
+import DashboardSupport from "./pages/DashboardSupport";
+import DashboardAffiliate from "./pages/DashboardAffiliate";
+import DashboardOrder from "./pages/DashboardOrder";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +65,10 @@ const App = () => (
           <Route path="/upgrade/game-expansion-pack" element={<GameExpansionPack />} />
           <Route path="/upgrade/community-pack" element={<CommunityPack />} />
           <Route path="/purchase-confirmed" element={<PurchaseConfirmed />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/support" element={<DashboardSupport />} />
+          <Route path="/dashboard/affiliate" element={<DashboardAffiliate />} />
+          <Route path="/dashboard/order" element={<DashboardOrder />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
