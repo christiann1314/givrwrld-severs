@@ -1,4 +1,6 @@
-import React from 'react';
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
