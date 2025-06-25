@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -28,7 +27,8 @@ const Dashboard = () => {
       game: "Palworld",
       status: "Online",
       specs: "8GB RAM • 4 vCPU • US East",
-      icon: "🎮"
+      icon: "🎮",
+      gameIcon: "/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png" // Palworld game icon
     }
   ];
 
@@ -218,12 +218,31 @@ const Dashboard = () => {
                 {servers.map((server) => (
                   <div key={server.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center text-xl">
-                        {server.icon}
+                      <div className="relative">
+                        {server.gameIcon ? (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-emerald-500/50 bg-gray-800/50 flex items-center justify-center">
+                            <img 
+                              src={server.gameIcon} 
+                              alt={server.game}
+                              className="w-12 h-12 object-cover rounded-md"
+                              onError={(e) => {
+                                // Fallback to emoji if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.parentElement!.innerHTML = `<span class="text-2xl">${server.icon}</span>`;
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center text-2xl border-2 border-emerald-500/50">
+                            {server.icon}
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <h3 className="text-white font-semibold">{server.name}</h3>
-                        <p className="text-gray-400 text-sm">{server.specs}</p>
+                        <h3 className="text-white font-semibold text-lg">{server.name}</h3>
+                        <p className="text-gray-400 text-sm">{server.game}</p>
+                        <p className="text-gray-500 text-xs">{server.specs}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
