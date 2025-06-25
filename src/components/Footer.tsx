@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
@@ -26,17 +25,17 @@ const Footer = () => {
       links: [
         { name: "Help Center", path: "/support" },
         { name: "Discord Server", path: "/discord" },
-        { name: "Status Page", path: "#" },
+        { name: "Status Page", path: "/status" },
         { name: "FAQ", path: "/faq" }
       ]
     },
     {
       title: "Legal",
       links: [
-        { name: "Terms of Service", path: "#" },
-        { name: "Privacy Policy", path: "#" }, 
-        { name: "SLA", path: "#" },
-        { name: "Refund Policy", path: "#" }
+        { name: "Terms of Service", path: "/terms" },
+        { name: "Privacy Policy", path: "/privacy" }, 
+        { name: "SLA", path: "/sla" },
+        { name: "Refund Policy", path: "/refund" }
       ]
     }
   ];

@@ -19,6 +19,11 @@ import FiveMConfig from "./pages/FiveMConfig";
 import PalworldConfig from "./pages/PalworldConfig";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
+import Status from "./pages/Status";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import SLA from "./pages/SLA";
+import Refund from "./pages/Refund";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +48,11 @@ const App = () => (
           <Route path="/configure/minecraft" element={<MinecraftConfig />} />
           <Route path="/configure/fivem" element={<FiveMConfig />} />
           <Route path="/configure/palworld" element={<PalworldConfig />} />
+          <Route path="/status" element={<Status />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/sla" element={<SLA />} />
+          <Route path="/refund" element={<Refund />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
