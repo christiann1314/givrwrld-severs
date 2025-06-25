@@ -34,7 +34,7 @@ const DashboardOrder = () => {
     {
       name: 'Minecraft',
       description: 'Build, explore, survive',
-      image: '/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png',
+      image: '/lovable-uploads/4dfe2f3f-d550-4d2c-a88c-6e072277df93.png',
       features: [
         'Up to 10 players',
         'Ryzen 9 5950X CPU',
@@ -276,10 +276,10 @@ const DashboardOrder = () => {
             {activeTab === 'servers' && (
               <div className="grid lg:grid-cols-3 gap-8 mb-12">
                 {gameServers.map((server) => (
-                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden">
+                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border-2 border-gray-600/70 rounded-xl overflow-hidden shadow-lg">
                     {/* Server Header */}
                     <div 
-                      className="h-48 bg-cover bg-center relative"
+                      className="h-64 bg-cover bg-center relative border-b-2 border-gray-600/70"
                       style={{ backgroundImage: `url(${server.image})` }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
@@ -303,10 +303,10 @@ const DashboardOrder = () => {
                       {/* Pricing Plans */}
                       <div className="space-y-4">
                         {server.plans.map((plan, index) => (
-                          <div key={index} className={`border rounded-lg p-4 transition-all duration-200 ${
+                          <div key={index} className={`border-2 rounded-lg p-4 transition-all duration-200 ${
                             plan.recommended 
-                              ? 'border-emerald-500/50 bg-emerald-500/10' 
-                              : 'border-gray-600/50 bg-gray-700/30'
+                              ? 'border-emerald-500/60 bg-emerald-500/10' 
+                              : 'border-gray-600/60 bg-gray-700/30'
                           }`}>
                             <div className="flex justify-between items-center mb-2">
                               <div className="flex items-center space-x-2">
