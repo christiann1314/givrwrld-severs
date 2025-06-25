@@ -86,11 +86,11 @@ const DashboardSupport = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Fantasy Forest Background */}
+      {/* Fantasy Sword Background - Updated to match rest of website */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2000&auto=format&fit=crop")',
+          backgroundImage: 'url("/lovable-uploads/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
