@@ -276,10 +276,10 @@ const DashboardOrder = () => {
             {activeTab === 'servers' && (
               <div className="grid lg:grid-cols-3 gap-8 mb-12">
                 {gameServers.map((server) => (
-                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border-2 border-gray-600/70 rounded-xl overflow-hidden shadow-lg">
+                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border-4 border-gray-600/80 rounded-xl overflow-hidden shadow-xl">
                     {/* Server Header */}
                     <div 
-                      className="h-64 bg-cover bg-center relative border-b-2 border-gray-600/70"
+                      className="h-64 bg-cover bg-center relative border-b-4 border-gray-600/80"
                       style={{ backgroundImage: `url(${server.image})` }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
@@ -303,10 +303,10 @@ const DashboardOrder = () => {
                       {/* Pricing Plans */}
                       <div className="space-y-4">
                         {server.plans.map((plan, index) => (
-                          <div key={index} className={`border-2 rounded-lg p-4 transition-all duration-200 ${
+                          <div key={index} className={`border-3 rounded-lg p-4 transition-all duration-200 ${
                             plan.recommended 
-                              ? 'border-emerald-500/60 bg-emerald-500/10' 
-                              : 'border-gray-600/60 bg-gray-700/30'
+                              ? 'border-emerald-500/70 bg-emerald-500/10' 
+                              : 'border-gray-600/70 bg-gray-700/30'
                           }`}>
                             <div className="flex justify-between items-center mb-2">
                               <div className="flex items-center space-x-2">
