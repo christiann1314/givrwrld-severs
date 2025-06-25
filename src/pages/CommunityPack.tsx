@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import UpgradePaymentModal from '../components/UpgradePaymentModal';
 import { Button } from '../components/ui/button';
 import { Check, Users, Star, Heart, ArrowLeft } from 'lucide-react';
 
 const CommunityPack = () => {
   const navigate = useNavigate();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const features = [
     {
@@ -38,14 +40,10 @@ const CommunityPack = () => {
     "Direct developer feedback channel"
   ];
 
-  const handlePurchase = () => {
-    navigate('/purchase-confirmed', { 
-      state: { 
-        package: 'Community Pack',
-        price: '$4.99/mo',
-        features: benefits
-      }
-    });
+  const packageData = {
+    name: 'Community Pack',
+    price: '$4.99/mo',
+    features: benefits
   };
 
   return (
@@ -129,7 +127,7 @@ const CommunityPack = () => {
 
               <div className="text-center">
                 <Button
-                  onClick={handlePurchase}
+                  onClick={() => setIsPaymentModalOpen(true)}
                   className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-400 hover:to-pink-500 text-white font-semibold py-4 px-8 text-lg"
                 >
                   Join Community for $4.99/mo
@@ -178,6 +176,12 @@ const CommunityPack = () => {
 
         <Footer />
       </div>
+
+      <UpgradePaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        packageData={packageData}
+      />
     </div>
   );
 };

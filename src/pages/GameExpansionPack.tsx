@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import UpgradePaymentModal from '../components/UpgradePaymentModal';
 import { Button } from '../components/ui/button';
 import { Check, Gamepad2, Zap, Settings, ArrowLeft } from 'lucide-react';
 
 const GameExpansionPack = () => {
   const navigate = useNavigate();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const features = [
     {
@@ -54,14 +56,10 @@ const GameExpansionPack = () => {
     ]
   };
 
-  const handlePurchase = () => {
-    navigate('/purchase-confirmed', { 
-      state: { 
-        package: 'Game Expansion Pack',
-        price: '$14.99/mo',
-        features: whatYouGet
-      }
-    });
+  const packageData = {
+    name: 'Game Expansion Pack',
+    price: '$14.99/mo',
+    features: whatYouGet
   };
 
   return (
@@ -166,7 +164,7 @@ const GameExpansionPack = () => {
 
               <div className="text-center mb-8">
                 <Button
-                  onClick={handlePurchase}
+                  onClick={() => setIsPaymentModalOpen(true)}
                   className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 text-white font-semibold py-4 px-8 text-lg"
                 >
                   Add Minecraft Server for $14.99/mo
@@ -212,6 +210,12 @@ const GameExpansionPack = () => {
 
         <Footer />
       </div>
+
+      <UpgradePaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        packageData={packageData}
+      />
     </div>
   );
 };

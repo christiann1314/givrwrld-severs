@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import UpgradePaymentModal from '../components/UpgradePaymentModal';
 import { Button } from '../components/ui/button';
 import { Check, Shield, BarChart3, Users, ArrowLeft } from 'lucide-react';
 
 const GivrwrldEssentials = () => {
   const navigate = useNavigate();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const features = [
     {
@@ -43,14 +45,10 @@ const GivrwrldEssentials = () => {
     "Priority customer support"
   ];
 
-  const handlePurchase = () => {
-    navigate('/purchase-confirmed', { 
-      state: { 
-        package: 'GIVRwrld Essentials',
-        price: '$6.99/mo',
-        features: completeFeatures
-      }
-    });
+  const packageData = {
+    name: 'GIVRwrld Essentials',
+    price: '$6.99/mo',
+    features: completeFeatures
   };
 
   return (
@@ -139,7 +137,7 @@ const GivrwrldEssentials = () => {
 
               <div className="text-center">
                 <Button
-                  onClick={handlePurchase}
+                  onClick={() => setIsPaymentModalOpen(true)}
                   className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-4 px-8 text-lg"
                 >
                   Upgrade for $6.99/mo
@@ -188,6 +186,12 @@ const GivrwrldEssentials = () => {
 
         <Footer />
       </div>
+
+      <UpgradePaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        packageData={packageData}
+      />
     </div>
   );
 };

@@ -44,14 +44,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   location,
 }) => {
   const navigate = useNavigate();
-  const [paymentMethod, setPaymentMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardDetails, setCardDetails] = useState({
-    name: '',
-    number: '',
-    expiry: '',
-    cvv: ''
-  });
 
   if (!isOpen) return null;
 
@@ -93,6 +86,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     const totalBeforeDiscount = subtotal * multiplier;
     const discountAmount = totalBeforeDiscount * discount;
     return totalBeforeDiscount - discountAmount;
+  };
+
+  const handleCompletePurchase = async () => {
+    setIsProcessing(true);
+    
+    // Simulate payment processing
+    setTimeout(() => {
+      navigate('/success');
+      setIsProcessing(false);
+      onClose();
+    }, 2000);
   };
 
   return (
@@ -157,6 +161,31 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
           </div>
 
+          {/* Payment Method Selection */}
+          <div className="space-y-4">
+            <h4 className="text-white font-semibold">Payment Method</h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 bg-gray-700/50 rounded-lg border border-emerald-500 cursor-pointer">
+                <div className="text-center">
+                  <div className="text-emerald-400 font-semibold text-sm">Credit Card</div>
+                  <div className="text-xs text-gray-400 mt-1">Visa, Mastercard</div>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600 cursor-pointer hover:border-gray-500">
+                <div className="text-center">
+                  <div className="text-white font-semibold text-sm">PayPal</div>
+                  <div className="text-xs text-gray-400 mt-1">Secure payment</div>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600 cursor-pointer hover:border-gray-500">
+                <div className="text-center">
+                  <div className="text-white font-semibold text-sm">Crypto</div>
+                  <div className="text-xs text-gray-400 mt-1">Bitcoin, ETH</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Payment Form */}
           <div className="space-y-4">
             <h4 className="text-white font-semibold">Payment Information</h4>
@@ -192,13 +221,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               variant="outline"
               onClick={onClose}
               className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+              disabled={isProcessing}
             >
               Cancel
             </Button>
             <Button
+              onClick={handleCompletePurchase}
+              disabled={isProcessing}
               className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white"
             >
-              Complete Purchase
+              {isProcessing ? 'Processing...' : 'Complete Purchase'}
             </Button>
           </div>
         </div>
