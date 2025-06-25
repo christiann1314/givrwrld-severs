@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Switch } from './ui/switch';
+import PaymentModal from './PaymentModal';
 
 interface ServerConfiguratorProps {
   gameType: 'minecraft' | 'fivem' | 'palworld';
@@ -34,6 +34,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     advancedAnalytics: false,
     additionalStorage: false,
   });
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const steps = [
     { number: 1, title: 'Configure', completed: currentStep > 1 },
@@ -47,10 +48,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   ];
 
   const billingOptions = [
-    { value: 'monthly', label: 'Monthly', discount: 'No commitment' },
-    { value: '3months', label: '3 Months', discount: '3 months upfront saved' },
-    { value: '6months', label: '6 Months', discount: '6 months upfront saved', popular: true },
-    { value: '12months', label: '12 Months', discount: '12 months upfront saved' },
+    { value: 'monthly', label: 'Monthly', discount: 'No commitment', discountPercent: 0 },
+    { value: '3months', label: '3 Months', discount: '5% discount', discountPercent: 5 },
+    { value: '6months', label: '6 Months', discount: '10% discount', discountPercent: 10, popular: true },
+    { value: '12months', label: '12 Months', discount: '20% discount', discountPercent: 20 },
   ];
 
   const addOnOptions = [
@@ -80,7 +81,21 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     },
   ];
 
-  const calculateTotal = () => {
+  const getBillingMultiplier = () => {
+    switch (billingPeriod) {
+      case '3months': return 3;
+      case '6months': return 6;
+      case '12months': return 12;
+      default: return 1;
+    }
+  };
+
+  const getBillingDiscount = () => {
+    const option = billingOptions.find(opt => opt.value === billingPeriod);
+    return option ? option.discountPercent / 100 : 0;
+  };
+
+  const calculateSubtotal = () => {
     let total = selectedPlan.price;
     Object.entries(addOns).forEach(([key, enabled]) => {
       if (enabled) {
@@ -88,7 +103,25 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         if (addOn) total += addOn.price;
       }
     });
-    return total.toFixed(2);
+    return total;
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const multiplier = getBillingMultiplier();
+    const discount = getBillingDiscount();
+    const totalBeforeDiscount = subtotal * multiplier;
+    const discountAmount = totalBeforeDiscount * discount;
+    return (totalBeforeDiscount - discountAmount) / multiplier; // Return monthly equivalent for display
+  };
+
+  const calculateActualTotal = () => {
+    const subtotal = calculateSubtotal();
+    const multiplier = getBillingMultiplier();
+    const discount = getBillingDiscount();
+    const totalBeforeDiscount = subtotal * multiplier;
+    const discountAmount = totalBeforeDiscount * discount;
+    return totalBeforeDiscount - discountAmount; // Return actual total to be paid
   };
 
   const renderStepIndicator = () => (
@@ -183,7 +216,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 </div>
               )}
               <div className="text-white font-semibold">{option.label}</div>
-              <div className="text-gray-400 text-xs">{option.discount}</div>
+              <div className="text-emerald-400 text-xs">{option.discount}</div>
             </div>
           ))}
         </div>
@@ -309,29 +342,30 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
           <h5 className="text-white font-semibold mb-4">Billing Summary</h5>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-400">Server Resources</span>
-              <span className="text-white">${selectedPlan.price.toFixed(2)}/month</span>
+              <span className="text-gray-400">Server Resources ({billingOptions.find(opt => opt.value === billingPeriod)?.label})</span>
+              <span className="text-white">${(calculateSubtotal() * getBillingMultiplier()).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Billing Period</span>
-              <span className="text-white">1 month</span>
+              <span className="text-white">{billingOptions.find(opt => opt.value === billingPeriod)?.label}</span>
             </div>
-            {Object.entries(addOns).map(([key, enabled]) => {
-              if (!enabled) return null;
-              const addOn = addOnOptions.find(option => option.key === key);
-              return (
-                <div key={key} className="flex justify-between">
-                  <span className="text-gray-400">{addOn?.name}</span>
-                  <span className="text-white">+${addOn?.price.toFixed(2)}/month</span>
-                </div>
-              );
-            })}
+            {getBillingDiscount() > 0 && (
+              <div className="flex justify-between text-emerald-400">
+                <span>Discount ({(getBillingDiscount() * 100).toFixed(0)}%)</span>
+                <span>-${(calculateSubtotal() * getBillingMultiplier() * getBillingDiscount()).toFixed(2)}</span>
+              </div>
+            )}
             <div className="border-t border-gray-600/50 pt-2 mt-4">
               <div className="flex justify-between">
                 <span className="text-white font-semibold">Total</span>
-                <span className="text-emerald-400 font-bold text-xl">${calculateTotal()}</span>
+                <span className="text-emerald-400 font-bold text-xl">${calculateActualTotal().toFixed(2)}</span>
               </div>
-              <div className="text-gray-400 text-sm">Effective rate: ${calculateTotal()}/month</div>
+              <div className="text-gray-400 text-sm">
+                {billingPeriod === 'monthly' 
+                  ? `$${calculateTotal().toFixed(2)}/month` 
+                  : `$${calculateActualTotal().toFixed(2)} for ${getBillingMultiplier()} months ($${calculateTotal().toFixed(2)}/month effective)`
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -378,97 +412,125 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   );
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {renderStepIndicator()}
-      
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
-            {currentStep === 1 && renderConfigureStep()}
-            {currentStep === 2 && renderPlanStep()}
-            {currentStep === 3 && renderReviewStep()}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <div className="text-right mb-4">
-              <div className="text-3xl font-bold text-white">
-                ${calculateTotal()}
-                <span className="text-lg font-normal text-gray-400">/mo</span>
-              </div>
-              <div className="text-gray-400 text-sm">Looking for a lifetime plan? Inquire now</div>
+    <>
+      <div className="max-w-4xl mx-auto">
+        {renderStepIndicator()}
+        
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
+              {currentStep === 1 && renderConfigureStep()}
+              {currentStep === 2 && renderPlanStep()}
+              {currentStep === 3 && renderReviewStep()}
             </div>
+          </div>
 
-            <Button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 mb-4">
-              {currentStep === 3 ? 'Deploy Server' : `Select The ${selectedPlan.ram} Plan`}
-            </Button>
-
-            <div className="space-y-3 text-sm">
-              <h6 className="text-white font-semibold">Server Configuration</h6>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Game:</span>
-                <span className="text-white">{gameData.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">RAM:</span>
-                <span className="text-white">{selectedPlan.ram}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">CPU:</span>
-                <span className="text-white">Ryzen 9 5950X</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Storage:</span>
-                <span className="text-white">75 GB NVMe SSD</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Duration:</span>
-                <span className="text-white">1 month</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Subtotal:</span>
-                <span className="text-white">${calculateTotal()}</span>
-              </div>
-              <div className="border-t border-gray-600/50 pt-2">
-                <div className="flex justify-between">
-                  <span className="text-white font-semibold">Total</span>
-                  <span className="text-emerald-400 font-bold">${calculateTotal()}</span>
+          <div className="space-y-6">
+            <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+              <div className="text-right mb-4">
+                <div className="text-3xl font-bold text-white">
+                  ${calculateTotal().toFixed(2)}
+                  <span className="text-lg font-normal text-gray-400">/mo</span>
                 </div>
-                <div className="text-gray-400 text-xs">${calculateTotal()}/month effective rate</div>
+                <div className="text-gray-400 text-sm">
+                  {billingPeriod !== 'monthly' && (
+                    <div className="text-emerald-400">
+                      Save ${(calculateSubtotal() * getBillingMultiplier() * getBillingDiscount()).toFixed(2)} with {billingOptions.find(opt => opt.value === billingPeriod)?.label} billing
+                    </div>
+                  )}
+                  Looking for a lifetime plan? Inquire now
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => {
+                  if (currentStep === 3) {
+                    setIsPaymentModalOpen(true);
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 mb-4"
+              >
+                {currentStep === 3 ? 'Deploy Server' : `Select The ${selectedPlan.ram} Plan`}
+              </Button>
+
+              <div className="space-y-3 text-sm">
+                <h6 className="text-white font-semibold">Server Configuration</h6>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Game:</span>
+                  <span className="text-white">{gameData.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">RAM:</span>
+                  <span className="text-white">{selectedPlan.ram}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">CPU:</span>
+                  <span className="text-white">Ryzen 9 5950X</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Storage:</span>
+                  <span className="text-white">75 GB NVMe SSD</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Duration:</span>
+                  <span className="text-white">{billingOptions.find(opt => opt.value === billingPeriod)?.label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Subtotal:</span>
+                  <span className="text-white">${calculateTotal().toFixed(2)}</span>
+                </div>
+                <div className="border-t border-gray-600/50 pt-2">
+                  <div className="flex justify-between">
+                    <span className="text-white font-semibold">Total</span>
+                    <span className="text-emerald-400 font-bold">${calculateTotal().toFixed(2)}</span>
+                  </div>
+                  <div className="text-gray-400 text-xs">${calculateTotal().toFixed(2)}/month effective rate</div>
+                </div>
+              </div>
+
+              <div className="flex items-center mt-4 text-xs text-gray-400">
+                <span className="mr-2">🔒</span>
+                Secure payment processing
               </div>
             </div>
 
-            <div className="flex items-center mt-4 text-xs text-gray-400">
-              <span className="mr-2">🔒</span>
-              Secure payment processing
+            <div className="flex justify-between">
+              {currentStep > 1 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft size={16} />
+                  <span>Previous</span>
+                </Button>
+              )}
+              {currentStep < 3 && (
+                <Button
+                  onClick={() => setCurrentStep(currentStep + 1)}
+                  className="flex items-center space-x-2 ml-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500"
+                >
+                  <span>Next</span>
+                  <ArrowRight size={16} />
+                </Button>
+              )}
             </div>
-          </div>
-
-          <div className="flex justify-between">
-            {currentStep > 1 && (
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(currentStep - 1)}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft size={16} />
-                <span>Previous</span>
-              </Button>
-            )}
-            {currentStep < 3 && (
-              <Button
-                onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex items-center space-x-2 ml-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500"
-              >
-                <span>Next</span>
-                <ArrowRight size={16} />
-              </Button>
-            )}
           </div>
         </div>
       </div>
-    </div>
+
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        gameData={gameData}
+        selectedPlan={selectedPlan}
+        billingPeriod={billingPeriod}
+        addOns={addOns}
+        addOnOptions={addOnOptions}
+        serverName={serverName}
+        location={location}
+      />
+    </>
   );
 };
 
