@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -30,7 +31,7 @@ const DashboardServices = () => {
       id: 'server-1',
       name: 'Palworld HQ',
       game: 'Palworld',
-      icon: '🎮',
+      icon: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
       status: 'online',
       players: '6/8',
       uptime: '72.5 hours',
@@ -46,7 +47,7 @@ const DashboardServices = () => {
       id: 'server-2',
       name: 'FiveM RP City',
       game: 'FiveM',
-      icon: '🚗',
+      icon: '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
       status: 'suspended',
       players: '0/32',
       uptime: '0 hours',
@@ -121,8 +122,12 @@ const DashboardServices = () => {
                 <div className="p-6 border-b border-gray-600/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-xl flex items-center justify-center text-2xl">
-                        {server.icon}
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-xl flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={server.icon} 
+                          alt={server.game} 
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">{server.name}</h3>
