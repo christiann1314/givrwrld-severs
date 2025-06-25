@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LogIn, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -45,9 +44,11 @@ const Login = () => {
         <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/30 rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">G</span>
-              </div>
+              <img 
+                src="/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png"
+                alt="GIVRwrld"
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-2xl font-bold text-white">GIVRwrld</span>
             </div>
             <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
