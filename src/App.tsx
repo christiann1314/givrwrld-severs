@@ -32,6 +32,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardSupport from "./pages/DashboardSupport";
 import DashboardAffiliate from "./pages/DashboardAffiliate";
 import DashboardOrder from "./pages/DashboardOrder";
+import DashboardServices from "./pages/DashboardServices";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/dashboard/support" element={<ProtectedRoute><DashboardSupport /></ProtectedRoute>} />
           <Route path="/dashboard/affiliate" element={<ProtectedRoute><DashboardAffiliate /></ProtectedRoute>} />
           <Route path="/dashboard/order" element={<ProtectedRoute><DashboardOrder /></ProtectedRoute>} />
+          <Route path="/dashboard/services" element={<ProtectedRoute><DashboardServices /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
