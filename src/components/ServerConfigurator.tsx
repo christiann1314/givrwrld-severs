@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { Button } from './ui/button';
@@ -494,14 +495,13 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               </div>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-3">
               {currentStep > 1 && (
                 <Button
-                  variant="outline"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold px-6 py-3 shadow-lg border border-blue-500/50"
                 >
-                  <ArrowLeft size={16} />
+                  <ArrowLeft size={18} />
                   <span>Previous</span>
                 </Button>
               )}
