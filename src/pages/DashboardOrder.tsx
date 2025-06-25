@@ -17,9 +17,12 @@ import {
   Check
 } from 'lucide-react';
 import { Switch } from '../components/ui/switch';
+import UpgradePaymentModal from '../components/UpgradePaymentModal';
 
 const DashboardOrder = () => {
   const [activeTab, setActiveTab] = useState('servers');
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   const sidebarItems = [
     { name: "Overview", icon: BarChart3, link: "/dashboard", active: false },
@@ -183,30 +186,54 @@ const DashboardOrder = () => {
     {
       id: 'automatic-backups',
       name: 'Automatic Backups',
-      price: '+$2.99/month',
+      price: '$2.99/month',
       description: 'Daily backups with 7-day retention to prevent data loss.',
-      enabled: false
+      enabled: false,
+      features: [
+        'Daily automatic backups',
+        '7-day retention period',
+        'One-click restore',
+        'Data loss prevention'
+      ]
     },
     {
       id: 'discord-integration',
       name: 'Discord Integration',
-      price: '+$1.49/month',
+      price: '$1.49/month',
       description: 'Sync server status and chat with your Discord.',
-      enabled: false
+      enabled: false,
+      features: [
+        'Server status sync',
+        'Chat bridge',
+        'Player notifications',
+        'Admin commands'
+      ]
     },
     {
       id: 'advanced-analytics',
       name: 'Advanced Analytics',
-      price: '+$3.99/month',
+      price: '$3.99/month',
       description: 'Real-time player activity, mod/resource usage, and crash stats.',
-      enabled: false
+      enabled: false,
+      features: [
+        'Real-time player tracking',
+        'Resource usage monitoring',
+        'Crash reporting',
+        'Performance insights'
+      ]
     },
     {
       id: 'additional-ssd',
       name: 'Additional SSD Storage',
-      price: '+$2.5/month',
+      price: '$2.50/month',
       description: 'Expand your NVMe storage incrementally for more world files or modpacks. (+50 GB per addon)',
-      enabled: false
+      enabled: false,
+      features: [
+        '+50 GB NVMe storage',
+        'High-speed access',
+        'Expandable storage',
+        'World file backup'
+      ]
     }
   ];
 
@@ -214,6 +241,15 @@ const DashboardOrder = () => {
     { id: 'servers', label: 'Game Servers', icon: Server },
     { id: 'upgrades', label: 'Upgrades & Add-ons', icon: Zap }
   ];
+
+  const handlePurchaseAddon = (addon) => {
+    setSelectedPackage({
+      name: addon.name,
+      price: addon.price,
+      features: addon.features
+    });
+    setPaymentModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
@@ -423,12 +459,25 @@ const DashboardOrder = () => {
                           <div className="flex-1">
                             <h4 className="text-xl font-bold text-white mb-2">{addon.name}</h4>
                             <p className="text-gray-300 text-sm mb-3">{addon.description}</p>
-                            <div className="text-emerald-400 font-bold text-lg">{addon.price}</div>
-                          </div>
-                          <div className="ml-4">
-                            <Switch />
+                            <div className="text-emerald-400 font-bold text-lg mb-4">{addon.price}</div>
                           </div>
                         </div>
+                        
+                        <div className="space-y-2 mb-6">
+                          {addon.features.map((feature, index) => (
+                            <div key={index} className="flex items-center text-gray-300 text-sm">
+                              <Check size={14} className="text-emerald-400 mr-2 flex-shrink-0" />
+                              <span>{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => handlePurchaseAddon(addon)}
+                          className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300"
+                        >
+                          Purchase Add-on
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -440,6 +489,18 @@ const DashboardOrder = () => {
 
         <Footer />
       </div>
+
+      {/* Payment Modal */}
+      {selectedPackage && (
+        <UpgradePaymentModal
+          isOpen={paymentModalOpen}
+          onClose={() => {
+            setPaymentModalOpen(false);
+            setSelectedPackage(null);
+          }}
+          packageData={selectedPackage}
+        />
+      )}
     </div>
   );
 };
