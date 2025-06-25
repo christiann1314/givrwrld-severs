@@ -8,8 +8,8 @@ import { Link } from 'react-router-dom';
 const PalworldConfig = () => {
   const palworldData = {
     name: 'Palworld',
-    icon: <img src="/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Palworld" className="w-8 h-8 rounded" />,
-    basePrice: 15.40,
+    icon: <img src="/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Palworld" className="w-8 h-8 rounded" />,
+    basePrice: 12.00,
     features: [
       '99.9% uptime SLA',
       'Anti-DDoS Game protection',
@@ -18,11 +18,9 @@ const PalworldConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '6GB', price: 15.40, description: 'Great for co-op sessions and early exploration' },
-      { ram: '8GB', price: 20.40, description: 'Perfect for small groups and base building' },
-      { ram: '10GB', price: 25.40, description: 'Ideal for medium communities' },
-      { ram: '12GB', price: 30.40, description: 'Best for large communities with extensive building' },
-      { ram: '16GB', price: 40.40, description: 'Premium performance for massive worlds' },
+      { ram: '4GB', price: 12.00, description: 'Small co-op sessions (2-4 players)' },
+      { ram: '8GB', price: 24.00, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
+      { ram: '16GB', price: 48.00, description: 'Large dedicated servers (32+ players)' },
     ]
   };
 
@@ -59,11 +57,6 @@ const PalworldConfig = () => {
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Customize your server settings to match your gaming needs
             </p>
-            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg max-w-md mx-auto">
-              <p className="text-yellow-400 text-sm">
-                ⚠️ Xbox Game Pass not supported. For best performance, choose 8GB or higher plans.
-              </p>
-            </div>
           </div>
 
           <ServerConfigurator gameType="palworld" gameData={palworldData} />

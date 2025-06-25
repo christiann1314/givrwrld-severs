@@ -1,48 +1,55 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import {
-  User,
-  Settings,
-  HelpCircle,
+import { 
+  Server, 
+  CreditCard, 
+  Settings, 
+  LifeBuoy, 
+  TrendingUp, 
   Users,
-  ShoppingCart,
-  Server,
-  CreditCard,
-  FileText,
-  BarChart3,
-  Bell,
-  Calendar,
-  Activity
+  Activity,
+  Clock,
+  Plus,
+  ChevronRight
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const servers = [
+    {
+      id: 1,
+      name: "Minecraft Creative Server",
+      game: "Minecraft",
+      status: "Running",
+      players: "12/50",
+      uptime: "99.9%",
+      plan: "4GB RAM"
+    },
+    {
+      id: 2,
+      name: "FiveM Roleplay",
+      game: "FiveM",
+      status: "Running",
+      players: "24/32",
+      uptime: "99.8%",
+      plan: "8GB RAM"
+    }
+  ];
 
-  const navigationItems = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'services', label: 'My Services', icon: Server },
-    { id: 'billing', label: 'Billing', icon: CreditCard },
-    { id: 'support', label: 'Support', icon: HelpCircle },
-    { id: 'affiliate', label: 'Affiliate', icon: Users },
-    { id: 'order', label: 'Order Services', icon: ShoppingCart },
-    { id: 'settings', label: 'Settings', icon: Settings }
+  const quickActions = [
+    { icon: Server, title: "Deploy New Server", link: "/deploy", color: "emerald" },
+    { icon: CreditCard, title: "Billing & Payments", link: "/dashboard/billing", color: "blue" },
+    { icon: LifeBuoy, title: "Support Center", link: "/dashboard/support", color: "purple" },
+    { icon: Settings, title: "Account Settings", link: "/dashboard/settings", color: "gray" }
   ];
 
   const stats = [
-    { label: 'Active Servers', value: '2', icon: Server, color: 'text-emerald-400' },
-    { label: 'Total Spent', value: '$49.98', icon: CreditCard, color: 'text-blue-400' },
-    { label: 'Support Tickets', value: '0', icon: HelpCircle, color: 'text-purple-400' },
-    { label: 'Referrals', value: '3', icon: Users, color: 'text-pink-400' }
-  ];
-
-  const recentActivity = [
-    { type: 'Server Started', description: 'Palworld HQ server was started', time: '2 hours ago', color: 'text-emerald-400' },
-    { type: 'Payment Processed', description: 'Monthly billing for $29.99', time: '1 day ago', color: 'text-blue-400' },
-    { type: 'Backup Created', description: 'Automatic backup completed', time: '2 days ago', color: 'text-purple-400' },
-    { type: 'Server Upgraded', description: 'RAM upgraded to 8GB', time: '1 week ago', color: 'text-emerald-400' }
+    { label: "Total Servers", value: "2", icon: Server },
+    { label: "Active Players", value: "36", icon: Users },
+    { label: "Uptime", value: "99.9%", icon: Activity },
+    { label: "Support Tickets", value: "1", icon: LifeBuoy }
   ];
 
   return (
@@ -64,163 +71,108 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-3xl font-bold mb-2">
               <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                Welcome back, Christian
+                Welcome back, Player!
               </span>
             </h1>
-            <p className="text-gray-300">Manage your servers, billing, and account settings</p>
+            <p className="text-gray-300">Manage your servers and account from your dashboard</p>
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Sidebar Navigation */}
-            <div className="lg:col-span-1">
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-4 sticky top-4">
-                <nav className="space-y-2">
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.id}
-                        to={item.id === 'overview' ? '/dashboard' : `/dashboard/${item.id}`}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                          activeTab === item.id
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-                        }`}
-                        onClick={() => setActiveTab(item.id)}
-                      >
-                        <Icon size={20} />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <stat.icon className="text-emerald-400" size={24} />
+                  <span className="text-2xl font-bold text-white">{stat.value}</span>
+                </div>
+                <p className="text-gray-400 text-sm">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Servers */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Your Servers</h2>
+                  <Link 
+                    to="/deploy"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center text-sm"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    New Server
+                  </Link>
+                </div>
+                
+                <div className="space-y-4">
+                  {servers.map((server) => (
+                    <div key={server.id} className="bg-gray-700/50 border border-gray-600/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-white font-semibold">{server.name}</h3>
+                          <p className="text-gray-400 text-sm">{server.game} • {server.plan}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                            {server.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Players: </span>
+                          <span className="text-white">{server.players}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Uptime: </span>
+                          <span className="text-white">{server.uptime}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={index} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6 text-center">
-                      <Icon className={`mx-auto mb-3 ${stat.color}`} size={32} />
-                      <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                      <div className="text-sm text-gray-400">{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Quick Actions */}
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                    <Activity className="mr-2 text-emerald-400" size={24} />
-                    Quick Actions
-                  </h3>
-                  <div className="space-y-3">
+            {/* Quick Actions */}
+            <div>
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6 mb-6">
+                <h2 className="text-xl font-bold text-white mb-6">Quick Actions</h2>
+                <div className="space-y-3">
+                  {quickActions.map((action, index) => (
                     <Link
-                      to="/dashboard/order"
-                      className="block w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 text-center"
+                      key={index}
+                      to={action.link}
+                      className="flex items-center justify-between p-3 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
                     >
-                      🎮 Order New Server
-                    </Link>
-                    <Link
-                      to="/dashboard/support"
-                      className="block w-full bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center"
-                    >
-                      💬 Create Support Ticket
-                    </Link>
-                    <Link
-                      to="/dashboard/affiliate"
-                      className="block w-full bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-3 px-4 rounded-lg transition-colors text-center"
-                    >
-                      👥 View Affiliate Program
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                    <Bell className="mr-2 text-blue-400" size={24} />
-                    Recent Activity
-                  </h3>
-                  <div className="space-y-3">
-                    {recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-start space-x-3 p-3 bg-gray-700/30 rounded-lg">
-                        <div className={`w-2 h-2 rounded-full ${activity.color.replace('text-', 'bg-')} mt-2`}></div>
-                        <div className="flex-1">
-                          <div className="text-white font-medium text-sm">{activity.type}</div>
-                          <div className="text-gray-400 text-xs">{activity.description}</div>
-                          <div className="text-gray-500 text-xs mt-1">{activity.time}</div>
-                        </div>
+                      <div className="flex items-center space-x-3">
+                        <action.icon className="text-emerald-400" size={20} />
+                        <span className="text-white">{action.title}</span>
                       </div>
-                    ))}
-                  </div>
+                      <ChevronRight className="text-gray-400 group-hover:text-white transition-colors" size={16} />
+                    </Link>
+                  ))}
                 </div>
               </div>
 
-              {/* Server Status */}
+              {/* Account Status */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                  <Server className="mr-2 text-emerald-400" size={24} />
-                  Your Active Servers
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div 
-                        className="w-16 h-16 rounded-lg bg-cover bg-center bg-no-repeat border-2 border-emerald-500/30"
-                        style={{
-                          backgroundImage: 'url("/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png")'
-                        }}
-                      ></div>
-                      <div>
-                        <div className="text-white font-semibold">Palworld HQ</div>
-                        <div className="text-gray-400 text-sm">8GB RAM • 4 vCPU • US East</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
-                        Online
-                      </span>
-                      <Link
-                        to="/dashboard/services"
-                        className="text-emerald-400 hover:text-emerald-300 text-sm font-medium"
-                      >
-                        Manage
-                      </Link>
-                    </div>
+                <h2 className="text-xl font-bold text-white mb-4">Account Status</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Plan:</span>
+                    <span className="text-white">Professional</span>
                   </div>
-                  
-                  <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div 
-                        className="w-16 h-16 rounded-lg bg-cover bg-center bg-no-repeat border-2 border-red-500/30"
-                        style={{
-                          backgroundImage: 'url("/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png")'
-                        }}
-                      ></div>
-                      <div>
-                        <div className="text-white font-semibold">FiveM RP City</div>
-                        <div className="text-gray-400 text-sm">8GB RAM • 4 vCPU • US East</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
-                        Suspended
-                      </span>
-                      <Link
-                        to="/dashboard/services"
-                        className="text-emerald-400 hover:text-emerald-300 text-sm font-medium"
-                      >
-                        Manage
-                      </Link>
-                    </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Next Billing:</span>
+                    <span className="text-white">Jan 15, 2024</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Balance:</span>
+                    <span className="text-emerald-400">$25.00</span>
                   </div>
                 </div>
               </div>

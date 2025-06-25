@@ -8,8 +8,8 @@ import { Link } from 'react-router-dom';
 const MinecraftConfig = () => {
   const minecraftData = {
     name: 'Minecraft',
-    icon: <img src="/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Minecraft" className="w-8 h-8 rounded" />,
-    basePrice: 6.99,
+    icon: <img src="/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Minecraft" className="w-8 h-8 rounded" />,
+    basePrice: 3.50,
     features: [
       '99.9% uptime SLA',
       'Anti-DDoS Game protection',
@@ -18,14 +18,10 @@ const MinecraftConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '2GB', price: 6.99, description: 'Great for vanilla survival or light creative' },
-      { ram: '4GB', price: 12.99, description: 'Perfect for modded servers and small communities' },
-      { ram: '6GB', price: 18.99, description: 'Ideal for heavily modded servers' },
-      { ram: '8GB', price: 24.99, description: 'Best for large communities and complex modpacks' },
-      { ram: '10GB', price: 30.99, description: 'Premium performance for demanding setups' },
-      { ram: '12GB', price: 36.99, description: 'Maximum performance for large-scale servers' },
-      { ram: '14GB', price: 42.99, description: 'Enterprise-level hosting solution' },
-      { ram: '16GB', price: 48.99, description: 'Ultimate performance for massive communities' },
+      { ram: '1GB', price: 3.50, description: 'Perfect for small groups and testing' },
+      { ram: '2GB', price: 7.00, description: 'Great for friends and small communities' },
+      { ram: '4GB', price: 14.00, description: 'Ideal for medium-sized servers with mods', recommended: true },
+      { ram: '8GB', price: 28.00, description: 'Perfect for large communities and heavy modpacks' },
     ]
   };
 
