@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -308,10 +309,10 @@ const DashboardOrder = () => {
             {activeTab === 'servers' && (
               <div className="grid lg:grid-cols-3 gap-8 mb-12">
                 {gameServers.map((server) => (
-                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border-4 border-gray-600/80 rounded-xl overflow-hidden shadow-xl">
+                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border-8 border-gray-600/80 rounded-xl overflow-hidden shadow-xl">
                     {/* Server Header */}
                     <div 
-                      className="h-64 bg-cover bg-center relative border-b-4 border-gray-600/80"
+                      className="h-64 bg-cover bg-center relative border-b-8 border-gray-600/80"
                       style={{ backgroundImage: `url(${server.image})` }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
@@ -335,7 +336,7 @@ const DashboardOrder = () => {
                       {/* Pricing Plans */}
                       <div className="space-y-4">
                         {server.plans.map((plan, index) => (
-                          <div key={index} className={`border-3 rounded-lg p-4 transition-all duration-200 ${
+                          <div key={index} className={`border-6 rounded-lg p-4 transition-all duration-200 ${
                             plan.recommended 
                               ? 'border-emerald-500/70 bg-emerald-500/10' 
                               : 'border-gray-600/70 bg-gray-700/30'
