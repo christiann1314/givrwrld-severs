@@ -69,7 +69,7 @@ const HeroSection = () => {
         <div className="space-y-6">
           <ServerCard
             game="Minecraft"
-            icon="🎮"
+            icon={<img src="/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Minecraft" className="w-8 h-8 rounded" />}
             title="Minecraft Server"
             description="Unlimited creativity"
             price="$6.99"

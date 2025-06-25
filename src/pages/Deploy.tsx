@@ -10,7 +10,7 @@ const Deploy = () => {
       id: 'minecraft',
       name: 'Minecraft',
       subtitle: 'Build, explore, survive',
-      image: '/lovable-uploads/15be664c-b249-4de1-bac0-3bb10b545fab.png',
+      image: '/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png',
       features: [
         'Up to 10',
         'Ryzen 9 5950X CPU',
