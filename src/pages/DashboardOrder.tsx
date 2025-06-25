@@ -39,6 +39,7 @@ const DashboardOrder = () => {
       name: 'Minecraft',
       description: 'Build, explore, survive',
       image: '/lovable-uploads/4dfe2f3f-d550-4d2c-a88c-6e072277df93.png',
+      configPath: '/configure/minecraft',
       features: [
         'Up to 10 players',
         'Ryzen 9 5950X CPU',
@@ -54,7 +55,7 @@ const DashboardOrder = () => {
         },
         {
           ram: '4GB',
-          price: '$12.99/mp',
+          price: '$12.99/mo',
           description: 'Great for medium servers',
           recommended: true
         },
@@ -70,6 +71,7 @@ const DashboardOrder = () => {
       name: 'FiveM',
       description: 'GTA roleplay server',
       image: '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
+      configPath: '/configure/fivem',
       features: [
         'Up to 32 players',
         'Ryzen 9 5950X CPU',
@@ -101,6 +103,7 @@ const DashboardOrder = () => {
       name: 'Palworld',
       description: 'Creature collection survival',
       image: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+      configPath: '/configure/palworld',
       features: [
         'Up to 8 players',
         'Ryzen 9 5950X CPU',
@@ -388,9 +391,12 @@ const DashboardOrder = () => {
                               <span className="font-bold text-white">{plan.price}</span>
                             </div>
                             <p className="text-gray-400 text-xs mb-3">{plan.description}</p>
-                            <button className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                            <Link 
+                              to={server.configPath}
+                              className="block w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 text-center"
+                            >
                               Deploy Server
-                            </button>
+                            </Link>
                           </div>
                         ))}
                       </div>
