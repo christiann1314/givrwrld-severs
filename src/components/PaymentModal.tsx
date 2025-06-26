@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { useAuth } from '../hooks/useAuth';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   location,
 }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('credit-card');
   const [paypalEmail, setPaypalEmail] = useState('');
@@ -97,6 +99,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleCompletePurchase = async () => {
+    // Check if user is authenticated before processing payment
+    if (!isAuthenticated) {
+      navigate('/signup', { 
+        state: { 
+          returnTo: window.location.pathname,
+          message: 'Please create an account to complete your purchase'
+        }
+      });
+      onClose();
+      return;
+    }
+
     setIsProcessing(true);
     
     // Simulate payment processing
@@ -222,6 +236,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Authentication Notice */}
+          {!isAuthenticated && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-black text-xs font-bold">!</span>
+                </div>
+                <h4 className="text-yellow-400 font-semibold">Account Required</h4>
+              </div>
+              <p className="text-yellow-300 text-sm">
+                You'll need to create an account to complete your purchase. Click "Complete Purchase" to sign up.
+              </p>
+            </div>
+          )}
+
           {/* Server Summary */}
           <div className="bg-gray-700/50 rounded-lg p-4">
             <div className="flex items-center space-x-3 mb-4">
@@ -349,7 +378,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               disabled={isProcessing}
               className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white"
             >
-              {isProcessing ? 'Processing...' : 'Complete Purchase'}
+              {isProcessing ? 'Processing...' : !isAuthenticated ? 'Sign Up to Purchase' : 'Complete Purchase'}
             </Button>
           </div>
         </div>

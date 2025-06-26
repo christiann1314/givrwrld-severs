@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { UserPlus, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const Signup = () => {
@@ -12,13 +13,17 @@ const Signup = () => {
   });
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const returnTo = location.state?.returnTo || '/dashboard';
+  const message = location.state?.message;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signup logic
     console.log('Signup submitted:', formData);
     login();
-    navigate('/success');
+    navigate(returnTo);
   };
 
   return (
@@ -54,6 +59,13 @@ const Signup = () => {
             </div>
             <h1 className="text-3xl font-bold mb-2">Join the Movement</h1>
             <p className="text-gray-400">Create your gaming account today</p>
+            
+            {/* Show message if redirected from purchase */}
+            {message && (
+              <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                <p className="text-emerald-300 text-sm">{message}</p>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
