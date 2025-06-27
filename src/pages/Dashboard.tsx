@@ -17,10 +17,14 @@ import {
   BarChart3,
   ShoppingCart,
   UserPlus,
-  HeadphonesIcon
+  HeadphonesIcon,
+  Menu,
+  X
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
   const servers = [
     {
       id: 'palworld-hq',
@@ -29,7 +33,7 @@ const Dashboard = () => {
       status: "Online",
       specs: "8GB RAM • 4 vCPU • US East",
       icon: "🎮",
-      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" // Updated Palworld game icon
+      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png"
     }
   ];
 
@@ -99,12 +103,36 @@ const Dashboard = () => {
       <div className="relative z-10">
         <Header />
         
-        <div className="flex">
+        <div className="flex relative">
+          {/* Mobile Sidebar Overlay */}
+          {sidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+          
           {/* Sidebar */}
-          <div className="w-80 min-h-screen glass-panel-strong border-r border-gray-600/50">
-            <div className="p-6">
-              <div className="mb-8">
-                <h1 className="text-2xl font-bold mb-2">
+          <div className={`
+            fixed lg:relative 
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            transition-transform duration-300 ease-in-out
+            w-80 lg:w-80 min-h-screen 
+            glass-panel-strong border-r border-gray-600/50 
+            z-50 lg:z-auto
+            overflow-y-auto
+          `}>
+            <div className="p-4 lg:p-6">
+              {/* Mobile Close Button */}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="mb-6 lg:mb-8">
+                <h1 className="text-xl lg:text-2xl font-bold mb-2">
                   <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
                     Welcome back, Christian
                   </span>
@@ -117,6 +145,7 @@ const Dashboard = () => {
                   <Link
                     key={item.name}
                     to={item.link}
+                    onClick={() => setSidebarOpen(false)}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                       item.active 
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
@@ -132,24 +161,32 @@ const Dashboard = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 p-8">
+          <div className="flex-1 p-4 lg:p-8 w-full">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden mb-4 p-2 bg-gray-800/60 border border-gray-600/50 rounded-lg text-gray-300 hover:text-white"
+            >
+              <Menu size={20} />
+            </button>
+
             {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
               {stats.map((stat, index) => (
-                <div key={index} className="glass-panel rounded-xl p-6 text-center">
-                  <stat.icon className="mx-auto mb-3 text-emerald-400" size={32} />
-                  <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                  <div className="text-gray-400 text-sm">{stat.label}</div>
+                <div key={index} className="glass-panel rounded-xl p-4 lg:p-6 text-center">
+                  <stat.icon className="mx-auto mb-2 lg:mb-3 text-emerald-400" size={24} />
+                  <div className="text-lg lg:text-2xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-gray-400 text-xs lg:text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Quick Actions */}
-              <div className="glass-panel-strong rounded-xl p-6">
-                <div className="flex items-center mb-6">
-                  <Activity className="text-emerald-400 mr-3" size={24} />
-                  <h2 className="text-xl font-bold text-white">Quick Actions</h2>
+              <div className="glass-panel-strong rounded-xl p-4 lg:p-6">
+                <div className="flex items-center mb-4 lg:mb-6">
+                  <Activity className="text-emerald-400 mr-3" size={20} />
+                  <h2 className="text-lg lg:text-xl font-bold text-white">Quick Actions</h2>
                 </div>
                 
                 <div className="space-y-3">
@@ -157,7 +194,7 @@ const Dashboard = () => {
                     <Link
                       key={index}
                       to={action.link}
-                      className="flex items-center justify-between p-4 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
+                      className="flex items-center justify-between p-3 lg:p-4 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
                     >
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-lg ${
@@ -167,7 +204,7 @@ const Dashboard = () => {
                         }`}>
                           <action.icon size={16} />
                         </div>
-                        <span className="text-white font-medium">{action.title}</span>
+                        <span className="text-white font-medium text-sm lg:text-base">{action.title}</span>
                       </div>
                       <ChevronRight className="text-gray-400 group-hover:text-white transition-colors" size={16} />
                     </Link>
@@ -176,21 +213,21 @@ const Dashboard = () => {
               </div>
 
               {/* Recent Activity */}
-              <div className="glass-panel-strong rounded-xl p-6">
-                <div className="flex items-center mb-6">
-                  <Clock className="text-emerald-400 mr-3" size={24} />
-                  <h2 className="text-xl font-bold text-white">Recent Activity</h2>
+              <div className="glass-panel-strong rounded-xl p-4 lg:p-6">
+                <div className="flex items-center mb-4 lg:mb-6">
+                  <Clock className="text-emerald-400 mr-3" size={20} />
+                  <h2 className="text-lg lg:text-xl font-bold text-white">Recent Activity</h2>
                 </div>
                 
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
                     <div key={index} className="flex items-start space-x-3">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
                         activity.type === 'success' ? 'bg-emerald-400' : 'bg-blue-400'
                       }`}></div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="text-white font-medium text-sm">{activity.title}</div>
-                        <div className="text-gray-400 text-xs">{activity.description}</div>
+                        <div className="text-gray-400 text-xs truncate">{activity.description}</div>
                         <div className="text-gray-500 text-xs mt-1">{activity.time}</div>
                       </div>
                     </div>
@@ -200,15 +237,15 @@ const Dashboard = () => {
             </div>
 
             {/* Active Servers */}
-            <div className="mt-8 glass-panel-strong rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="mt-6 lg:mt-8 glass-panel-strong rounded-xl p-4 lg:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 lg:mb-6 gap-4">
                 <div className="flex items-center">
-                  <Server className="text-emerald-400 mr-3" size={24} />
-                  <h2 className="text-xl font-bold text-white">Your Active Servers</h2>
+                  <Server className="text-emerald-400 mr-3" size={20} />
+                  <h2 className="text-lg lg:text-xl font-bold text-white">Your Active Servers</h2>
                 </div>
                 <Link 
                   to="/dashboard/order"
-                  className="btn-primary text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm"
+                  className="btn-primary text-white px-4 py-2 rounded-lg transition-all flex items-center text-sm justify-center sm:justify-start"
                 >
                   <Plus size={16} className="mr-2" />
                   Order New Server
@@ -217,30 +254,29 @@ const Dashboard = () => {
               
               <div className="space-y-4">
                 {servers.map((server) => (
-                  <div key={server.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                  <div key={server.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-700/30 rounded-lg gap-4">
                     <div className="flex items-center space-x-4">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-emerald-500/50 bg-gray-800/50 flex items-center justify-center">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg overflow-hidden border-2 border-emerald-500/50 bg-gray-800/50 flex items-center justify-center">
                           <img 
                             src={server.gameIcon} 
                             alt={server.game}
-                            className="w-12 h-12 object-cover rounded-md"
+                            className="w-8 h-8 lg:w-12 lg:h-12 object-cover rounded-md"
                             onError={(e) => {
-                              // Fallback to emoji if image fails to load
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
-                              target.parentElement!.innerHTML = `<span class="text-2xl">${server.icon}</span>`;
+                              target.parentElement!.innerHTML = `<span class="text-xl lg:text-2xl">${server.icon}</span>`;
                             }}
                           />
                         </div>
                       </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-lg">{server.name}</h3>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-white font-semibold text-base lg:text-lg truncate">{server.name}</h3>
                         <p className="text-gray-400 text-sm">{server.game}</p>
-                        <p className="text-gray-500 text-xs">{server.specs}</p>
+                        <p className="text-gray-500 text-xs truncate">{server.specs}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 justify-between sm:justify-end">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         {server.status}
                       </span>
