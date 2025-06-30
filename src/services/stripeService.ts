@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://api.givrwrldservers.com/api'; // Replace with your actual Laravel API URL
+const API_BASE_URL = 'http://localhost:8000/api'; // Update this to your Laravel API URL
 
 export interface CheckoutSessionData {
   price_id?: string;
@@ -16,11 +16,16 @@ export interface CheckoutSessionResponse {
 
 export const stripeService = {
   async createCheckoutSession(data: CheckoutSessionData): Promise<CheckoutSessionResponse> {
+    console.log('Calling Laravel API:', `${API_BASE_URL}/create-checkout-session`);
+    console.log('Request data:', data);
+    
     const response = await fetch(`${API_BASE_URL}/create-checkout-session`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        // Add CORS headers if needed
+        'Access-Control-Allow-Origin': '*',
         // Add authorization header if using JWT/Sanctum
         // 'Authorization': `Bearer ${token}`,
       },
@@ -31,12 +36,17 @@ export const stripeService = {
       }),
     });
 
+    console.log('Response status:', response.status);
+    
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ message: 'Network error' }));
+      console.error('API Error:', error);
       throw new Error(error.message || 'Failed to create checkout session');
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('API Response:', result);
+    return result;
   },
 
   // Add method to check subscription status if needed
