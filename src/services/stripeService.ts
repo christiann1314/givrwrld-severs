@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://your-laravel-domain.com/api'; // Replace with your actual Laravel API URL
+const API_BASE_URL = 'https://api.givrwrldservers.com/api'; // Replace with your actual Laravel API URL
 
 export interface CheckoutSessionData {
   price_id?: string;
