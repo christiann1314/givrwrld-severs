@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Server, MapPin, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
-import PaymentModal from './PaymentModal';
 import { useAuth } from '../hooks/useAuth';
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
+import PaymentModal from './PaymentModal';
 
 interface GameData {
   name: string;
@@ -28,6 +28,7 @@ interface ServerConfiguratorProps {
 const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameData }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { createCheckoutSession, isLoading } = useStripeCheckout();
   const [selectedPlan, setSelectedPlan] = useState(gameData.planOptions.find(plan => plan.recommended) || gameData.planOptions[0]);
   const [billingPeriod, setBillingPeriod] = useState('monthly');
   const [serverName, setServerName] = useState('');
@@ -124,7 +125,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     }));
   };
 
-  const handleDeploy = () => {
+  const handleDeploy = async () => {
     // Check if user is authenticated before allowing deployment
     if (!isAuthenticated) {
       navigate('/signup', { 
@@ -136,7 +137,16 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       return;
     }
 
-    setPaymentModalOpen(true);
+    try {
+      await createCheckoutSession({
+        plan_name: `${gameData.name} - ${selectedPlan.ram}`,
+        amount: Math.round(calculateTotal() * 100), // Convert to cents
+        success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
+        cancel_url: `${window.location.origin}/dashboard`,
+      });
+    } catch (error) {
+      console.error('Checkout failed:', error);
+    }
   };
 
   return (
@@ -333,28 +343,14 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
 
             <Button
               onClick={handleDeploy}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
             >
-              {!isAuthenticated ? 'Sign Up to Deploy Server' : 'Deploy Server'}
+              {isLoading ? 'Creating Checkout...' : !isAuthenticated ? 'Sign Up to Deploy Server' : 'Deploy Server'}
             </Button>
           </div>
         </div>
       </div>
-
-      {/* Payment Modal */}
-      {selectedPlan && (
-        <PaymentModal
-          isOpen={paymentModalOpen}
-          onClose={() => setPaymentModalOpen(false)}
-          gameData={gameData}
-          selectedPlan={selectedPlan}
-          billingPeriod={billingPeriod}
-          addOns={addOns}
-          addOnOptions={addOnOptions}
-          serverName={serverName}
-          location={location}
-        />
-      )}
     </div>
   );
 };

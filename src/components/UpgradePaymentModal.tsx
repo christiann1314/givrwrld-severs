@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { useAuth } from '../hooks/useAuth';
+import { useStripeCheckout } from '../hooks/useStripeCheckout';
 
 interface UpgradePaymentModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ const UpgradePaymentModal: React.FC<UpgradePaymentModalProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { createCheckoutSession, isLoading } = useStripeCheckout();
 
   if (!isOpen) return null;
 
@@ -39,20 +40,22 @@ const UpgradePaymentModal: React.FC<UpgradePaymentModalProps> = ({
       return;
     }
 
-    setIsProcessing(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      navigate('/purchase-confirmed', { 
-        state: { 
-          package: packageData.name,
-          price: packageData.price,
-          features: packageData.features
-        }
+    try {
+      // Extract price from string (e.g., "$29.99" -> 2999 cents)
+      const priceMatch = packageData.price.match(/\$(\d+\.?\d*)/);
+      const amount = priceMatch ? Math.round(parseFloat(priceMatch[1]) * 100) : 0;
+
+      await createCheckoutSession({
+        plan_name: packageData.name,
+        amount: amount,
+        success_url: `${window.location.origin}/purchase-confirmed?package=${encodeURIComponent(packageData.name)}`,
+        cancel_url: window.location.href,
       });
-      setIsProcessing(false);
+      
       onClose();
-    }, 2000);
+    } catch (error) {
+      console.error('Checkout failed:', error);
+    }
   };
 
   return (
@@ -101,81 +104,22 @@ const UpgradePaymentModal: React.FC<UpgradePaymentModalProps> = ({
             </div>
           </div>
 
-          {/* Payment Method Selection */}
-          <div className="space-y-4">
-            <h4 className="text-white font-semibold">Payment Method</h4>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 bg-gray-700/50 rounded-lg border border-emerald-500 cursor-pointer">
-                <div className="text-center">
-                  <div className="text-emerald-400 font-semibold text-sm">Credit Card</div>
-                  <div className="text-xs text-gray-400 mt-1">Visa, Mastercard</div>
-                </div>
-              </div>
-              <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600 cursor-pointer hover:border-gray-500">
-                <div className="text-center">
-                  <div className="text-white font-semibold text-sm">PayPal</div>
-                  <div className="text-xs text-gray-400 mt-1">Secure payment</div>
-                </div>
-              </div>
-              <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-600 cursor-pointer hover:border-gray-500">
-                <div className="text-center">
-                  <div className="text-white font-semibold text-sm">Crypto</div>
-                  <div className="text-xs text-gray-400 mt-1">Bitcoin, ETH</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Form */}
-          <div className="space-y-4">
-            <h4 className="text-white font-semibold">Payment Information</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Card Number"
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="MM/YY"
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="CVC"
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="ZIP Code"
-                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Cardholder Name"
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400"
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex space-x-3">
             <Button
               variant="outline"
               onClick={onClose}
               className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
-              disabled={isProcessing}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleCompletePurchase}
-              disabled={isProcessing}
+              disabled={isLoading}
               className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white"
             >
-              {isProcessing ? 'Processing...' : !isAuthenticated ? 'Sign Up to Purchase' : `Purchase for ${packageData.price}`}
+              {isLoading ? 'Creating Checkout...' : !isAuthenticated ? 'Sign Up to Purchase' : `Purchase for ${packageData.price}`}
             </Button>
           </div>
         </div>
