@@ -25,7 +25,6 @@ export const stripeService = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         // Add CORS headers if needed
-        'Access-Control-Allow-Origin': '*',
         // Add authorization header if using JWT/Sanctum
         // 'Authorization': `Bearer ${token}`,
       },
@@ -36,31 +35,28 @@ export const stripeService = {
       }),
     });
 
-    console.log('Response status:', response.status);
-    
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      console.error('API Error:', error);
-      throw new Error(error.message || 'Failed to create checkout session');
-    }
-
-    const result = await response.json();
-    console.log('API Response:', result);
-    return result;
-  },
-
-  // Add method to check subscription status if needed
-  async checkSubscriptionStatus(): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/subscription-status`, {
-      headers: {
-        'Accept': 'application/json',
-        // Add authorization header
-        // 'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to check subscription status');
+if (!response.ok) {
+  // Get more detailed error information
+  let errorMessage = 'Failed to create checkout session';
+  let errorDetails = null;
+  
+  try {
+    const errorData = await response.json();
+    errorMessage = errorData.message || errorData.error || errorMessage;
+      errorDetails = errorData;
+     } catch (parseError) {
+         // If JSON parsing fails, use HTTP status text
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+     }
+  
+     console.error('API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        errorDetails
+      });
+  
+      throw new Error(errorMessage);
     }
 
     return response.json();
