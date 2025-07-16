@@ -1,10 +1,14 @@
 
 import React from 'react';
-import { CheckCircle, Cpu, HardDrive, MapPin, ArrowRight } from 'lucide-react';
+import { CheckCircle, Cpu, HardDrive, MapPin, ArrowRight, Loader } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import { useServerStatus } from '../hooks/useServerStatus';
 
 const Success = () => {
+  // For demo - in production you'd get this from URL params or auth context
+  const userEmail = "customer@example.com"; 
+  const { serverStatus, checkServerStatus } = useServerStatus(userEmail);
   const upgradePackages = [
     {
       name: "GIVRwrld Essentials",
@@ -58,21 +62,44 @@ const Success = () => {
           {/* Success Header */}
           <div className="text-center mb-12">
             <div className="flex justify-center mb-6">
-              <CheckCircle size={80} className="text-emerald-400" />
+              {serverStatus.loading ? (
+                <Loader size={80} className="text-emerald-400 animate-spin" />
+              ) : (
+                <CheckCircle size={80} className="text-emerald-400" />
+              )}
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-400 bg-clip-text text-transparent">
-                Welcome to GIVRwrld
+                {serverStatus.hasServer ? "Welcome to GIVRwrld" : "Setting Up Your Server..."}
               </span>
             </h1>
-            <p className="text-xl text-gray-300 mb-8">🎮 ⚡ Your server is live and ready! ⚡ 🎮</p>
+            <p className="text-xl text-gray-300 mb-8">
+              {serverStatus.hasServer 
+                ? "🎮 ⚡ Your server is live and ready! ⚡ 🎮"
+                : "⏳ Your payment was successful! We're provisioning your server..."
+              }
+            </p>
             
-            <Link
-              to="/dashboard"
-              className="inline-block bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
-            >
-              Access Your User Dashboard
-            </Link>
+            {serverStatus.hasServer && (
+              <Link
+                to="/dashboard"
+                className="inline-block bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
+              >
+                Access Your User Dashboard
+              </Link>
+            )}
+            
+            {!serverStatus.hasServer && (
+              <div className="flex justify-center items-center space-x-4">
+                <button
+                  onClick={checkServerStatus}
+                  className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Check Status
+                </button>
+                <p className="text-gray-400 text-sm">Usually takes 1-3 minutes</p>
+              </div>
+            )}
           </div>
 
           {/* Server Specs */}
