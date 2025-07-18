@@ -159,72 +159,55 @@ class StripeWebhookController extends Controller
     private function getServerConfig($amount)
     {
         // Configure server specs based on payment amount (in cents)
-        switch ($amount) {
-            case 350: // $3.50 - 1GB Minecraft Plan
-                return [
-                    'memory' => 1024, // 1GB RAM
-                    'disk' => 5120,   // 5GB disk
-                    'cpu' => 50,      // 50% CPU
-                    'egg' => 5,       // Minecraft Java egg ID
-                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
-                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
-                    'environment' => [
-                        'SERVER_JARFILE' => 'server.jar',
-                        'VANILLA_VERSION' => 'latest'
-                    ]
-                ];
-            case 999: // $9.99 - Basic Plan
-                return [
-                    'memory' => 2048,
-                    'disk' => 10240,
-                    'cpu' => 100,
-                    'egg' => 5, // Minecraft Java egg ID - adjust as needed
-                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
-                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
-                    'environment' => [
-                        'SERVER_JARFILE' => 'server.jar',
-                        'VANILLA_VERSION' => 'latest'
-                    ]
-                ];
-            case 1999: // $19.99 - Premium Plan
-                return [
-                    'memory' => 4096,
-                    'disk' => 20480,
-                    'cpu' => 200,
-                    'egg' => 5,
-                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
-                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
-                    'environment' => [
-                        'SERVER_JARFILE' => 'server.jar',
-                        'VANILLA_VERSION' => 'latest'
-                    ]
-                ];
-            case 3999: // $39.99 - Enterprise Plan
-                return [
-                    'memory' => 8192,
-                    'disk' => 40960,
-                    'cpu' => 400,
-                    'egg' => 5,
-                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
-                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
-                    'environment' => [
-                        'SERVER_JARFILE' => 'server.jar',
-                        'VANILLA_VERSION' => 'latest'
-                    ]
-                ];
-            default: // Default to basic
-                return [
-                    'memory' => 1024,
-                    'disk' => 5120,
-                    'cpu' => 50,
-                    'egg' => 5,
-                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
-                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
-                    'environment' => [
-                        'SERVER_JARFILE' => 'server.jar',
-                        'VANILLA_VERSION' => 'latest'
-                    ]
-                ];
+        // Supports $0.00 - $5000.00 with dynamic scaling
+        
+        $amountInDollars = $amount / 100; // Convert cents to dollars
+        
+        // Ensure amount is within valid range
+        if ($amountInDollars < 0) $amountInDollars = 0;
+        if ($amountInDollars > 5000) $amountInDollars = 5000;
+        
+        // Dynamic scaling formulas based on payment amount
+        // Base specs for $1 and scale up from there
+        
+        // RAM: Start at 512MB for $1, scale to 64GB at $5000
+        $memory = max(512, min(65536, 512 + ($amountInDollars - 1) * 13.1)); // MB
+        
+        // Disk: Start at 2GB for $1, scale to 1TB at $5000
+        $disk = max(2048, min(1048576, 2048 + ($amountInDollars - 1) * 210)); // MB
+        
+        // CPU: Start at 25% for $1, scale to 800% at $5000
+        $cpu = max(25, min(800, 25 + ($amountInDollars - 1) * 0.155)); // Percentage
+        
+        // Round values to reasonable increments
+        $memory = round($memory / 512) * 512; // Round to nearest 512MB
+        $disk = round($disk / 1024) * 1024;   // Round to nearest GB
+        $cpu = round($cpu / 25) * 25;         // Round to nearest 25%
+        
+        // Determine game type and egg based on common patterns
+        $egg = 5; // Default to Minecraft Java
+        $dockerImage = 'ghcr.io/pterodactyl/yolks:java_17';
+        $startup = 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}';
+        $environment = [
+            'SERVER_JARFILE' => 'server.jar',
+            'VANILLA_VERSION' => 'latest'
+        ];
+        
+        // Special configurations for specific amounts or ranges
+        if ($amountInDollars >= 50) {
+            // Premium features for higher tier servers
+            $environment['BUILD_NUMBER'] = 'latest';
+            $environment['FORGE_VERSION'] => 'recommended';
         }
+        
+        return [
+            'memory' => (int)$memory,
+            'disk' => (int)$disk,
+            'cpu' => (int)$cpu,
+            'egg' => $egg,
+            'docker_image' => $dockerImage,
+            'startup' => $startup,
+            'environment' => $environment
+        ];
     }
 }
