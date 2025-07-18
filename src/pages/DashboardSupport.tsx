@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAuth } from '../hooks/useAuth';
+import { useSupportData } from '../hooks/useSupportData';
 import {
   ArrowLeft,
   HelpCircle,
@@ -25,39 +27,9 @@ const DashboardSupport = () => {
     priority: 'medium',
     description: ''
   });
-
-  const tickets = [
-    {
-      id: 'TICK-001',
-      subject: 'Server connection issues',
-      category: 'Technical',
-      priority: 'high',
-      status: 'open',
-      created: '2024-01-15',
-      updated: '2024-01-16',
-      responses: 3
-    },
-    {
-      id: 'TICK-002',
-      subject: 'Billing question about upgrade',
-      category: 'Billing',
-      priority: 'medium',
-      status: 'resolved',
-      created: '2024-01-10',
-      updated: '2024-01-12',
-      responses: 5
-    },
-    {
-      id: 'TICK-003',
-      subject: 'Mod installation help needed',
-      category: 'Technical',
-      priority: 'low',
-      status: 'pending',
-      created: '2024-01-08',
-      updated: '2024-01-08',
-      responses: 1
-    }
-  ];
+  
+  const { user } = useAuth();
+  const { supportData, createTicket } = useSupportData(user?.email);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,11 +49,13 @@ const DashboardSupport = () => {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('New ticket submitted:', ticketForm);
-    setShowNewTicketForm(false);
-    setTicketForm({ subject: '', category: '', priority: 'medium', description: '' });
+    const success = await createTicket(ticketForm);
+    if (success) {
+      setShowNewTicketForm(false);
+      setTicketForm({ subject: '', category: '', priority: 'medium', description: '' });
+    }
   };
 
   return (
@@ -177,7 +151,7 @@ const DashboardSupport = () => {
 
                 {/* Tickets List */}
                 <div className="space-y-4">
-                  {tickets.map((ticket) => (
+                  {supportData.tickets.map((ticket) => (
                     <div key={ticket.id} className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6 hover:border-emerald-500/50 transition-colors">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">

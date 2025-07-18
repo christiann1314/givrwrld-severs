@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAuth } from '../hooks/useAuth';
+import { useAffiliateData } from '../hooks/useAffiliateData';
 import { 
   ArrowLeft, 
   DollarSign, 
@@ -15,24 +17,19 @@ import {
 } from 'lucide-react';
 
 const DashboardAffiliate = () => {
-  const [referralCode] = useState('PLAYER2024');
   const [timeFrame, setTimeFrame] = useState('month');
+  const { user } = useAuth();
+  const { affiliateData } = useAffiliateData(user?.email);
 
   const stats = [
-    { label: "Total Earnings", value: "$1,250.00", change: "+15.2%", icon: DollarSign },
-    { label: "Referrals", value: "23", change: "+3", icon: Users },
-    { label: "Conversion Rate", value: "12.5%", change: "+2.1%", icon: TrendingUp },
-    { label: "Clicks", value: "184", change: "+12", icon: Eye }
-  ];
-
-  const recentReferrals = [
-    { id: 1, user: "Alex M.", amount: "$25.00", date: "2024-01-15", plan: "Minecraft 4GB" },
-    { id: 2, user: "Sarah K.", amount: "$18.50", date: "2024-01-14", plan: "FiveM 6GB" },
-    { id: 3, user: "Mike D.", amount: "$32.00", date: "2024-01-12", plan: "Palworld 8GB" }
+    { label: "Total Earnings", value: affiliateData.stats.totalEarnings, change: affiliateData.stats.earningsChange, icon: DollarSign },
+    { label: "Referrals", value: affiliateData.stats.referrals, change: affiliateData.stats.referralsChange, icon: Users },
+    { label: "Conversion Rate", value: affiliateData.stats.conversionRate, change: affiliateData.stats.conversionChange, icon: TrendingUp },
+    { label: "Clicks", value: affiliateData.stats.clicks, change: affiliateData.stats.clicksChange, icon: Eye }
   ];
 
   const copyReferralCode = () => {
-    navigator.clipboard.writeText(`https://givrwrld.com/signup?ref=${referralCode}`);
+    navigator.clipboard.writeText(`https://givrwrld.com/signup?ref=${affiliateData.referralCode}`);
   };
 
   return (
@@ -105,7 +102,7 @@ const DashboardAffiliate = () => {
                 <h2 className="text-xl font-bold text-white mb-4">Your Referral Link</h2>
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex-1 bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-3 font-mono text-sm text-gray-300">
-                    https://givrwrld.com/signup?ref={referralCode}
+                    https://givrwrld.com/signup?ref={affiliateData.referralCode}
                   </div>
                   <button
                     onClick={copyReferralCode}
@@ -131,7 +128,7 @@ const DashboardAffiliate = () => {
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <h2 className="text-xl font-bold text-white mb-6">Recent Referrals</h2>
                 <div className="space-y-4">
-                  {recentReferrals.map((referral) => (
+                  {affiliateData.recentReferrals.map((referral) => (
                     <div key={referral.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                       <div>
                         <div className="text-white font-medium">{referral.user}</div>
@@ -176,7 +173,7 @@ const DashboardAffiliate = () => {
               <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 rounded-xl p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Next Payout</h2>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-emerald-400 mb-2">$1,250.00</div>
+                  <div className="text-3xl font-bold text-emerald-400 mb-2">{affiliateData.nextPayout}</div>
                   <div className="text-gray-300 mb-4">Available for withdrawal</div>
                   <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors w-full">
                     Request Payout

@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useAuth } from '../hooks/useAuth';
+import { useBillingData } from '../hooks/useBillingData';
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -18,77 +20,8 @@ import {
 
 const DashboardBilling = () => {
   const [activeTab, setActiveTab] = useState('overview');
-
-  const paymentMethods = [
-    {
-      id: 1,
-      type: 'card',
-      brand: 'Visa',
-      last4: '4242',
-      expiryMonth: 12,
-      expiryYear: 2025,
-      isDefault: true
-    },
-    {
-      id: 2,
-      type: 'card',
-      brand: 'Mastercard',
-      last4: '8888',
-      expiryMonth: 8,
-      expiryYear: 2026,
-      isDefault: false
-    }
-  ];
-
-  const billingHistory = [
-    {
-      id: 'INV-001',
-      date: '2024-01-15',
-      description: 'Minecraft Server - 4GB RAM',
-      amount: '$14.00',
-      status: 'paid',
-      method: 'Visa •••• 4242'
-    },
-    {
-      id: 'INV-002',
-      date: '2024-01-10',
-      description: 'FiveM Server - 8GB RAM',
-      amount: '$24.50',
-      status: 'paid',
-      method: 'Visa •••• 4242'
-    },
-    {
-      id: 'INV-003',
-      date: '2024-01-05',
-      description: 'GIVRwrld Essentials Package',
-      amount: '$14.99',
-      status: 'paid',
-      method: 'Mastercard •••• 8888'
-    },
-    {
-      id: 'INV-004',
-      date: '2023-12-20',
-      description: 'Palworld Server - 16GB RAM',
-      amount: '$48.00',
-      status: 'failed',
-      method: 'Visa •••• 4242'
-    }
-  ];
-
-  const upcomingBills = [
-    {
-      service: 'Minecraft Server - 4GB RAM',
-      amount: '$14.00',
-      dueDate: '2024-02-15',
-      status: 'scheduled'
-    },
-    {
-      service: 'FiveM Server - 8GB RAM',
-      amount: '$24.50',
-      dueDate: '2024-02-10',
-      status: 'scheduled'
-    }
-  ];
+  const { user } = useAuth();
+  const { billingData } = useBillingData(user?.email);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -101,10 +34,10 @@ const DashboardBilling = () => {
   };
 
   const stats = [
-    { label: "Current Balance", value: "$38.50", icon: DollarSign },
-    { label: "Next Payment", value: "Feb 10", icon: Calendar },
-    { label: "This Month", value: "$53.49", icon: CreditCard },
-    { label: "Payment Methods", value: "2", icon: CreditCard }
+    { label: "Current Balance", value: billingData.stats.currentBalance, icon: DollarSign },
+    { label: "Next Payment", value: billingData.stats.nextPayment, icon: Calendar },
+    { label: "This Month", value: billingData.stats.thisMonth, icon: CreditCard },
+    { label: "Payment Methods", value: billingData.stats.paymentMethods, icon: CreditCard }
   ];
 
   return (
@@ -197,7 +130,7 @@ const DashboardBilling = () => {
                 <div>
                   <h2 className="text-xl font-bold text-white mb-4">Upcoming Bills</h2>
                   <div className="space-y-4">
-                    {upcomingBills.map((bill, index) => (
+                    {billingData.upcomingBills.map((bill, index) => (
                       <div key={index} className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-white font-medium">{bill.service}</h3>
@@ -240,7 +173,7 @@ const DashboardBilling = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {paymentMethods.map((method) => (
+                  {billingData.paymentMethods.map((method) => (
                     <div key={method.id} className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -287,7 +220,7 @@ const DashboardBilling = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {billingHistory.map((bill) => (
+                  {billingData.billingHistory.map((bill) => (
                     <div key={bill.id} className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex-1">
