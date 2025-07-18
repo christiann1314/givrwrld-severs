@@ -160,6 +160,19 @@ class StripeWebhookController extends Controller
     {
         // Configure server specs based on payment amount (in cents)
         switch ($amount) {
+            case 350: // $3.50 - 1GB Minecraft Plan
+                return [
+                    'memory' => 1024, // 1GB RAM
+                    'disk' => 5120,   // 5GB disk
+                    'cpu' => 50,      // 50% CPU
+                    'egg' => 5,       // Minecraft Java egg ID
+                    'docker_image' => 'ghcr.io/pterodactyl/yolks:java_17',
+                    'startup' => 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}',
+                    'environment' => [
+                        'SERVER_JARFILE' => 'server.jar',
+                        'VANILLA_VERSION' => 'latest'
+                    ]
+                ];
             case 999: // $9.99 - Basic Plan
                 return [
                     'memory' => 2048,

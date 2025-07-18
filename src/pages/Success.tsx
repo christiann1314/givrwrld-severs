@@ -107,12 +107,12 @@ const Success = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <HardDrive className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">8GB</div>
+                <div className="text-2xl font-bold text-white">1GB</div>
                 <div className="text-gray-400 text-sm">RAM</div>
               </div>
               <div className="text-center">
                 <Cpu className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">4 vCPU</div>
+                <div className="text-2xl font-bold text-white">0.5 vCPU</div>
                 <div className="text-gray-400 text-sm">CPU</div>
               </div>
               <div className="text-center">
