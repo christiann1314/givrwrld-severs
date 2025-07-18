@@ -109,9 +109,10 @@ class StripeWebhookController extends Controller
             ])->post($pterodactylUrl . '/api/application/servers', [
                 'name' => 'GameServer-' . $user['id'] . '-' . time(),
                 'user' => $user['id'],
-                'egg' => $config['egg'],
-                'docker_image' => $config['docker_image'],
-                'startup' => $config['startup'],
+                    'egg' => $config['egg'],
+                    'docker_image' => $config['docker_image'],
+                    'startup' => $config['startup'],
+                    'description' => 'Game server created via Stripe payment',
                 'limits' => [
                     'memory' => $config['memory'],
                     'swap' => 0,
@@ -128,7 +129,7 @@ class StripeWebhookController extends Controller
                     'default' => 1
                 ],
                 'deploy' => [
-                    'locations' => [1], // Update to your location ID
+                    'locations' => [1], // Update to your actual location ID
                     'dedicated_ip' => false,
                     'port_range' => []
                 ],
