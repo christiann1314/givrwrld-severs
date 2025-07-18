@@ -28,12 +28,13 @@ const Dashboard = () => {
   const servers = [
     {
       id: 'palworld-hq',
-      name: "Palworld HQ",
+      name: "Palworld HQ", 
       game: "Palworld",
       status: "Online",
-      specs: "8GB RAM • 4 vCPU • US East",
+      specs: "1GB RAM • 0.5 vCPU • US East", // Updated to match actual purchase
       icon: "🎮",
-      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png"
+      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png",
+      pterodactylUrl: "https://panel.givrwrldservers.com" // Add pterodactyl panel URL
     }
   ];
 
@@ -280,12 +281,22 @@ const Dashboard = () => {
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         {server.status}
                       </span>
-                      <Link 
-                        to="/dashboard/services"
-                        className="text-emerald-400 hover:text-emerald-300 text-sm font-medium"
-                      >
-                        Manage
-                      </Link>
+                      <div className="flex items-center space-x-2">
+                        <a 
+                          href={server.pterodactylUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 hover:text-emerald-300 px-3 py-1 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30"
+                        >
+                          Game Panel
+                        </a>
+                        <Link 
+                          to="/dashboard/services"
+                          className="text-emerald-400 hover:text-emerald-300 text-sm font-medium"
+                        >
+                          Manage
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
