@@ -4,11 +4,27 @@ import { CheckCircle, Cpu, HardDrive, MapPin, ArrowRight, Loader } from 'lucide-
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { useServerStatus } from '../hooks/useServerStatus';
+import { useUserServers } from '../hooks/useUserServers';
 
 const Success = () => {
   // For demo - in production you'd get this from URL params or auth context
   const userEmail = "customer@example.com"; 
   const { serverStatus, checkServerStatus } = useServerStatus(userEmail);
+  const { serversData } = useUserServers(userEmail);
+  
+  // Get the latest server specs from the user's servers
+  const latestServer = serversData.servers[0];
+  const serverSpecs = latestServer ? {
+    ram: latestServer.ram,
+    cpu: latestServer.cpu,
+    game: latestServer.game,
+    location: latestServer.location
+  } : {
+    ram: "1GB",
+    cpu: "0.5 vCPU", 
+    game: "Minecraft",
+    location: "US East"
+  };
   const upgradePackages = [
     {
       name: "GIVRwrld Essentials",
@@ -117,22 +133,22 @@ const Success = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <HardDrive className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">1GB</div>
+                <div className="text-2xl font-bold text-white">{serverSpecs.ram}</div>
                 <div className="text-gray-400 text-sm">RAM</div>
               </div>
               <div className="text-center">
                 <Cpu className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">0.5 vCPU</div>
+                <div className="text-2xl font-bold text-white">{serverSpecs.cpu}</div>
                 <div className="text-gray-400 text-sm">CPU</div>
               </div>
               <div className="text-center">
                 <div className="text-emerald-400 mb-2 mx-auto text-2xl">🎮</div>
-                <div className="text-2xl font-bold text-white">Minecraft</div>
+                <div className="text-2xl font-bold text-white">{serverSpecs.game}</div>
                 <div className="text-gray-400 text-sm">Game</div>
               </div>
               <div className="text-center">
                 <MapPin className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">US East</div>
+                <div className="text-2xl font-bold text-white">{serverSpecs.location}</div>
                 <div className="text-gray-400 text-sm">Location</div>
               </div>
             </div>

@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useUserServers } from '../hooks/useUserServers';
 import { 
   Server, 
   CreditCard, 
@@ -24,19 +25,18 @@ import {
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  
+  // For demo - in production you'd get this from auth context
+  const userEmail = "customer@example.com";
+  const { serversData } = useUserServers(userEmail);
 
-  const servers = [
-    {
-      id: 'palworld-hq',
-      name: "Palworld HQ", 
-      game: "Palworld",
-      status: "Online",
-      specs: "1GB RAM • 0.5 vCPU • US East", // Updated to match actual purchase
-      icon: "🎮",
-      gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png",
-      pterodactylUrl: "https://panel.givrwrldservers.com" // Add pterodactyl panel URL
-    }
-  ];
+  // Format servers data for display
+  const servers = serversData.servers.map(server => ({
+    ...server,
+    specs: `${server.ram} RAM • ${server.cpu} • ${server.location}`,
+    icon: "🎮",
+    gameIcon: "/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png"
+  }));
 
   const stats = [
     { label: "Active Servers", value: "2", icon: Server },
