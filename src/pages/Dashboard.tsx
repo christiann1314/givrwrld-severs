@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useUserServers } from '../hooks/useUserServers';
+import { useUserStats } from '../hooks/useUserStats';
 import { 
   Server, 
   CreditCard, 
@@ -29,6 +30,7 @@ const Dashboard = () => {
   // For demo - in production you'd get this from auth context
   const userEmail = "customer@example.com";
   const { serversData } = useUserServers(userEmail);
+  const { userStats } = useUserStats(userEmail);
 
   // Format servers data for display
   const servers = serversData.servers.map(server => ({
@@ -39,10 +41,10 @@ const Dashboard = () => {
   }));
 
   const stats = [
-    { label: "Active Servers", value: "2", icon: Server },
-    { label: "Total Spent", value: "$49.98", icon: CreditCard },
-    { label: "Support Tickets", value: "0", icon: LifeBuoy },
-    { label: "Referrals", value: "3", icon: Users }
+    { label: "Active Servers", value: userStats.activeServers.toString(), icon: Server },
+    { label: "Total Spent", value: userStats.totalSpent, icon: CreditCard },
+    { label: "Support Tickets", value: userStats.supportTickets.toString(), icon: LifeBuoy },
+    { label: "Referrals", value: userStats.referrals.toString(), icon: Users }
   ];
 
   const quickActions = [
