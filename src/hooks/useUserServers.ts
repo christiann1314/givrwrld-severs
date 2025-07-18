@@ -52,9 +52,9 @@ export const useUserServers = (userEmail?: string) => {
         setServersData({
           servers: [
             {
-              id: 'palworld-hq',
-              name: "Palworld HQ",
-              game: "Palworld", 
+              id: 'minecraft-server',
+              name: "Minecraft Server",
+              game: "Minecraft", 
               status: "Online",
               ram: "1GB",
               cpu: "0.5 vCPU",
@@ -72,9 +72,9 @@ export const useUserServers = (userEmail?: string) => {
       setServersData({
         servers: [
           {
-            id: 'palworld-hq',
-            name: "Palworld HQ",
-            game: "Palworld",
+            id: 'minecraft-server',
+            name: "Minecraft Server",
+            game: "Minecraft",
             status: "Online", 
             ram: "1GB",
             cpu: "0.5 vCPU",
