@@ -10,10 +10,20 @@ export const useStripeCheckout = () => {
   const createCheckoutSession = async (data: CheckoutSessionData) => {
     setIsLoading(true);
     try {
+      console.log('Creating checkout session with data:', data);
       const response = await stripeService.createCheckoutSession(data);
+      console.log('Stripe response:', response);
+      
+      if (!response.checkout_url) {
+        throw new Error('No checkout URL received from server');
+      }
       
       // Redirect to Stripe Checkout in a new tab
-      window.open(response.checkout_url, '_blank');
+      const newTab = window.open(response.checkout_url, '_blank');
+      
+      if (!newTab) {
+        throw new Error('Failed to open checkout tab. Please disable popup blockers and try again.');
+      }
       
       toast({
         title: "Redirecting to Stripe",
@@ -22,6 +32,7 @@ export const useStripeCheckout = () => {
       
       return response;
     } catch (error) {
+      console.error('Detailed checkout error:', error);
       toast({
         title: "Checkout Error",
         description: error instanceof Error ? error.message : "Failed to create checkout session",
