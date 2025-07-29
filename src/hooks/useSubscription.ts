@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
 interface SubscriptionStatus {
@@ -21,7 +22,7 @@ export const useSubscription = (userEmail?: string) => {
     setSubscriptionStatus(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/check-subscription`, {
+      const response = await fetch(`${API_BASE_URL}/check-subscription`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +58,7 @@ export const useSubscription = (userEmail?: string) => {
     }
 
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/create-checkout`, {
+      const response = await fetch(`${API_BASE_URL}/create-checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ export const useSubscription = (userEmail?: string) => {
     }
 
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/customer-portal`, {
+      const response = await fetch(`${API_BASE_URL}/customer-portal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

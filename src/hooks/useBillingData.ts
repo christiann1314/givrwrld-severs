@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
 interface PaymentMethod {
@@ -63,7 +64,7 @@ export const useBillingData = (userEmail?: string) => {
     setBillingData(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/user/billing`, {
+      const response = await fetch(`${API_BASE_URL}/user/billing`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

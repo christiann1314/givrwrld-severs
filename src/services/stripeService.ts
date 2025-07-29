@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'https://api.givrwrldservers.com/api';
+import { API_BASE_URL } from '../config/api';
 
 export interface CheckoutSessionData {
   price_id?: string;

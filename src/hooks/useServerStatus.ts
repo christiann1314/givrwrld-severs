@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
+import { API_BASE_URL } from '../config/api';
 
 interface ServerStatus {
   hasServer: boolean;
@@ -27,7 +28,7 @@ export const useServerStatus = (userEmail?: string) => {
     
     try {
       // This would call your Laravel API to check Pterodactyl server status
-      const response = await fetch(`https://api.givrwrldservers.com/api/user/server-status`, {
+      const response = await fetch(`${API_BASE_URL}/user/server-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

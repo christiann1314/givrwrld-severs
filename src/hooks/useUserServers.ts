@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
 interface ServerSpec {
@@ -33,7 +34,7 @@ export const useUserServers = (userEmail?: string) => {
     setServersData(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/user/servers`, {
+      const response = await fetch(`${API_BASE_URL}/user/servers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

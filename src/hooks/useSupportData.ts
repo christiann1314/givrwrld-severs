@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
 interface SupportTicket {
@@ -30,7 +31,7 @@ export const useSupportData = (userEmail?: string) => {
     setSupportData(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/user/support`, {
+      const response = await fetch(`${API_BASE_URL}/user/support`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ export const useSupportData = (userEmail?: string) => {
     if (!userEmail) return false;
 
     try {
-      const response = await fetch(`https://api.givrwrldservers.com/api/user/support/create`, {
+      const response = await fetch(`${API_BASE_URL}/user/support/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
