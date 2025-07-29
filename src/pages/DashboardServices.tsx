@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useUserServers } from '../hooks/useUserServers';
+import { useAuth } from '../hooks/useAuth';
 import {
   ArrowLeft,
   Server,
@@ -25,41 +27,28 @@ import {
 
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { serversData } = useUserServers(user?.email);
 
-  const servers = [
-    {
-      id: 'server-1',
-      name: 'Palworld HQ',
-      game: 'Palworld',
-      icon: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
-      status: 'online',
-      players: '6/8',
-      uptime: '72.5 hours',
-      cpu: '45%',
-      ram: '6.2GB/8GB',
-      storage: '32GB/50GB',
-      location: 'US East',
-      ip: '192.168.1.100:7777',
-      lastBackup: '2 hours ago',
-      plan: '8GB RAM • 4 vCPU'
-    },
-    {
-      id: 'server-2',
-      name: 'FiveM RP City',
-      game: 'FiveM',
-      icon: '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
-      status: 'suspended',
-      players: '0/32',
-      uptime: '0 hours',
-      cpu: '0%',
-      ram: '0GB/8GB',
-      storage: '45GB/100GB',
-      location: 'US East',
-      ip: '192.168.1.101:30120',
-      lastBackup: '1 day ago',
-      plan: '8GB RAM • 4 vCPU'
-    }
-  ];
+  // Get servers from Supabase data
+  const servers = serversData.servers.map(server => ({
+    id: server.id,
+    name: server.name,
+    game: server.game,
+    icon: server.game === 'Minecraft' 
+      ? '/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png' 
+      : '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+    status: server.status.toLowerCase(),
+    players: '0/8',
+    uptime: '0 hours',
+    cpu: '0%', 
+    ram: `0GB/${server.ram}`,
+    storage: `0GB/${server.disk}`,
+    location: server.location,
+    ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
+    lastBackup: 'Never',
+    plan: `${server.ram} • ${server.cpu}`
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -115,7 +104,26 @@ const DashboardServices = () => {
           </div>
 
           {/* Servers Grid */}
-          <div className="grid gap-6">
+          {serversData.loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+              <p className="text-gray-400 mt-4">Loading your servers...</p>
+            </div>
+          ) : servers.length === 0 ? (
+            <div className="text-center py-12">
+              <Server size={48} className="mx-auto text-gray-500 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">No Servers Yet</h3>
+              <p className="text-gray-400 mb-6">Deploy your first game server to get started</p>
+              <Link 
+                to="/dashboard/order"
+                className="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors"
+              >
+                <Server size={20} />
+                <span>Deploy New Server</span>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-6">
             {servers.map((server) => (
               <div key={server.id} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300">
                 {/* Server Header */}
@@ -231,7 +239,8 @@ const DashboardServices = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="mt-8 bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
