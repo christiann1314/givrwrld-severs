@@ -11,7 +11,7 @@ const Signup = () => {
     confirmPassword: '',
     agreeToTerms: false
   });
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -27,7 +27,7 @@ const Signup = () => {
     // For now, we'll just simulate successful signup
     localStorage.setItem('userEmail', formData.email);
     
-    login();
+    signIn(formData.email, formData.password);
     navigate(returnTo);
   };
 

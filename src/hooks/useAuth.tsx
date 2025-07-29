@@ -1,48 +1,69 @@
 
 import { useState, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
-// Simple authentication hook - in a real app this would connect to your auth service
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<{ email: string } | null>(null);
 
   useEffect(() => {
-    // Simulate checking authentication status
-    const checkAuth = () => {
-      const authStatus = localStorage.getItem('isAuthenticated');
-      const userEmail = localStorage.getItem('userEmail') || "customer@example.com";
-      
-      setIsAuthenticated(authStatus === 'true');
-      if (authStatus === 'true') {
-        setUser({ email: userEmail });
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    };
+    );
 
-    checkAuth();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = () => {
-    const userEmail = localStorage.getItem('userEmail') || 'customer@example.com';
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', userEmail);
-    setIsAuthenticated(true);
-    setUser({ email: userEmail });
+  const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    return { error };
   };
 
-  const logout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    setIsAuthenticated(false);
-    setUser(null);
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    return { error };
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    return { error };
   };
 
   return {
-    isAuthenticated,
+    user,
+    session,
+    isAuthenticated: !!user,
     isLoading,
-    login,
-    logout,
-    user
+    signUp,
+    signIn,
+    signOut,
+    // Legacy compatibility
+    login: signIn,
+    logout: signOut
   };
 };

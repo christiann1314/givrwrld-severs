@@ -9,14 +9,14 @@ const Login = () => {
     password: '',
     rememberMe: false
   });
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle login logic
     console.log('Login submitted:', formData);
-    login();
+    signIn(formData.email, formData.password);
     navigate('/dashboard');
   };
 
