@@ -29,8 +29,12 @@ export const useUserServers = (userEmail?: string) => {
   const { toast } = useToast();
 
   const fetchUserServers = async () => {
-    if (!userEmail) return;
+    if (!userEmail) {
+      console.log('No userEmail provided to fetchUserServers');
+      return;
+    }
     
+    console.log('Fetching servers for user:', userEmail);
     setServersData(prev => ({ ...prev, loading: true }));
     
     try {

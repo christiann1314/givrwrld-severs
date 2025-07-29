@@ -21,8 +21,12 @@ export const useUserStats = (userEmail?: string) => {
   const { toast } = useToast();
 
   const fetchUserStats = async () => {
-    if (!userEmail) return;
+    if (!userEmail) {
+      console.log('No userEmail provided to fetchUserStats');
+      return;
+    }
     
+    console.log('Fetching stats for user:', userEmail);
     setUserStats(prev => ({ ...prev, loading: true }));
     
     try {
