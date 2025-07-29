@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../config/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 interface UserStats {
@@ -30,28 +30,44 @@ export const useUserStats = (userEmail?: string) => {
     setUserStats(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`${API_BASE_URL}/user/stats`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userEmail })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUserStats({
-          activeServers: data.active_servers || 0,
-          totalSpent: data.total_spent || "$0.00",
-          supportTickets: data.support_tickets || 0,
-          referrals: data.referrals || 0,
-          loading: false
-        });
-      } else {
-        // Fallback to default values if API is not available
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user found');
+        setUserStats(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      const { data: statsData, error } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user stats:', error);
         setUserStats({
           activeServers: 1,
           totalSpent: "$3.50",
+          supportTickets: 0,
+          referrals: 0,
+          loading: false
+        });
+        return;
+      }
+
+      if (statsData) {
+        setUserStats({
+          activeServers: statsData.active_servers || 0,
+          totalSpent: `$${Number(statsData.total_spent || 0).toFixed(2)}`,
+          supportTickets: statsData.support_tickets || 0,
+          referrals: statsData.referrals || 0,
+          loading: false
+        });
+      } else {
+        // No stats record found, use defaults
+        setUserStats({
+          activeServers: 0,
+          totalSpent: "$0.00",
           supportTickets: 0,
           referrals: 0,
           loading: false

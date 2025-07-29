@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../config/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 interface ServerSpec {
@@ -38,56 +38,49 @@ export const useUserServers = (userEmail?: string) => {
     setServersData(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`${API_BASE_URL}/user/servers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userEmail })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setServersData({
-          servers: data.servers || [],
-          loading: false
-        });
-      } else {
-        // Fallback to mock data if API is not available
-        setServersData({
-          servers: [
-            {
-              id: 'minecraft-server',
-              name: "Minecraft Server",
-              game: "Minecraft", 
-              status: "Online",
-              ram: "1GB",
-              cpu: "0.5 vCPU",
-              disk: "10GB",
-              location: "US East",
-              pterodactylUrl: "https://panel.givrwrldservers.com"
-            }
-          ],
-          loading: false
-        });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user found');
+        setServersData(prev => ({ ...prev, loading: false }));
+        return;
       }
+
+      const { data: serversData, error } = await supabase
+        .from('user_servers')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching user servers:', error);
+        setServersData({
+          servers: [],
+          loading: false
+        });
+        return;
+      }
+
+      const formattedServers = serversData.map(server => ({
+        id: server.id,
+        name: server.server_name,
+        game: server.game_type,
+        status: server.status,
+        ram: server.ram,
+        cpu: server.cpu,
+        disk: server.disk,
+        location: server.location,
+        ip: server.ip,
+        port: server.port,
+        pterodactylUrl: server.pterodactyl_url
+      }));
+
+      setServersData({
+        servers: formattedServers,
+        loading: false
+      });
     } catch (error) {
       console.error('Failed to fetch user servers:', error);
-      // Fallback to mock data
       setServersData({
-        servers: [
-          {
-            id: 'minecraft-server',
-            name: "Minecraft Server",
-            game: "Minecraft",
-            status: "Online", 
-            ram: "1GB",
-            cpu: "0.5 vCPU",
-            disk: "10GB",
-            location: "US East",
-            pterodactylUrl: "https://panel.givrwrldservers.com"
-          }
-        ],
+        servers: [],
         loading: false
       });
     }
