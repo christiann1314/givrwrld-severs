@@ -48,28 +48,7 @@ export const useSupportData = (userEmail?: string) => {
       } else {
         // Fallback to mock data if API is not available
         setSupportData({
-          tickets: [
-            {
-              id: 'TICK-001',
-              subject: 'Server connection issues',
-              category: 'Technical',
-              priority: 'high',
-              status: 'open',
-              created: '2024-01-15',
-              updated: '2024-01-16',
-              responses: 3
-            },
-            {
-              id: 'TICK-002',
-              subject: 'Billing question about upgrade', 
-              category: 'Billing',
-              priority: 'medium',
-              status: 'resolved',
-              created: '2024-01-10',
-              updated: '2024-01-12',
-              responses: 5
-            }
-          ],
+          tickets: [],
           loading: false
         });
       }
@@ -77,18 +56,7 @@ export const useSupportData = (userEmail?: string) => {
       console.error('Failed to fetch support data:', error);
       // Fallback to mock data
       setSupportData({
-        tickets: [
-          {
-            id: 'TICK-001',
-            subject: 'Server connection issues',
-            category: 'Technical', 
-            priority: 'high',
-            status: 'open',
-            created: '2024-01-15',
-            updated: '2024-01-16',
-            responses: 3
-          }
-        ],
+        tickets: [],
         loading: false
       });
     }

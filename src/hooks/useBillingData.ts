@@ -90,10 +90,10 @@ export const useBillingData = (userEmail?: string) => {
         // Fallback to mock data if API is not available
         setBillingData({
           stats: {
-            currentBalance: "$38.50",
+            currentBalance: "$0.00",
             nextPayment: "Feb 10",
-            thisMonth: "$53.49", 
-            paymentMethods: "2"
+            thisMonth: "$3.50", 
+            paymentMethods: "1"
           },
           paymentMethods: [
             {
@@ -109,18 +109,18 @@ export const useBillingData = (userEmail?: string) => {
           billingHistory: [
             {
               id: 'INV-001',
-              date: '2024-01-15',
-              description: 'Minecraft Server - 4GB RAM',
-              amount: '$14.00',
+              date: '2024-01-29',
+              description: 'Minecraft Server - 1GB RAM',
+              amount: '$3.50',
               status: 'paid',
               method: 'Visa •••• 4242'
             }
           ],
           upcomingBills: [
             {
-              service: 'Minecraft Server - 4GB RAM',
-              amount: '$14.00',
-              dueDate: '2024-02-15',
+              service: 'Minecraft Server - 1GB RAM',
+              amount: '$3.50',
+              dueDate: '2024-02-29',
               status: 'scheduled'
             }
           ],
@@ -132,10 +132,10 @@ export const useBillingData = (userEmail?: string) => {
       // Fallback to mock data
       setBillingData({
         stats: {
-          currentBalance: "$38.50",
+          currentBalance: "$0.00",
           nextPayment: "Feb 10", 
-          thisMonth: "$53.49",
-          paymentMethods: "2"
+          thisMonth: "$3.50",
+          paymentMethods: "1"
         },
         paymentMethods: [
           {
@@ -151,18 +151,18 @@ export const useBillingData = (userEmail?: string) => {
         billingHistory: [
           {
             id: 'INV-001',
-            date: '2024-01-15',
-            description: 'Minecraft Server - 4GB RAM',
-            amount: '$14.00',
+            date: '2024-01-29',
+            description: 'Minecraft Server - 1GB RAM',
+            amount: '$3.50',
             status: 'paid',
             method: 'Visa •••• 4242'
           }
         ],
         upcomingBills: [
           {
-            service: 'Minecraft Server - 4GB RAM',
-            amount: '$14.00',
-            dueDate: '2024-02-15',
+            service: 'Minecraft Server - 1GB RAM',
+            amount: '$3.50',
+            dueDate: '2024-02-29',
             status: 'scheduled'
           }
         ],

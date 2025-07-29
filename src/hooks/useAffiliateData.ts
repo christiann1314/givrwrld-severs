@@ -89,22 +89,18 @@ export const useAffiliateData = (userEmail?: string) => {
         // Fallback to mock data if API is not available
         setAffiliateData({
           stats: {
-            totalEarnings: "$1,250.00",
-            referrals: "23",
-            conversionRate: "12.5%",
-            clicks: "184",
-            earningsChange: "+15.2%",
-            referralsChange: "+3", 
-            conversionChange: "+2.1%",
-            clicksChange: "+12"
+            totalEarnings: "$0.00",
+            referrals: "0",
+            conversionRate: "0%",
+            clicks: "0",
+            earningsChange: "+0%",
+            referralsChange: "+0", 
+            conversionChange: "+0%",
+            clicksChange: "+0"
           },
           referralCode: "PLAYER2024",
-          recentReferrals: [
-            { id: 1, user: "Alex M.", amount: "$25.00", date: "2024-01-15", plan: "Minecraft 4GB" },
-            { id: 2, user: "Sarah K.", amount: "$18.50", date: "2024-01-14", plan: "FiveM 6GB" },
-            { id: 3, user: "Mike D.", amount: "$32.00", date: "2024-01-12", plan: "Palworld 8GB" }
-          ],
-          nextPayout: "$1,250.00",
+          recentReferrals: [],
+          nextPayout: "$0.00",
           loading: false
         });
       }
@@ -113,20 +109,18 @@ export const useAffiliateData = (userEmail?: string) => {
       // Fallback to mock data
       setAffiliateData({
         stats: {
-          totalEarnings: "$1,250.00", 
-          referrals: "23",
-          conversionRate: "12.5%",
-          clicks: "184",
-          earningsChange: "+15.2%",
-          referralsChange: "+3",
-          conversionChange: "+2.1%", 
-          clicksChange: "+12"
+          totalEarnings: "$0.00", 
+          referrals: "0",
+          conversionRate: "0%",
+          clicks: "0",
+          earningsChange: "+0%",
+          referralsChange: "+0",
+          conversionChange: "+0%", 
+          clicksChange: "+0"
         },
         referralCode: "PLAYER2024",
-        recentReferrals: [
-          { id: 1, user: "Alex M.", amount: "$25.00", date: "2024-01-15", plan: "Minecraft 4GB" }
-        ],
-        nextPayout: "$1,250.00",
+        recentReferrals: [],
+        nextPayout: "$0.00",
         loading: false
       });
     }
