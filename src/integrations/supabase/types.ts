@@ -14,7 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          plan_name: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          plan_name: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          plan_name?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_servers: {
+        Row: {
+          cpu: string
+          created_at: string
+          disk: string
+          game_type: string
+          id: string
+          ip: string | null
+          location: string
+          port: string | null
+          pterodactyl_url: string | null
+          ram: string
+          server_name: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cpu: string
+          created_at?: string
+          disk: string
+          game_type: string
+          id?: string
+          ip?: string | null
+          location: string
+          port?: string | null
+          pterodactyl_url?: string | null
+          ram: string
+          server_name: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cpu?: string
+          created_at?: string
+          disk?: string
+          game_type?: string
+          id?: string
+          ip?: string | null
+          location?: string
+          port?: string | null
+          pterodactyl_url?: string | null
+          ram?: string
+          server_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          active_servers: number | null
+          created_at: string
+          id: string
+          referrals: number | null
+          support_tickets: number | null
+          total_spent: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active_servers?: number | null
+          created_at?: string
+          id?: string
+          referrals?: number | null
+          support_tickets?: number | null
+          total_spent?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active_servers?: number | null
+          created_at?: string
+          id?: string
+          referrals?: number | null
+          support_tickets?: number | null
+          total_spent?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
