@@ -31,6 +31,9 @@ const DashboardServices = () => {
   const { serversData } = useUserServers(user?.email);
 
   // Get servers from Supabase data
+  console.log('DashboardServices - serversData:', serversData);
+  console.log('DashboardServices - user:', user);
+  
   const servers = serversData.servers.map(server => ({
     id: server.id,
     name: server.name,
