@@ -20,8 +20,13 @@ const Signup = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic
+    // Handle signup logic - store user email for backend
     console.log('Signup submitted:', formData);
+    
+    // In a real implementation, you'd call your signup API here
+    // For now, we'll just simulate successful signup
+    localStorage.setItem('userEmail', formData.email);
+    
     login();
     navigate(returnTo);
   };

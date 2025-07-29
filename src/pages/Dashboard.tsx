@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useUserServers } from '../hooks/useUserServers';
 import { useUserStats } from '../hooks/useUserStats';
+import { useAuth } from '../hooks/useAuth';
 import { 
   Server, 
   CreditCard, 
@@ -27,10 +28,20 @@ import {
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   
-  // For demo - in production you'd get this from auth context
-  const userEmail = "customer@example.com";
+  // Import useAuth to get authenticated user
+  const { user } = useAuth();
+  const userEmail = user?.email || null;
   const { serversData } = useUserServers(userEmail);
   const { userStats } = useUserStats(userEmail);
+
+  // Show loading state when no user email
+  if (!userEmail) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading user data...</div>
+      </div>
+    );
+  }
 
   // Game icon mapping based on game type
   const getGameIcon = (gameType: string) => {

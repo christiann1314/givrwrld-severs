@@ -15,7 +15,7 @@ export interface CheckoutSessionResponse {
 }
 
 export const stripeService = {
-  async createCheckoutSession(data: CheckoutSessionData): Promise<CheckoutSessionResponse> {
+  async createCheckoutSession(data: CheckoutSessionData & { userEmail?: string }): Promise<CheckoutSessionResponse> {
     console.log('Calling Laravel API:', `${API_BASE_URL}/create-checkout-session`);
     console.log('Request data:', data);
     

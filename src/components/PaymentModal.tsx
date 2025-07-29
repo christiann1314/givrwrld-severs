@@ -4,6 +4,7 @@ import { X, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { useAuth } from '../hooks/useAuth';
+import { stripeService } from '../services/stripeService';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   location,
 }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('credit-card');
   const [paypalEmail, setPaypalEmail] = useState('');
@@ -113,12 +114,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     setIsProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
-      navigate('/success');
-      setIsProcessing(false);
+    try {
+      const checkoutData = {
+        amount: Math.round(calculateActualTotal() * 100), // Convert to cents
+        plan_name: `${gameData.name} Server - ${selectedPlan.ram}`,
+        userEmail: user?.email, // Include user email for backend association
+        success_url: `${window.location.origin}/success`,
+        cancel_url: `${window.location.origin}/dashboard`
+      };
+      
+      const response = await stripeService.createCheckoutSession(checkoutData);
+      
+      // Redirect to Stripe Checkout
+      window.open(response.checkout_url, '_blank');
+      
       onClose();
-    }, 2000);
+    } catch (error) {
+      console.error('Payment error:', error);
+      setIsProcessing(false);
+    }
   };
 
   const renderPaymentForm = () => {

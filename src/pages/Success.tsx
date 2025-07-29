@@ -5,10 +5,12 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import { useServerStatus } from '../hooks/useServerStatus';
 import { useUserServers } from '../hooks/useUserServers';
+import { useAuth } from '../hooks/useAuth';
 
 const Success = () => {
-  // For demo - in production you'd get this from URL params or auth context
-  const userEmail = "customer@example.com"; 
+  // Get authenticated user
+  const { user, isAuthenticated } = useAuth();
+  const userEmail = user?.email || null;
   const { serverStatus, checkServerStatus } = useServerStatus(userEmail);
   const { serversData } = useUserServers(userEmail);
   

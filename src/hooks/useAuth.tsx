@@ -24,10 +24,11 @@ export const useAuth = () => {
   }, []);
 
   const login = () => {
+    const userEmail = localStorage.getItem('userEmail') || 'customer@example.com';
     localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', 'customer@example.com');
+    localStorage.setItem('userEmail', userEmail);
     setIsAuthenticated(true);
-    setUser({ email: 'customer@example.com' });
+    setUser({ email: userEmail });
   };
 
   const logout = () => {
