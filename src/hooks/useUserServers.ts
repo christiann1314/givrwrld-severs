@@ -102,24 +102,36 @@ export const useUserServers = (userEmail?: string) => {
   useEffect(() => {
     if (!userEmail) return;
 
-    const channel = supabase
-      .channel('user-servers-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_servers'
-        },
-        () => {
-          console.log('Server data changed, refetching...');
-          fetchUserServers();
-        }
-      )
-      .subscribe();
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('user-servers-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_servers',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Server data changed, refetching...', payload);
+            fetchUserServers();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    const cleanup = setupRealtimeSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      cleanup.then(fn => fn && fn());
     };
   }, [userEmail]);
 
