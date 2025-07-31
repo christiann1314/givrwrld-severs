@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client';
 import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
@@ -175,6 +176,31 @@ export const useBillingData = (userEmail?: string) => {
     if (userEmail) {
       fetchBillingData();
     }
+  }, [userEmail]);
+
+  // Set up real-time subscription for purchases table
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const channel = supabase
+      .channel('billing-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'purchases'
+        },
+        () => {
+          console.log('Billing data changed, refetching...');
+          fetchBillingData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userEmail]);
 
   return { billingData, refetchBilling: fetchBillingData };

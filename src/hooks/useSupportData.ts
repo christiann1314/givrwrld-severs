@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client';
 import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
 
@@ -112,6 +113,31 @@ export const useSupportData = (userEmail?: string) => {
     if (userEmail) {
       fetchSupportData();
     }
+  }, [userEmail]);
+
+  // Set up real-time subscription for support tickets
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const channel = supabase
+      .channel('support-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        () => {
+          console.log('Support data changed, refetching...');
+          fetchSupportData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userEmail]);
 
   return { supportData, createTicket, refetchSupport: fetchSupportData };
