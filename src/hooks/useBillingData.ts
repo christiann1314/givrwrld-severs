@@ -65,77 +65,49 @@ export const useBillingData = (userEmail?: string) => {
     setBillingData(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`${API_BASE_URL}/user/billing`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userEmail })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setBillingData({
-          stats: data.stats || {
-            currentBalance: "$0.00",
-            nextPayment: "N/A", 
-            thisMonth: "$0.00",
-            paymentMethods: "0"
-          },
-          paymentMethods: data.paymentMethods || [],
-          billingHistory: data.billingHistory || [],
-          upcomingBills: data.upcomingBills || [],
-          loading: false
-        });
-      } else {
-        // Fallback to mock data if API is not available
-        setBillingData({
-          stats: {
-            currentBalance: "$0.00",
-            nextPayment: "Feb 10",
-            thisMonth: "$3.50", 
-            paymentMethods: "1"
-          },
-          paymentMethods: [
-            {
-              id: 1,
-              type: 'card',
-              brand: 'Visa',
-              last4: '4242',
-              expiryMonth: 12,
-              expiryYear: 2025,
-              isDefault: true
-            }
-          ],
-          billingHistory: [
-            {
-              id: 'INV-001',
-              date: '2024-01-29',
-              description: 'Minecraft Server - 1GB RAM',
-              amount: '$3.50',
-              status: 'paid',
-              method: 'Visa •••• 4242'
-            }
-          ],
-          upcomingBills: [
-            {
-              service: 'Minecraft Server - 1GB RAM',
-              amount: '$3.50',
-              dueDate: '2024-02-29',
-              status: 'scheduled'
-            }
-          ],
-          loading: false
-        });
+      // Fetch real data from Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setBillingData(prev => ({ ...prev, loading: false }));
+        return;
       }
-    } catch (error) {
-      console.error('Failed to fetch billing data:', error);
-      // Fallback to mock data
+
+      // Fetch purchases from Supabase
+      const { data: purchases, error } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching purchases:', error);
+        setBillingData(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      // Calculate stats from real data
+      const totalSpent = purchases?.reduce((sum, purchase) => sum + Number(purchase.amount), 0) || 0;
+      const thisMonthSpent = purchases?.filter(p => {
+        const purchaseDate = new Date(p.created_at);
+        const now = new Date();
+        return purchaseDate.getMonth() === now.getMonth() && purchaseDate.getFullYear() === now.getFullYear();
+      }).reduce((sum, purchase) => sum + Number(purchase.amount), 0) || 0;
+
+      // Transform purchases to billing history
+      const billingHistory = purchases?.map(purchase => ({
+        id: purchase.id,
+        date: new Date(purchase.created_at).toISOString().split('T')[0],
+        description: purchase.plan_name,
+        amount: `$${Number(purchase.amount).toFixed(2)}`,
+        status: purchase.status,
+        method: 'Card Payment'
+      })) || [];
+
       setBillingData({
         stats: {
           currentBalance: "$0.00",
-          nextPayment: "Feb 10", 
-          thisMonth: "$3.50",
+          nextPayment: "N/A",
+          thisMonth: `$${thisMonthSpent.toFixed(2)}`,
           paymentMethods: "1"
         },
         paymentMethods: [
@@ -143,32 +115,19 @@ export const useBillingData = (userEmail?: string) => {
             id: 1,
             type: 'card',
             brand: 'Visa',
-            last4: '4242', 
+            last4: '4242',
             expiryMonth: 12,
             expiryYear: 2025,
             isDefault: true
           }
         ],
-        billingHistory: [
-          {
-            id: 'INV-001',
-            date: '2024-01-29',
-            description: 'Minecraft Server - 1GB RAM',
-            amount: '$3.50',
-            status: 'paid',
-            method: 'Visa •••• 4242'
-          }
-        ],
-        upcomingBills: [
-          {
-            service: 'Minecraft Server - 1GB RAM',
-            amount: '$3.50',
-            dueDate: '2024-02-29',
-            status: 'scheduled'
-          }
-        ],
+        billingHistory,
+        upcomingBills: [],
         loading: false
       });
+    } catch (error) {
+      console.error('Failed to fetch billing data:', error);
+      setBillingData(prev => ({ ...prev, loading: false }));
     }
   };
 

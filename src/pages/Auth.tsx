@@ -48,7 +48,7 @@ const Auth = () => {
             title: "Welcome back!",
             description: "You've been logged in successfully.",
           });
-          navigate(returnTo);
+          navigate('/'); // Always redirect to home page after login
         }
       } else {
         // Sign up

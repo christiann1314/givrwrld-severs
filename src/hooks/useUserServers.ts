@@ -6,6 +6,7 @@ interface ServerSpec {
   id: string;
   name: string;
   game: string;
+  game_type: string; // Add this field
   status: string;
   ram: string;
   cpu: string;
@@ -63,6 +64,7 @@ export const useUserServers = (userEmail?: string) => {
         id: server.id,
         name: server.server_name,
         game: server.game_type,
+        game_type: server.game_type, // Include both for compatibility
         status: server.status,
         ram: server.ram,
         cpu: server.cpu,

@@ -50,7 +50,7 @@ const DashboardServices = () => {
   const servers = serversData.servers.map(server => ({
     id: server.id,
     name: server.name,
-    game: server.game,
+    game: server.game_type, // Use game_type from database
     status: server.status.toLowerCase(),
     players: '0/8',
     uptime: '0 hours',
@@ -60,7 +60,8 @@ const DashboardServices = () => {
     location: server.location,
     ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
     lastBackup: 'Never',
-    plan: `${server.ram} • ${server.cpu}`
+    plan: `${server.ram} • ${server.cpu}`,
+    pterodactylUrl: server.pterodactylUrl // Add pterodactyl URL
   }));
 
   const getStatusColor = (status: string) => {
@@ -225,10 +226,22 @@ const DashboardServices = () => {
                       </button>
                     )}
                     
-                    <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
-                      <Settings size={16} />
-                      <span>Configure</span>
-                    </button>
+                    {server.pterodactylUrl ? (
+                      <a 
+                        href={server.pterodactylUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <Settings size={16} />
+                        <span>Game Panel</span>
+                      </a>
+                    ) : (
+                      <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
+                        <Settings size={16} />
+                        <span>Configure</span>
+                      </button>
+                    )}
                     
                     <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
                       <Database size={16} />
