@@ -92,5 +92,30 @@ export const useUserStats = (userEmail?: string) => {
     }
   }, [userEmail]);
 
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const channel = supabase
+      .channel('user-stats-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_stats'
+        },
+        () => {
+          console.log('Stats data changed, refetching...');
+          fetchUserStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userEmail]);
+
   return { userStats, refetchStats: fetchUserStats };
 };

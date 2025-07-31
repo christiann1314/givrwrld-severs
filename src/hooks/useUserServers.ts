@@ -92,5 +92,30 @@ export const useUserServers = (userEmail?: string) => {
     }
   }, [userEmail]);
 
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const channel = supabase
+      .channel('user-servers-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_servers'
+        },
+        () => {
+          console.log('Server data changed, refetching...');
+          fetchUserServers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userEmail]);
+
   return { serversData, refetchServers: fetchUserServers };
 };
