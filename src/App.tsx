@@ -26,6 +26,7 @@ import GivrwrldEssentials from "./pages/GivrwrldEssentials";
 import GameExpansionPack from "./pages/GameExpansionPack";
 import CommunityPack from "./pages/CommunityPack";
 import PurchaseConfirmed from "./pages/PurchaseConfirmed";
+import PurchaseSuccess from "./pages/PurchaseSuccess";
 import Dashboard from "./pages/Dashboard";
 import DashboardSupport from "./pages/DashboardSupport";
 import DashboardAffiliate from "./pages/DashboardAffiliate";
@@ -68,6 +69,7 @@ const App = () => (
           <Route path="/upgrade/game-expansion-pack" element={<GameExpansionPack />} />
           <Route path="/upgrade/community-pack" element={<CommunityPack />} />
           <Route path="/purchase-confirmed" element={<PurchaseConfirmed />} />
+          <Route path="/purchase-success" element={<PurchaseSuccess />} />
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/dashboard/support" element={<ProtectedRoute><DashboardSupport /></ProtectedRoute>} />

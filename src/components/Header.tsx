@@ -13,7 +13,8 @@ const Header = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsAccountOpen(false);
-    navigate('/');
+    // Force page refresh after logout to ensure clean state
+    window.location.href = '/';
   };
 
   return (
