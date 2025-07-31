@@ -5,6 +5,7 @@ import { useToast } from './use-toast';
 interface ServerSpec {
   id: string;
   name: string;
+  server_name: string; // Add this field for database mapping
   game: string;
   game_type: string; // Add this field
   status: string;
@@ -15,6 +16,7 @@ interface ServerSpec {
   ip?: string;
   port?: string;
   pterodactylUrl: string;
+  pterodactyl_url?: string; // Add this for database mapping
 }
 
 interface UserServersData {
@@ -63,6 +65,7 @@ export const useUserServers = (userEmail?: string) => {
       const formattedServers = serversData.map(server => ({
         id: server.id,
         name: server.server_name,
+        server_name: server.server_name,
         game: server.game_type,
         game_type: server.game_type, // Include both for compatibility
         status: server.status,
@@ -72,7 +75,8 @@ export const useUserServers = (userEmail?: string) => {
         location: server.location,
         ip: server.ip,
         port: server.port,
-        pterodactylUrl: server.pterodactyl_url
+        pterodactylUrl: server.pterodactyl_url,
+        pterodactyl_url: server.pterodactyl_url
       }));
 
       setServersData({

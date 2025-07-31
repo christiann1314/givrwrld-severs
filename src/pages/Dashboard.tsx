@@ -59,7 +59,7 @@ const Dashboard = () => {
     ...server,
     specs: `${server.ram} RAM • ${server.cpu} • ${server.location}`,
     icon: "🎮",
-    gameIcon: getGameIcon(server.game)
+    gameIcon: getGameIcon(server.game_type || server.game) // Use game_type preferentially
   }));
 
   const stats = [
@@ -71,6 +71,7 @@ const Dashboard = () => {
 
   const quickActions = [
     { title: "Order New Server", icon: Plus, color: "emerald", link: "/dashboard/order" },
+    { title: "View Last Purchase", icon: CreditCard, color: "blue", link: "/success" },
     { title: "Create Support Ticket", icon: LifeBuoy, color: "gray", link: "/dashboard/support" },
     { title: "View Affiliate Program", icon: UserPlus, color: "purple", link: "/dashboard/affiliate" }
   ];
@@ -225,6 +226,7 @@ const Dashboard = () => {
                         <div className={`p-2 rounded-lg ${
                           action.color === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' :
                           action.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+                          action.color === 'blue' ? 'bg-blue-500/20 text-blue-400' :
                           'bg-gray-500/20 text-gray-400'
                         }`}>
                           <action.icon size={16} />

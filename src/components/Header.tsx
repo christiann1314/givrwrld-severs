@@ -11,10 +11,21 @@ const Header = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
     setIsAccountOpen(false);
-    // Force page refresh after logout to ensure clean state
-    window.location.href = '/';
+    // Show loading state during logout
+    const logoutBtn = document.querySelector('[data-logout-btn]') as HTMLButtonElement;
+    if (logoutBtn) {
+      logoutBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>Signing out...';
+    }
+    
+    try {
+      await supabase.auth.signOut();
+      // Smooth redirect to home
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = '/';
+    }
   };
 
   return (
@@ -86,6 +97,7 @@ const Header = () => {
                       </Link>
                       <button 
                         onClick={handleLogout}
+                        data-logout-btn
                         className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-emerald-500/10 transition-colors"
                       >
                         <LogOut size={16} />

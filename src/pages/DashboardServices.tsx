@@ -37,20 +37,35 @@ const DashboardServices = () => {
   console.log('DashboardServices - user:', user);
 
   const getGameIcon = (game: string) => {
-    switch (game.toLowerCase()) {
-      case 'minecraft':
-        return <Gamepad2 className="text-green-400" size={32} />;
-      case 'fivem':
-        return <Monitor className="text-blue-400" size={32} />;
-      default:
-        return <Gamepad2 className="text-emerald-400" size={32} />;
+    const gameIcons: { [key: string]: string } = {
+      'minecraft': '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
+      'palworld': '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+      'fivem': '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
+    };
+    
+    const iconPath = gameIcons[game.toLowerCase()];
+    if (iconPath) {
+      return (
+        <img 
+          src={iconPath} 
+          alt={game}
+          className="w-8 h-8 object-cover rounded-md"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            target.parentElement!.innerHTML = '<div class="text-emerald-400"><svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V7H21V9M3 19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V11H3V19Z"/></svg></div>';
+          }}
+        />
+      );
     }
+    
+    return <Gamepad2 className="text-emerald-400" size={32} />;
   };
   
   const servers = serversData.servers.map(server => ({
     id: server.id,
-    name: server.name,
-    game: server.game_type, // Use game_type from database
+    name: server.name || server.server_name,
+    game: server.game_type || server.game, // Use game_type from database
     status: server.status.toLowerCase(),
     players: '0/8',
     uptime: '0 hours',
@@ -61,7 +76,7 @@ const DashboardServices = () => {
     ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
     lastBackup: 'Never',
     plan: `${server.ram} • ${server.cpu}`,
-    pterodactylUrl: server.pterodactylUrl // Add pterodactyl URL
+    pterodactylUrl: server.pterodactyl_url || server.pterodactylUrl // Add pterodactyl URL
   }));
 
   const getStatusColor = (status: string) => {
