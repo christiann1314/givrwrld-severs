@@ -37,8 +37,8 @@ export const useUserServers = (userEmail?: string) => {
       return;
     }
     
-    console.log('Fetching servers for user:', userEmail);
-    setServersData(prev => ({ ...prev, loading: true }));
+      console.log('🔄 Fetching servers for user:', userEmail);
+      setServersData(prev => ({ ...prev, loading: true }));
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -62,6 +62,8 @@ export const useUserServers = (userEmail?: string) => {
         return;
       }
 
+      console.log('📊 Raw server data from database:', serversData);
+      
       const formattedServers = serversData.map(server => ({
         id: server.id,
         name: server.server_name,
@@ -78,6 +80,8 @@ export const useUserServers = (userEmail?: string) => {
         pterodactylUrl: server.pterodactyl_url,
         pterodactyl_url: server.pterodactyl_url
       }));
+
+      console.log('🎮 Formatted servers for display:', formattedServers);
 
       setServersData({
         servers: formattedServers,
@@ -106,6 +110,8 @@ export const useUserServers = (userEmail?: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      console.log('🔗 Setting up real-time subscription for user:', user.id);
+
       const channel = supabase
         .channel('user-servers-changes')
         .on(
@@ -117,11 +123,14 @@ export const useUserServers = (userEmail?: string) => {
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('Server data changed, refetching...', payload);
+            console.log('🚨 Server data changed! Payload:', payload);
+            console.log('📡 Refetching server data...');
             fetchUserServers();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('📻 Subscription status:', status);
+        });
 
       return () => {
         supabase.removeChannel(channel);
