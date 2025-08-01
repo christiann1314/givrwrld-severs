@@ -18,10 +18,10 @@ const MinecraftConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '1GB', price: 3.50, description: 'Perfect for small groups and testing' },
-      { ram: '2GB', price: 7.00, description: 'Great for friends and small communities' },
-      { ram: '4GB', price: 14.00, description: 'Ideal for medium-sized servers with mods', recommended: true },
-      { ram: '8GB', price: 28.00, description: 'Perfect for large communities and heavy modpacks' },
+      { ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.50, description: 'Perfect for small groups and testing' },
+      { ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 7.00, description: 'Great for friends and small communities' },
+      { ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 14.00, description: 'Ideal for medium-sized servers with mods', recommended: true },
+      { ram: '8GB', cpu: '4 vCPU', disk: '80GB SSD', price: 28.00, description: 'Perfect for large communities and heavy modpacks' },
     ]
   };
 

@@ -18,9 +18,9 @@ const PalworldConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '4GB', price: 12.00, description: 'Small co-op sessions (2-4 players)' },
-      { ram: '8GB', price: 24.00, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
-      { ram: '16GB', price: 48.00, description: 'Large dedicated servers (32+ players)' },
+      { ram: '4GB', cpu: '2 vCPU', disk: '25GB SSD', price: 12.00, description: 'Small co-op sessions (2-4 players)' },
+      { ram: '8GB', cpu: '4 vCPU', disk: '50GB SSD', price: 24.00, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
+      { ram: '16GB', cpu: '8 vCPU', disk: '100GB SSD', price: 48.00, description: 'Large dedicated servers (32+ players)' },
     ]
   };
 

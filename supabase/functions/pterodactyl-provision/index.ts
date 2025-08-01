@@ -39,12 +39,20 @@ serve(async (req) => {
       return new Response('Pterodactyl configuration missing', { status: 500 })
     }
 
+    // Parse RAM and CPU values more reliably
+    const ramMatch = server.ram.match(/(\d+)/);
+    const ramGB = ramMatch ? parseInt(ramMatch[1]) : 1;
+    const cpuMatch = server.cpu.match(/(\d+(?:\.\d+)?)/);
+    const cpuValue = cpuMatch ? parseFloat(cpuMatch[1]) : 0.5;
+    const diskMatch = server.disk.match(/(\d+)/);
+    const diskGB = diskMatch ? parseInt(diskMatch[1]) : 10;
+
     // Create server in Pterodactyl Panel
     const serverData = {
       name: server.server_name,
-      description: `Minecraft server for user ${server.user_id}`,
-      user: 1, // Default user ID in Pterodactyl
-      egg: 1, // Minecraft egg ID
+      description: `${server.game_type} server for user ${server.user_id}`,
+      user: 1, // Default user ID in Pterodactyl - you may need to adjust this
+      egg: server.game_type === 'Minecraft' ? 1 : 1, // Adjust egg IDs based on your setup
       docker_image: "quay.io/pterodactyl/core:java",
       startup: "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}",
       environment: {
@@ -52,19 +60,19 @@ serve(async (req) => {
         VANILLA_VERSION: "latest"
       },
       limits: {
-        memory: parseInt(server.ram.replace('GB', '')) * 1024, // Convert GB to MB
+        memory: ramGB * 1024, // Convert GB to MB
         swap: 0,
-        disk: parseInt(server.disk.replace('GB', '')) * 1024, // Convert GB to MB
+        disk: diskGB * 1024, // Convert GB to MB
         io: 500,
-        cpu: parseFloat(server.cpu.replace(' vCPU', '')) * 100 // Convert to percentage
+        cpu: cpuValue * 100 // Convert to percentage
       },
       feature_limits: {
-        databases: 0,
+        databases: 1,
         allocations: 1,
-        backups: 0
+        backups: 2
       },
       allocation: {
-        default: 1 // Default allocation ID
+        default: 1 // You may need to adjust this to a valid allocation ID
       }
     }
 

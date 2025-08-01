@@ -18,10 +18,10 @@ const FiveMConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '2GB', price: 6.50, description: 'Entry RP, low pop, local tests only' },
-      { ram: '4GB', price: 12.50, description: 'Small roleplay communities' },
-      { ram: '6GB', price: 18.50, description: 'Medium-sized servers with custom resources' },
-      { ram: '8GB', price: 24.50, description: 'Large communities with extensive mods', recommended: true },
+      { ram: '2GB', cpu: '1 vCPU', disk: '15GB SSD', price: 6.50, description: 'Entry RP, low pop, local tests only' },
+      { ram: '4GB', cpu: '2 vCPU', disk: '30GB SSD', price: 12.50, description: 'Small roleplay communities' },
+      { ram: '6GB', cpu: '3 vCPU', disk: '45GB SSD', price: 18.50, description: 'Medium-sized servers with custom resources' },
+      { ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.50, description: 'Large communities with extensive mods', recommended: true },
     ]
   };
 

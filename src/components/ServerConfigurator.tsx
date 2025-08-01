@@ -14,6 +14,8 @@ interface GameData {
   features: string[];
   planOptions: Array<{
     ram: string;
+    cpu: string;
+    disk: string;
     price: number;
     description: string;
     recommended?: boolean;
@@ -140,7 +142,11 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     try {
       await createCheckoutSession({
         plan_name: `${gameData.name} - ${selectedPlan.ram}`,
-        amount: Math.round(calculateTotal() * 100), // Convert to cents
+        amount: calculateTotal(), // Send actual dollar amount, not cents
+        ram: selectedPlan.ram,
+        cpu: selectedPlan.cpu,
+        disk: selectedPlan.disk,
+        location: location,
         success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
         cancel_url: `${window.location.origin}/dashboard`,
       });

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,9 +23,24 @@ serve(async (req) => {
     
     // Verify webhook signature with Stripe
     const stripeSigningSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    })
     
-    // Parse the Stripe event
-    const event = JSON.parse(body)
+    if (!stripeSigningSecret) {
+      console.error('STRIPE_WEBHOOK_SECRET not configured')
+      return new Response('Webhook secret not configured', { status: 500 })
+    }
+
+    // Verify the webhook signature
+    let event
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, stripeSigningSecret)
+      console.log('Verified Stripe webhook event:', event.type)
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err.message)
+      return new Response('Webhook signature verification failed', { status: 400 })
+    }
     
     console.log('Received Stripe event:', event.type)
 
@@ -99,8 +115,30 @@ serve(async (req) => {
         console.error('Error updating stats:', statsError)
       }
 
-      // TODO: Integrate with Pterodactyl Panel to actually provision the server
-      // This would require Pterodactyl API calls to create the server instance
+      // Provision server in Pterodactyl Panel
+      try {
+        const { data: provisionResult, error: provisionError } = await supabase.functions.invoke('pterodactyl-provision', {
+          body: { serverId: server.id }
+        })
+        
+        if (provisionError) {
+          console.error('Error provisioning server:', provisionError)
+          // Update server status to failed
+          await supabase
+            .from('user_servers')
+            .update({ status: 'failed' })
+            .eq('id', server.id)
+        } else {
+          console.log('Server provisioning initiated for:', server.id)
+        }
+      } catch (provisionError) {
+        console.error('Failed to call pterodactyl-provision:', provisionError)
+        // Update server status to failed
+        await supabase
+          .from('user_servers')
+          .update({ status: 'failed' })
+          .eq('id', server.id)
+      }
 
       console.log('Successfully processed payment and created server for:', userEmail)
     }
