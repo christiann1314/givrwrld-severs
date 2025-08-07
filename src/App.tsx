@@ -34,6 +34,7 @@ import DashboardOrder from "./pages/DashboardOrder";
 import DashboardServices from "./pages/DashboardServices";
 import DashboardSettings from "./pages/DashboardSettings";
 import DashboardBilling from "./pages/DashboardBilling";
+import Migration from "./pages/Migration";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ const App = () => (
           <Route path="/dashboard/services" element={<ProtectedRoute><DashboardServices /></ProtectedRoute>} />
           <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
           <Route path="/dashboard/billing" element={<ProtectedRoute><DashboardBilling /></ProtectedRoute>} />
+          <Route path="/migration" element={<Migration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
