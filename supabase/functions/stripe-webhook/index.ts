@@ -168,6 +168,77 @@ if (statsError) {
       console.log('Successfully processed payment and created server for:', userEmail)
     }
 
+    // Also handle direct payments in case Stripe uses payment_intent.succeeded
+    if (event.type === 'payment_intent.succeeded') {
+      const intent: any = event.data.object
+      const amount = ((intent.amount_received ?? intent.amount) || 0) / 100
+
+      // Try to resolve email from charge or metadata
+      let userEmail: string | undefined = intent.charges?.data?.[0]?.billing_details?.email || intent.receipt_email || intent.metadata?.user_email
+
+      // Resolve the user id
+      let resolvedUserId: string | undefined = intent.metadata?.user_id
+      if (!resolvedUserId && userEmail) {
+        const { data: profileByEmail } = await supabase
+          .from('profiles')
+          .select('user_id')
+          .eq('email', userEmail)
+          .single()
+        resolvedUserId = profileByEmail?.user_id || undefined
+      }
+
+      if (resolvedUserId) {
+        const planName = intent.metadata?.plan_name || 'Minecraft Server'
+        const ram = intent.metadata?.ram || '1GB'
+        const cpu = intent.metadata?.cpu || '0.5 vCPU'
+        const disk = intent.metadata?.disk || '10GB'
+        const location = intent.metadata?.location || 'US East'
+
+        // Record purchase
+        const { error: purchaseError } = await supabase
+          .from('purchases')
+          .insert({ user_id: resolvedUserId, plan_name: planName, amount, status: 'completed' })
+        if (purchaseError) console.error('PI: purchase insert error', purchaseError)
+
+        // Create server
+        const { data: server, error: serverError } = await supabase
+          .from('user_servers')
+          .insert({
+            user_id: resolvedUserId,
+            server_name: `${planName} - ${userEmail ?? 'unknown'}`,
+            game_type: 'Minecraft',
+            ram, cpu, disk, location,
+            status: 'provisioning'
+          })
+          .select()
+          .single()
+        if (!serverError && server) {
+          // Update stats safely
+          const { data: currentStats } = await supabase
+            .from('user_stats')
+            .select('active_servers, total_spent')
+            .eq('user_id', resolvedUserId)
+            .maybeSingle()
+          const currentActive = currentStats?.active_servers ?? 0
+          const currentTotalNum = currentStats?.total_spent != null ? parseFloat(String(currentStats.total_spent)) : 0
+          await supabase
+            .from('user_stats')
+            .upsert({ user_id: resolvedUserId, active_servers: currentActive + 1, total_spent: currentTotalNum + amount }, { onConflict: 'user_id' })
+
+          try {
+            await supabase.functions.invoke('pterodactyl-provision', { body: { serverId: server.id } })
+          } catch (e) {
+            console.error('PI: provisioning error', e)
+            await supabase.from('user_servers').update({ status: 'failed' }).eq('id', server.id)
+          }
+        } else if (serverError) {
+          console.error('PI: server insert error', serverError)
+        }
+      } else {
+        console.warn('PI succeeded but user could not be resolved; skipping DB writes')
+      }
+    }
+
     return new Response('Webhook processed', { 
       status: 200,
       headers: corsHeaders 
