@@ -46,8 +46,8 @@ export const useUserStats = (userEmail?: string) => {
       if (error) {
         console.error('Error fetching user stats:', error);
         setUserStats({
-          activeServers: 1,
-          totalSpent: "$3.50",
+          activeServers: 0,
+          totalSpent: "$0.00",
           supportTickets: 0,
           referrals: 0,
           loading: false
@@ -77,8 +77,8 @@ export const useUserStats = (userEmail?: string) => {
       console.error('Failed to fetch user stats:', error);
       // Fallback to default values
       setUserStats({
-        activeServers: 1,
-        totalSpent: "$3.50",
+        activeServers: 0,
+        totalSpent: "$0.00",
         supportTickets: 0,
         referrals: 0,
         loading: false
