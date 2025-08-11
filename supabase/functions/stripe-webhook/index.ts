@@ -102,13 +102,20 @@ serve(async (req) => {
         return new Response('Server creation failed', { status: 500 })
       }
 
-      // Update user stats
+      // Get current user stats first
+      const { data: currentStats } = await supabase
+        .from('user_stats')
+        .select('active_servers, total_spent')
+        .eq('user_id', profile.user_id)
+        .single()
+
+      // Update user stats by incrementing values
       const { error: statsError } = await supabase
         .from('user_stats')
         .upsert({
           user_id: profile.user_id,
-          active_servers: 1,
-          total_spent: amount
+          active_servers: (currentStats?.active_servers || 0) + 1,
+          total_spent: (currentStats?.total_spent || 0) + amount
         })
 
       if (statsError) {
