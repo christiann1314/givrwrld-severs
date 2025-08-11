@@ -108,25 +108,37 @@ serve(async (req) => {
         return new Response('Server creation failed', { status: 500 })
       }
 
-      // Get current user stats first
-      const { data: currentStats } = await supabase
-        .from('user_stats')
-        .select('active_servers, total_spent')
-        .eq('user_id', resolvedUserId)
-        .single()
+// Get current user stats first
+const { data: currentStats } = await supabase
+  .from('user_stats')
+  .select('active_servers, total_spent')
+  .eq('user_id', resolvedUserId)
+  .maybeSingle()
 
-      // Update user stats by incrementing values
-      const { error: statsError } = await supabase
-        .from('user_stats')
-        .upsert({
-          user_id: resolvedUserId,
-          active_servers: (currentStats?.active_servers || 0) + 1,
-          total_spent: (currentStats?.total_spent || 0) + amount
-        })
+// Coerce numeric fields safely
+const currentActive = currentStats?.active_servers ?? 0
+const currentTotalNum =
+  currentStats?.total_spent !== undefined && currentStats?.total_spent !== null
+    ? parseFloat(String(currentStats.total_spent))
+    : 0
+const newActive = currentActive + 1
+const newTotal = Number.isFinite(currentTotalNum) ? currentTotalNum + amount : amount
 
-      if (statsError) {
-        console.error('Error updating stats:', statsError)
-      }
+// Upsert by user_id to avoid duplicates
+const { error: statsError } = await supabase
+  .from('user_stats')
+  .upsert(
+    {
+      user_id: resolvedUserId,
+      active_servers: newActive,
+      total_spent: newTotal,
+    },
+    { onConflict: 'user_id' }
+  )
+
+if (statsError) {
+  console.error('Error updating stats:', statsError)
+}
 
       // Provision server in Pterodactyl Panel
       try {
