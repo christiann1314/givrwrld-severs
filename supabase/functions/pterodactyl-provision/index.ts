@@ -6,6 +6,60 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper functions for game-specific configurations
+function getEggId(gameType: string): number {
+  switch (gameType.toLowerCase()) {
+    case 'minecraft':
+      return 1; // Minecraft egg ID
+    case 'palworld':
+      return 15; // Palworld egg ID from your import
+    default:
+      return 1; // Default to Minecraft
+  }
+}
+
+function getDockerImage(gameType: string): string {
+  switch (gameType.toLowerCase()) {
+    case 'minecraft':
+      return "quay.io/pterodactyl/core:java";
+    case 'palworld':
+      return "steamcmd_debianghcr_io/parkervcp/steamcmd-debian";
+    default:
+      return "quay.io/pterodactyl/core:java";
+  }
+}
+
+function getStartupCommand(gameType: string): string {
+  switch (gameType.toLowerCase()) {
+    case 'minecraft':
+      return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}";
+    case 'palworld':
+      return "./PalWorldServerConfigParser; (while read cmd; do echo \"$cmd\"; if [ \"$cmd\" == \"exit\" ] || [ \"$cmd\" == \"quit\" ]; then exit 0; fi; done < /dev/stdin & rm -f /home/container/PalBinariesLinuxPalServer-Linux-Shipping-Pal -puidobdoy -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port={{SERVER_PORT}} -publicport={{SERVER_PORT}} -servername=\"{{SERVER_NAME}}\" -players={{MAX_PLAYERS}} $(if [ -n \"{{SERVER_PASSWORD}}\" ]; then echo \"-adminpassword={{ADMIN_PASSWORD}}\" -rcon\"; fi; fi; exit 0) && serverpassword=\"${{SERVER_PASSWORD}}\""; fi; fi; exit 0) && sleep 3; echo exit 0";
+    default:
+      return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}";
+  }
+}
+
+function getEnvironmentVars(gameType: string): object {
+  switch (gameType.toLowerCase()) {
+    case 'minecraft':
+      return {
+        SERVER_JARFILE: "server.jar",
+        VANILLA_VERSION: "latest"
+      };
+    case 'palworld':
+      return {
+        SRCDS_PORT: "8211",
+        SRCDS_APPID: "2394010"
+      };
+    default:
+      return {
+        SERVER_JARFILE: "server.jar",
+        VANILLA_VERSION: "latest"
+      };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -52,13 +106,10 @@ serve(async (req) => {
       name: server.server_name,
       description: `${server.game_type} server for user ${server.user_id}`,
       user: 1, // Default user ID in Pterodactyl - you may need to adjust this
-      egg: server.game_type === 'Minecraft' ? 1 : 1, // Adjust egg IDs based on your setup
-      docker_image: "quay.io/pterodactyl/core:java",
-      startup: "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}",
-      environment: {
-        SERVER_JARFILE: "server.jar",
-        VANILLA_VERSION: "latest"
-      },
+      egg: getEggId(server.game_type),
+      docker_image: getDockerImage(server.game_type),
+      startup: getStartupCommand(server.game_type),
+      environment: getEnvironmentVars(server.game_type),
       limits: {
         memory: ramGB * 1024, // Convert GB to MB
         swap: 0,
