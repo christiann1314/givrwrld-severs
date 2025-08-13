@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Success from "./pages/Success";
+import VPS from "./pages/VPS";
 import About from "./pages/About";
 import Affiliate from "./pages/Affiliate";
 import Discord from "./pages/Discord";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/login" element={<Auth />} />
+          <Route path="/vps" element={<VPS />} />
           <Route path="/signup" element={<Auth />} />
           <Route path="/success" element={<Success />} />
           <Route path="/about" element={<About />} />

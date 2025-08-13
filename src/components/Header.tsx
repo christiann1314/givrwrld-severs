@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings, LogOut, Server } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../integrations/supabase/client';
 
 const Header = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isHostingOpen, setIsHostingOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -53,6 +54,35 @@ const Header = () => {
               <Home size={16} />
               <span>Home</span>
             </Link>
+            
+            {/* Hosting Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsHostingOpen(!isHostingOpen)}
+                onBlur={() => setTimeout(() => setIsHostingOpen(false), 150)}
+                className="flex items-center space-x-1 text-gray-300 hover:text-emerald-400 transition-colors"
+              >
+                <Server size={16} />
+                <span>Hosting</span>
+                <ChevronDown size={14} />
+              </button>
+              
+              {isHostingOpen && (
+                <div className="absolute left-0 mt-2 w-48 bg-gray-800/95 backdrop-blur-md rounded-lg border border-emerald-500/20 shadow-xl z-50">
+                  <div className="py-2">
+                    <Link 
+                      to="/vps" 
+                      className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-emerald-500/10 transition-colors"
+                      onClick={() => setIsHostingOpen(false)}
+                    >
+                      <Server size={16} />
+                      <span>VPS Hosting</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Link to="/discord" className="flex items-center space-x-1 text-gray-300 hover:text-emerald-400 transition-colors">
               <MessageCircle size={16} />
               <span>Discord</span>
