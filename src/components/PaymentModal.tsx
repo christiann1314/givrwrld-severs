@@ -29,6 +29,13 @@ interface PaymentModalProps {
     description: string;
     price: number;
   }>;
+  selectedBundle: string;
+  serviceBundles: Array<{
+    id: string;
+    name: string;
+    price: number;
+    inclusions: string[];
+  }>;
   serverName: string;
   location: string;
 }
@@ -41,6 +48,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   billingPeriod,
   addOns,
   addOnOptions,
+  selectedBundle,
+  serviceBundles,
   serverName,
   location,
 }) => {
@@ -81,6 +90,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const calculateSubtotal = () => {
     let total = selectedPlan.price;
+    
+    // Add service bundle
+    const bundle = serviceBundles.find(b => b.id === selectedBundle);
+    if (bundle) total += bundle.price;
+    
     Object.entries(addOns).forEach(([key, enabled]) => {
       if (enabled) {
         const addOn = addOnOptions.find(option => option.key === key);
@@ -297,6 +311,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <span className="text-gray-400">Server Plan</span>
                 <span className="text-white">${selectedPlan.price.toFixed(2)}/month</span>
               </div>
+              
+              {selectedBundle !== 'none' && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">
+                    {serviceBundles.find(b => b.id === selectedBundle)?.name}
+                  </span>
+                  <span className="text-emerald-400">+${serviceBundles.find(b => b.id === selectedBundle)?.price.toFixed(2)}/month</span>
+                </div>
+              )}
               
               {Object.entries(addOns).map(([key, enabled]) => {
                 if (!enabled) return null;

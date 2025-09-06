@@ -26,6 +26,8 @@ import {
   Gamepad2,
   Monitor
 } from 'lucide-react';
+import BundleBadge from '../components/BundleBadge';
+import { getBundleName } from '../utils/bundleUtils';
 
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
@@ -76,7 +78,9 @@ const DashboardServices = () => {
     ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
     lastBackup: 'Never',
     plan: `${server.ram} • ${server.cpu}`,
-    pterodactylUrl: server.pterodactyl_url || server.pterodactylUrl // Add pterodactyl URL
+    pterodactylUrl: server.pterodactyl_url || server.pterodactylUrl, // Add pterodactyl URL
+    bundle: server.bundle_id || 'none', // Add bundle info
+    bundleName: getBundleName(server.bundle_id || 'none')
   }));
 
   const getStatusColor = (status: string) => {
@@ -171,6 +175,7 @@ const DashboardServices = () => {
                             <span className="ml-1 capitalize">{server.status}</span>
                           </span>
                           <span className="text-sm text-gray-400">{server.location}</span>
+                          <BundleBadge bundleId={server.bundle} />
                         </div>
                       </div>
                     </div>

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useAuth } from '../hooks/useAuth';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
+import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
 import PaymentModal from './PaymentModal';
 
 interface ModpackOption {
@@ -62,53 +63,6 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
 
   // Service Bundle state
   const [selectedBundle, setSelectedBundle] = useState<string>('none');
-
-  const serviceBundles = [
-    {
-      id: 'none',
-      name: 'None',
-      description: 'Basic server only',
-      price: 0,
-      inclusions: [],
-      icon: '⚪'
-    },
-    {
-      id: 'essentials',
-      name: 'GIVRwrld Essentials',
-      description: 'Daily backups, Discord bridge, analytics',
-      price: 6.99,
-      inclusions: [
-        'Daily automatic backups (7-day retention)',
-        'Discord bridge integration (status + start/stop alerts)',
-        'Analytics dashboard (basic player/CPU/RAM metrics)'
-      ],
-      icon: '🔧'
-    },
-    {
-      id: 'expansion',
-      name: 'Game Expansion Pack',
-      description: 'Cross-deploy capabilities and management',
-      price: 14.99,
-      inclusions: [
-        'Cross-deploy to supported game types (Minecraft/Rust/Palworld)',
-        'Shared resource allocation (keeps plan limits when switching games)',
-        'Cross-game player management tools'
-      ],
-      icon: '🎮'
-    },
-    {
-      id: 'community',
-      name: 'Community Pack',
-      description: 'Priority support and creator benefits',
-      price: 4.99,
-      inclusions: [
-        'Priority support queue',
-        'Creator spotlight eligibility & dev blog access',
-        'Private Discord channels/roles'
-      ],
-      icon: '👥'
-    }
-  ];
 
   const addOnOptions = [
     {
@@ -204,27 +158,6 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       ...prev,
       [key]: !prev[key]
     }));
-  };
-
-  const getBundleEnvVars = (bundleId: string) => {
-    switch (bundleId) {
-      case 'essentials':
-        return {
-          "BACKUPS_ENABLED": "1",
-          "BACKUPS_RETENTION_DAYS": "7",
-          "DISCORD_BRIDGE": "1",
-          "ANALYTICS_ENABLED": "1"
-        };
-      case 'expansion':
-        return {
-          "CROSS_DEPLOY_ENABLED": "1",
-          "PRESERVE_LIMITS_ON_GAME_SWITCH": "1"
-        };
-      case 'community':
-        return {};
-      default:
-        return {};
-    }
   };
 
   const handleDeploy = async () => {

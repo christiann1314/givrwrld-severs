@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { plan_name, amount, ram, cpu, disk, location, success_url, cancel_url } = await req.json()
+    const { plan_name, amount, ram, cpu, disk, location, success_url, cancel_url, bundle_id, bundle_env, bundle_limits_patch } = await req.json()
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -73,7 +73,10 @@ serve(async (req) => {
         ram: ram || '1GB',
         cpu: cpu || '0.5 vCPU', 
         disk: disk || '10GB',
-        location: location || 'US-East'
+        location: location || 'US-East',
+        bundle_id: bundle_id || 'none',
+        bundle_env: bundle_env ? JSON.stringify(bundle_env) : '{}',
+        bundle_limits_patch: bundle_limits_patch ? JSON.stringify(bundle_limits_patch) : '{}'
       },
       success_url: success_url || `${req.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancel_url || `${req.headers.get('origin')}/dashboard`,

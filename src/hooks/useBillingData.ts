@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { API_BASE_URL } from '../config/api';
 import { useToast } from './use-toast';
+import { getBundleName } from '../utils/bundleUtils';
 
 interface PaymentMethod {
   id: number;
@@ -94,14 +95,19 @@ export const useBillingData = (userEmail?: string) => {
       }).reduce((sum, purchase) => sum + Number(purchase.amount), 0) || 0;
 
       // Transform purchases to billing history
-      const billingHistory = purchases?.map(purchase => ({
-        id: purchase.id,
-        date: new Date(purchase.created_at).toISOString().split('T')[0],
-        description: purchase.plan_name,
-        amount: `$${Number(purchase.amount).toFixed(2)}`,
-        status: purchase.status,
-        method: 'Card Payment'
-      })) || [];
+      const billingHistory = purchases?.map(purchase => {
+        const bundleText = (purchase as any).bundle_id && (purchase as any).bundle_id !== 'none' 
+          ? ` + ${getBundleName((purchase as any).bundle_id)}` 
+          : '';
+        return {
+          id: purchase.id,
+          date: new Date(purchase.created_at).toISOString().split('T')[0],
+          description: `${purchase.plan_name}${bundleText}`,
+          amount: `$${Number(purchase.amount).toFixed(2)}`,
+          status: purchase.status,
+          method: 'Card Payment'
+        };
+      }) || [];
 
       setBillingData({
         stats: {

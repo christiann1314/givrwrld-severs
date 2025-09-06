@@ -18,6 +18,7 @@ interface ServerSpec {
   port?: string;
   pterodactylUrl: string;
   pterodactyl_url?: string; // Add this for database mapping
+  bundle_id?: string; // Add bundle support
 }
 
 interface UserServersData {
@@ -68,7 +69,8 @@ export const useUserServers = (userEmail?: string) => {
             ip: s.ip,
             port: s.port,
             pterodactylUrl: s.pterodactyl_url || s.panel_url || '',
-            pterodactyl_url: s.pterodactyl_url || s.panel_url || ''
+            pterodactyl_url: s.pterodactyl_url || s.panel_url || '',
+            bundle_id: s.bundle_id || 'none'
           }));
 
           console.log('🛰️ Servers from Laravel/Pterodactyl:', formattedFromApi);
@@ -112,7 +114,8 @@ export const useUserServers = (userEmail?: string) => {
         ip: server.ip,
         port: server.port,
         pterodactylUrl: server.pterodactyl_url,
-        pterodactyl_url: server.pterodactyl_url
+        pterodactyl_url: server.pterodactyl_url,
+        bundle_id: server.bundle_id || 'none'
       }));
 
       console.log('🎮 Formatted servers for display:', formattedServers);
