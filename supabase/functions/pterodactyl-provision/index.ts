@@ -34,7 +34,7 @@ function getStartupCommand(gameType: string): string {
     case 'minecraft':
       return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}";
     case 'palworld':
-      return "./PalWorldServerConfigParser; (while read cmd; do echo \"$cmd\"; if [ \"$cmd\" == \"exit\" ] || [ \"$cmd\" == \"quit\" ]; then exit 0; fi; done < /dev/stdin & rm -f /home/container/PalBinariesLinuxPalServer-Linux-Shipping-Pal -puidobdoy -useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS -port={{SERVER_PORT}} -publicport={{SERVER_PORT}} -servername=\"{{SERVER_NAME}}\" -players={{MAX_PLAYERS}} $(if [ -n \"{{SERVER_PASSWORD}}\" ]; then echo \"-adminpassword={{ADMIN_PASSWORD}}\" -rcon\"; fi; fi; exit 0) && serverpassword=\"${{SERVER_PASSWORD}}\""; fi; fi; exit 0) && sleep 3; echo exit 0";
+      return "./PalServer.sh -port={{SERVER_PORT}} -publicport={{SERVER_PORT}} -servername=\"{{SERVER_NAME}}\" -players={{MAX_PLAYERS}} -adminpassword=\"{{ADMIN_PASSWORD}}\" -serverpassword=\"{{SERVER_PASSWORD}}\"";
     default:
       return "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}";
   }
