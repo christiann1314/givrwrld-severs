@@ -28,8 +28,8 @@ const ServerCard: React.FC<ServerCardProps> = ({
     switch (game.toLowerCase()) {
       case 'minecraft':
         return '/configure/minecraft';
-      case 'fivem':
-        return '/configure/fivem';
+      case 'rust':
+        return '/configure/rust';
       case 'palworld':
         return '/configure/palworld';
       default:

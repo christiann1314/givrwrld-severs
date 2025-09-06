@@ -5,11 +5,11 @@ import Footer from '../components/Footer';
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
 
-const FiveMConfig = () => {
-  const fivemData = {
-    name: 'GTA FiveM',
-    icon: <img src="/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png" alt="FiveM" className="w-8 h-8 rounded" />,
-    basePrice: 6.50,
+const RustConfig = () => {
+  const rustData = {
+    name: 'Rust',
+    icon: <img src="/lovable-uploads/rust-icon.png" alt="Rust" className="w-8 h-8 rounded" />,
+    basePrice: 8.50,
     features: [
       '99.9% uptime SLA',
       'Anti-DDoS Game protection',
@@ -18,10 +18,10 @@ const FiveMConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '2GB', cpu: '1 vCPU', disk: '15GB SSD', price: 6.50, description: 'Entry RP, low pop, local tests only' },
-      { ram: '4GB', cpu: '2 vCPU', disk: '30GB SSD', price: 12.50, description: 'Small roleplay communities' },
-      { ram: '6GB', cpu: '3 vCPU', disk: '45GB SSD', price: 18.50, description: 'Medium-sized servers with custom resources' },
-      { ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.50, description: 'Large communities with extensive mods', recommended: true },
+      { ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.50, description: 'Small survival servers, 50-100 players' },
+      { ram: '6GB', cpu: '3 vCPU', disk: '40GB SSD', price: 16.50, description: 'Medium servers with plugins, 100-200 players' },
+      { ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.50, description: 'Large servers with mods, 200-300 players', recommended: true },
+      { ram: '12GB', cpu: '6 vCPU', disk: '80GB SSD', price: 36.50, description: 'High-pop servers with extensive mods, 300+ players' },
     ]
   };
 
@@ -60,7 +60,7 @@ const FiveMConfig = () => {
             </p>
           </div>
 
-          <ServerConfigurator gameType="fivem" gameData={fivemData} />
+          <ServerConfigurator gameType="rust" gameData={rustData} />
         </section>
 
         <Footer />
@@ -69,4 +69,4 @@ const FiveMConfig = () => {
   );
 };
 
-export default FiveMConfig;
+export default RustConfig;

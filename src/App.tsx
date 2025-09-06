@@ -14,7 +14,7 @@ import Support from "./pages/Support";
 import FAQ from "./pages/FAQ";
 import Deploy from "./pages/Deploy";
 import MinecraftConfig from "./pages/MinecraftConfig";
-import FiveMConfig from "./pages/FiveMConfig";
+import RustConfig from "./pages/RustConfig";
 import PalworldConfig from "./pages/PalworldConfig";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
@@ -61,7 +61,7 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/deploy" element={<Deploy />} />
           <Route path="/configure/minecraft" element={<MinecraftConfig />} />
-          <Route path="/configure/fivem" element={<FiveMConfig />} />
+          <Route path="/configure/rust" element={<RustConfig />} />
           <Route path="/configure/palworld" element={<PalworldConfig />} />
           <Route path="/status" element={<Status />} />
           <Route path="/terms" element={<Terms />} />
