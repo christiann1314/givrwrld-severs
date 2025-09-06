@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useUserServers } from '../hooks/useUserServers';
+import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 import { useUserStats } from '../hooks/useUserStats';
 import { useAuth } from '../hooks/useAuth';
 import { 
@@ -119,11 +120,11 @@ const Dashboard = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
+          backgroundImage: `url("${medievalBackdrop}")`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-cyan-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-900/15 via-transparent to-amber-800/10"></div>
       </div>
       
       <div className="relative z-10">
