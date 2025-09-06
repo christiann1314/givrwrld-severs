@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
 import Footer from '../components/Footer';
-import givrwrldBackdrop from '../assets/givrwrld-server-backdrop.jpg';
+import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 
 const Index = () => {
   return (
@@ -13,11 +13,11 @@ const Index = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url("${givrwrldBackdrop}")`,
+          backgroundImage: `url("${medievalBackdrop}")`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/30 via-gray-900/20 to-gray-900/40"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/10 via-transparent to-blue-900/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-900/15 via-transparent to-amber-800/10"></div>
       </div>
       
       <div className="relative z-10">

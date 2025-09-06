@@ -78,6 +78,10 @@ export default {
 					950: '#003d1a'
 				}
 			},
+			fontFamily: {
+				'cinzel': ['Cinzel', 'serif'],
+				'cinzel-decorative': ['Cinzel Decorative', 'serif'],
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
