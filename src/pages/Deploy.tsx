@@ -21,19 +21,19 @@ const Deploy = () => {
       configPath: '/configure/minecraft'
     },
     {
-      id: 'fivem',
-      name: 'FiveM',
-      subtitle: 'GTA roleplay server',
-      image: '/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png',
+      id: 'rust',
+      name: 'Rust',
+      subtitle: 'Survival multiplayer game',
+      image: '/lovable-uploads/rust-icon.png',
       features: [
-        'Low pop',
-        '1x server & 8-pack Protected',
+        'Small to large servers',
+        'Plugin & mod support',
         'Ryzen 9 5950X CPU'
       ],
-      price: '$6.5',
-      buttonText: 'Deploy FiveM Server',
-      buttonColor: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500',
-      configPath: '/configure/fivem'
+      price: '$8.5',
+      buttonText: 'Deploy Rust Server',
+      buttonColor: 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500',
+      configPath: '/configure/rust'
     },
     {
       id: 'palworld',
