@@ -39,10 +39,16 @@ const MinecraftConfig = () => {
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url("/lovable-uploads/74aea30d-f259-4481-a412-fe638e89d523.png")',
+          backgroundSize: 'cover',
+          minHeight: '100vh',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-blue-900/20"></div>
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.65) 100%)'
+          }}
+        ></div>
       </div>
       
       <div className="relative z-10">
