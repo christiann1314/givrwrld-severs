@@ -78,7 +78,7 @@ const HeroSection = () => {
           
           <ServerCard
             game="Rust"
-            icon={<img src="/lovable-uploads/rust-icon.png" alt="Rust" className="w-8 h-8 rounded" />}
+            icon={<img src="/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />}
             title="Rust Server"
             description="Survival multiplayer"
             price="$8.50"

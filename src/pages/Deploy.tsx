@@ -24,7 +24,7 @@ const Deploy = () => {
       id: 'rust',
       name: 'Rust',
       subtitle: 'Survival multiplayer game',
-      image: '/lovable-uploads/rust-icon.png',
+      image: '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
       features: [
         'Small to large servers',
         'Plugin & mod support',

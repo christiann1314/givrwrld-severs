@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const RustConfig = () => {
   const rustData = {
     name: 'Rust',
-    icon: <img src="/lovable-uploads/rust-icon.png" alt="Rust" className="w-8 h-8 rounded" />,
+    icon: <img src="/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />,
     basePrice: 8.50,
     features: [
       '99.9% uptime SLA',

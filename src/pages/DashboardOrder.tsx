@@ -70,7 +70,7 @@ const DashboardOrder = () => {
     {
       name: 'Rust',
       description: 'Survival multiplayer game',
-      image: '/lovable-uploads/rust-icon.png',
+      image: '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
       configPath: '/configure/rust',
       features: [
         'Up to 32 players',
