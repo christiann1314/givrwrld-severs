@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
+import minecraftWallpaper from '../assets/minecraft-wallpaper-hd.jpg';
 
 const MinecraftConfig = () => {
   const minecraftData = {
@@ -38,7 +39,7 @@ const MinecraftConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/74aea30d-f259-4481-a412-fe638e89d523.png")',
+          backgroundImage: `url(${minecraftWallpaper})`,
           backgroundSize: 'cover',
           minHeight: '100vh',
         }}

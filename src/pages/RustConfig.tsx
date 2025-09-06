@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
+import rustWallpaper from '../assets/rust-wallpaper-hd.jpg';
 
 const RustConfig = () => {
   const rustData = {
@@ -36,7 +37,7 @@ const RustConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/9e058d36-5f44-4df9-b741-98a25214ce3d.png")',
+          backgroundImage: `url(${rustWallpaper})`,
           backgroundSize: 'cover',
           minHeight: '100vh',
         }}

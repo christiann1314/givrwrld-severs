@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
+import palworldWallpaper from '../assets/palworld-wallpaper-hd.jpg';
 
 const PalworldConfig = () => {
   const palworldData = {
@@ -36,7 +37,7 @@ const PalworldConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/8430e76d-3327-46f6-b93f-c841c7f17de1.png")',
+          backgroundImage: `url(${palworldWallpaper})`,
           backgroundSize: 'cover',
           minHeight: '100vh',
         }}
