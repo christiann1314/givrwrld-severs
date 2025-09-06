@@ -81,9 +81,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
 
   const locationOptions = [
     { value: 'us-west', label: 'US West (California)' },
-    { value: 'us-east', label: 'US East (New York)' },
-    { value: 'eu-west', label: 'EU West (London)' },
-    { value: 'asia-pacific', label: 'Asia Pacific (Singapore)' }
+    { value: 'us-east', label: 'US East (New York)' }
   ];
 
   const getBillingMultiplier = () => {
