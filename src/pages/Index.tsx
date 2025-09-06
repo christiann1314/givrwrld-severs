@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
 import Footer from '../components/Footer';
+import givrwrldBackdrop from '../assets/givrwrld-server-backdrop.jpg';
 
 const Index = () => {
   return (
@@ -12,7 +13,7 @@ const Index = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png")',
+          backgroundImage: `url("${givrwrldBackdrop}")`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/30 via-gray-900/20 to-gray-900/40"></div>
