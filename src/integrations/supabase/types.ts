@@ -7,13 +7,358 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
+      addons: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          post_install_script: string | null
+          price_monthly: number
+          pterodactyl_env: Json | null
+          pterodactyl_limits_patch: Json | null
+          slug: string
+          stripe_price_id_monthly: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          post_install_script?: string | null
+          price_monthly: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits_patch?: Json | null
+          slug: string
+          stripe_price_id_monthly?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          post_install_script?: string | null
+          price_monthly?: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits_patch?: Json | null
+          slug?: string
+          stripe_price_id_monthly?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          id: string
+          operation: string
+          row_id: string | null
+          table_name: string
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          operation: string
+          row_id?: string | null
+          table_name: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          operation?: string
+          row_id?: string | null
+          table_name?: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      bundles: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          name: string
+          price_monthly: number
+          pterodactyl_env: Json | null
+          pterodactyl_limits_patch: Json | null
+          slug: string
+          stripe_price_id_annual: string | null
+          stripe_price_id_biannual: string | null
+          stripe_price_id_monthly: string | null
+          stripe_price_id_quarterly: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name: string
+          price_monthly: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits_patch?: Json | null
+          slug: string
+          stripe_price_id_annual?: string | null
+          stripe_price_id_biannual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_quarterly?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          name?: string
+          price_monthly?: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits_patch?: Json | null
+          slug?: string
+          stripe_price_id_annual?: string | null
+          stripe_price_id_biannual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_quarterly?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      games: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          docker_image: string
+          egg_id: number | null
+          icon_url: string | null
+          id: string
+          name: string
+          slug: string
+          startup_command: string | null
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          docker_image: string
+          egg_id?: number | null
+          icon_url?: string | null
+          id?: string
+          name: string
+          slug: string
+          startup_command?: string | null
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          docker_image?: string
+          egg_id?: number | null
+          icon_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          startup_command?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      modpacks: {
+        Row: {
+          created_at: string
+          description: string | null
+          download_url: string | null
+          game_id: string | null
+          id: string
+          modpack_id: string | null
+          name: string
+          price_monthly: number | null
+          pterodactyl_env: Json | null
+          slug: string
+          stripe_price_id_monthly: string | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          game_id?: string | null
+          id?: string
+          modpack_id?: string | null
+          name: string
+          price_monthly?: number | null
+          pterodactyl_env?: Json | null
+          slug: string
+          stripe_price_id_monthly?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          game_id?: string | null
+          id?: string
+          modpack_id?: string | null
+          name?: string
+          price_monthly?: number | null
+          pterodactyl_env?: Json | null
+          slug?: string
+          stripe_price_id_monthly?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modpacks_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          order_payload: Json
+          server_id: string | null
+          status: string | null
+          stripe_session_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          order_payload: Json
+          server_id?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          order_payload?: Json
+          server_id?: string | null
+          status?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          bandwidth_tb: number | null
+          cpu_cores: number
+          created_at: string
+          description: string | null
+          disk_gb: number
+          game_id: string | null
+          id: string
+          max_players: number | null
+          name: string
+          price_monthly: number
+          pterodactyl_env: Json | null
+          pterodactyl_limits: Json | null
+          ram_gb: number
+          slug: string
+          stripe_price_id_annual: string | null
+          stripe_price_id_biannual: string | null
+          stripe_price_id_monthly: string | null
+          stripe_price_id_quarterly: string | null
+          updated_at: string
+        }
+        Insert: {
+          bandwidth_tb?: number | null
+          cpu_cores: number
+          created_at?: string
+          description?: string | null
+          disk_gb: number
+          game_id?: string | null
+          id?: string
+          max_players?: number | null
+          name: string
+          price_monthly: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits?: Json | null
+          ram_gb: number
+          slug: string
+          stripe_price_id_annual?: string | null
+          stripe_price_id_biannual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_quarterly?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bandwidth_tb?: number | null
+          cpu_cores?: number
+          created_at?: string
+          description?: string | null
+          disk_gb?: number
+          game_id?: string | null
+          id?: string
+          max_players?: number | null
+          name?: string
+          price_monthly?: number
+          pterodactyl_env?: Json | null
+          pterodactyl_limits?: Json | null
+          ram_gb?: number
+          slug?: string
+          stripe_price_id_annual?: string | null
+          stripe_price_id_biannual?: string | null
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_quarterly?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plans_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -73,54 +418,109 @@ export type Database = {
       }
       user_servers: {
         Row: {
+          addon_ids: string[] | null
+          billing_term: string | null
+          bundle_id: string | null
           cpu: string
           created_at: string
           disk: string
+          env_vars: Json | null
           game_type: string
           id: string
           ip: string | null
           location: string
+          modpack_id: string | null
+          order_payload: Json | null
+          plan_id: string | null
           port: string | null
+          pterodactyl_server_id: string | null
           pterodactyl_url: string | null
           ram: string
+          server_limits: Json | null
           server_name: string
           status: string
+          stripe_session_id: string | null
+          subscription_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          addon_ids?: string[] | null
+          billing_term?: string | null
+          bundle_id?: string | null
           cpu: string
           created_at?: string
           disk: string
+          env_vars?: Json | null
           game_type: string
           id?: string
           ip?: string | null
           location: string
+          modpack_id?: string | null
+          order_payload?: Json | null
+          plan_id?: string | null
           port?: string | null
+          pterodactyl_server_id?: string | null
           pterodactyl_url?: string | null
           ram: string
+          server_limits?: Json | null
           server_name: string
           status?: string
+          stripe_session_id?: string | null
+          subscription_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          addon_ids?: string[] | null
+          billing_term?: string | null
+          bundle_id?: string | null
           cpu?: string
           created_at?: string
           disk?: string
+          env_vars?: Json | null
           game_type?: string
           id?: string
           ip?: string | null
           location?: string
+          modpack_id?: string | null
+          order_payload?: Json | null
+          plan_id?: string | null
           port?: string | null
+          pterodactyl_server_id?: string | null
           pterodactyl_url?: string | null
           ram?: string
+          server_limits?: Json | null
           server_name?: string
           status?: string
+          stripe_session_id?: string | null
+          subscription_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_servers_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_servers_modpack_id_fkey"
+            columns: ["modpack_id"]
+            isOneToOne: false
+            referencedRelation: "modpacks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_servers_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_stats: {
         Row: {
