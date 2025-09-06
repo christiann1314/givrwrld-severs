@@ -36,24 +36,11 @@ const RustConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/src/assets/rust-banner.jpg")',
+          backgroundImage: 'url("/lovable-uploads/9e058d36-5f44-4df9-b741-98a25214ce3d.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-blue-900/20"></div>
-        
-        {/* Rust Logo Background Element */}
-        <div 
-          className="absolute inset-0 opacity-10 bg-no-repeat bg-center bg-contain"
-          style={{
-            backgroundImage: 'url("/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png")',
-            backgroundSize: '40%',
-            filter: 'blur(1px)',
-          }}
-        ></div>
-        
-        {/* Additional overlay for better text readability */}
-        <div className="absolute inset-0 bg-gray-900/40"></div>
       </div>
       
       <div className="relative z-10">

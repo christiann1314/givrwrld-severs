@@ -38,7 +38,7 @@ const MinecraftConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/src/assets/minecraft-banner.jpg")',
+          backgroundImage: 'url("/lovable-uploads/74aea30d-f259-4481-a412-fe638e89d523.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>

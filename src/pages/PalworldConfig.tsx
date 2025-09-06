@@ -36,7 +36,7 @@ const PalworldConfig = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/src/assets/palworld-banner.jpg")',
+          backgroundImage: 'url("/lovable-uploads/8430e76d-3327-46f6-b93f-c841c7f17de1.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
