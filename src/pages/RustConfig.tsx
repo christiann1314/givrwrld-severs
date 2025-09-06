@@ -9,7 +9,7 @@ const RustConfig = () => {
   const rustData = {
     name: 'Rust',
     icon: <img src="/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />,
-    basePrice: 8.50,
+    basePrice: 8.99,
     features: [
       '99.9% uptime SLA',
       'Anti-DDoS Game protection',
@@ -18,10 +18,10 @@ const RustConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.50, description: 'Small survival servers, 50-100 players' },
-      { ram: '6GB', cpu: '3 vCPU', disk: '40GB SSD', price: 16.50, description: 'Medium servers with plugins, 100-200 players' },
-      { ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.50, description: 'Large servers with mods, 200-300 players', recommended: true },
-      { ram: '12GB', cpu: '6 vCPU', disk: '80GB SSD', price: 36.50, description: 'High-pop servers with extensive mods, 300+ players' },
+      { ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.99, description: 'Small survival servers, 50-100 players' },
+      { ram: '6GB', cpu: '3 vCPU', disk: '40GB SSD', price: 16.99, description: 'Medium servers with plugins, 100-200 players' },
+      { ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.99, description: 'Large servers with mods, 200-300 players', recommended: true },
+      { ram: '12GB', cpu: '6 vCPU', disk: '80GB SSD', price: 36.99, description: 'High-pop servers with extensive mods, 300+ players' },
     ]
   };
 

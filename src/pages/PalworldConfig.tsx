@@ -9,7 +9,7 @@ const PalworldConfig = () => {
   const palworldData = {
     name: 'Palworld',
     icon: <img src="/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded" />,
-    basePrice: 12.00,
+    basePrice: 11.99,
     features: [
       '99.9% uptime SLA',
       'Anti-DDoS Game protection',
@@ -18,9 +18,9 @@ const PalworldConfig = () => {
       '24/7 support and Discord community access'
     ],
     planOptions: [
-      { ram: '4GB', cpu: '2 vCPU', disk: '25GB SSD', price: 12.00, description: 'Small co-op sessions (2-4 players)' },
-      { ram: '8GB', cpu: '4 vCPU', disk: '50GB SSD', price: 24.00, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
-      { ram: '16GB', cpu: '8 vCPU', disk: '100GB SSD', price: 48.00, description: 'Large dedicated servers (32+ players)' },
+      { ram: '4GB', cpu: '2 vCPU', disk: '25GB SSD', price: 11.99, description: 'Small co-op sessions (2-4 players)' },
+      { ram: '8GB', cpu: '4 vCPU', disk: '50GB SSD', price: 23.99, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
+      { ram: '16GB', cpu: '8 vCPU', disk: '100GB SSD', price: 47.99, description: 'Large dedicated servers (32+ players)' },
     ]
   };
 

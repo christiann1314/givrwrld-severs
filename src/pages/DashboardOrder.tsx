@@ -53,25 +53,25 @@ const DashboardOrder = () => {
       plans: [
         {
           ram: '1GB',
-          price: '$3.50/mo',
+          price: '$3.99/mo',
           description: 'Perfect for small groups and testing',
           recommended: false
         },
         {
           ram: '2GB',
-          price: '$7.00/mo',
+          price: '$6.99/mo',
           description: 'Great for friends and small communities',
           recommended: false
         },
         {
           ram: '4GB',
-          price: '$14.00/mo',
+          price: '$13.99/mo',
           description: 'Ideal for medium-sized servers with mods',
           recommended: true
         },
         {
           ram: '8GB',
-          price: '$28.00/mo',
+          price: '$27.99/mo',
           description: 'Perfect for large communities and heavy modpacks',
           recommended: false
         }
@@ -92,25 +92,25 @@ const DashboardOrder = () => {
       plans: [
         {
           ram: '3GB',
-          price: '$8.50/mo',
+          price: '$8.99/mo',
           description: 'Small survival servers, 50-100 players',
           recommended: false
         },
         {
           ram: '6GB',
-          price: '$16.50/mo',
+          price: '$16.99/mo',
           description: 'Medium servers with plugins, 100-200 players',
           recommended: false
         },
         {
           ram: '8GB',
-          price: '$24.50/mo',
+          price: '$24.99/mo',
           description: 'Large servers with mods, 200-300 players',
           recommended: true
         },
         {
           ram: '12GB',
-          price: '$36.50/mo',
+          price: '$36.99/mo',
           description: 'High-pop servers with extensive mods, 300+ players',
           recommended: false
         }
@@ -131,19 +131,19 @@ const DashboardOrder = () => {
       plans: [
         {
           ram: '4GB',
-          price: '$12.00/mo',
+          price: '$11.99/mo',
           description: 'Small co-op sessions (2-4 players)',
           recommended: false
         },
         {
           ram: '8GB',
-          price: '$24.00/mo',
+          price: '$23.99/mo',
           description: 'Medium multiplayer servers (8-16 players)',
           recommended: true
         },
         {
           ram: '16GB',
-          price: '$48.00/mo',
+          price: '$47.99/mo',
           description: 'Large dedicated servers (32+ players)',
           recommended: false
         }
