@@ -26,6 +26,26 @@ import {
   X
 } from 'lucide-react';
 
+// Secure server icon component to prevent XSS
+const ServerIcon = ({ server }: { server: any }) => {
+  const [imageError, setImageError] = React.useState(false);
+  
+  return (
+    <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg overflow-hidden border-2 border-emerald-500/50 bg-gray-800/50 flex items-center justify-center">
+      {!imageError ? (
+        <img 
+          src={server.gameIcon} 
+          alt={server.game}
+          className="w-8 h-8 lg:w-12 lg:h-12 object-cover rounded-md"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <span className="text-xl lg:text-2xl">{server.icon}</span>
+      )}
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   
@@ -284,20 +304,9 @@ const Dashboard = () => {
                 {servers.map((server) => (
                   <div key={server.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-700/30 rounded-lg gap-4">
                     <div className="flex items-center space-x-4">
-                      <div className="relative flex-shrink-0">
-                        <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg overflow-hidden border-2 border-emerald-500/50 bg-gray-800/50 flex items-center justify-center">
-                          <img 
-                            src={server.gameIcon} 
-                            alt={server.game}
-                            className="w-8 h-8 lg:w-12 lg:h-12 object-cover rounded-md"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.parentElement!.innerHTML = `<span class="text-xl lg:text-2xl">${server.icon}</span>`;
-                            }}
-                          />
+                        <div className="relative flex-shrink-0">
+                          <ServerIcon server={server} />
                         </div>
-                      </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-white font-semibold text-base lg:text-lg truncate">{server.name}</h3>
                         <p className="text-gray-400 text-sm">{server.game}</p>

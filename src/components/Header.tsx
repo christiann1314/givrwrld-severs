@@ -11,13 +11,11 @@ const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
     setIsAccountOpen(false);
-    // Show loading state during logout
-    const logoutBtn = document.querySelector('[data-logout-btn]') as HTMLButtonElement;
-    if (logoutBtn) {
-      logoutBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>Signing out...';
-    }
+    setIsLoggingOut(true);
     
     try {
       await supabase.auth.signOut();
@@ -26,6 +24,8 @@ const Header = () => {
     } catch (error) {
       console.error('Logout error:', error);
       window.location.href = '/';
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -127,11 +127,14 @@ const Header = () => {
                       </Link>
                       <button 
                         onClick={handleLogout}
-                        data-logout-btn
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-emerald-500/10 transition-colors"
+                        disabled={isLoggingOut}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
                       >
+                        {isLoggingOut && (
+                          <div className="w-4 h-4 border-2 border-gray-300/30 border-t-gray-300 rounded-full animate-spin"></div>
+                        )}
                         <LogOut size={16} />
-                        <span>Sign Out</span>
+                        <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
                       </button>
                     </>
                   ) : (

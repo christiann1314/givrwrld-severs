@@ -38,30 +38,38 @@ const DashboardServices = () => {
   console.log('DashboardServices - serversData:', serversData);
   console.log('DashboardServices - user:', user);
 
-  const getGameIcon = (game: string) => {
-    const gameIcons: { [key: string]: string } = {
-      'minecraft': '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
-      'palworld': '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
-      'rust': '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+  const GameIcon = ({ game }: { game: string }) => {
+    const [imageError, setImageError] = useState(false);
+    
+    const getGameIcon = (game: string) => {
+      const gameIcons: { [key: string]: string } = {
+        'minecraft': '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
+        'palworld': '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+        'rust': '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+      };
+      return gameIcons[game.toLowerCase()];
     };
     
-    const iconPath = gameIcons[game.toLowerCase()];
-    if (iconPath) {
+    const iconPath = getGameIcon(game);
+    
+    if (iconPath && !imageError) {
       return (
         <img 
           src={iconPath} 
           alt={game}
           className="w-8 h-8 object-cover rounded-md"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.parentElement!.innerHTML = '<div class="text-emerald-400"><svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V7H21V9M3 19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V11H3V19Z"/></svg></div>';
-          }}
+          onError={() => setImageError(true)}
         />
       );
     }
     
-    return <Gamepad2 className="text-emerald-400" size={32} />;
+    return (
+      <div className="text-emerald-400">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V7H21V9M3 19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V11H3V19Z"/>
+        </svg>
+      </div>
+    );
   };
   
   const servers = serversData.servers.map(server => ({
@@ -163,9 +171,9 @@ const DashboardServices = () => {
                 <div className="p-6 border-b border-gray-600/30">
                   <div className="flex items-center justify-between">
                      <div className="flex items-center space-x-4">
-                       <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
-                         {getGameIcon(server.game)}
-                       </div>
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
+                          <GameIcon game={server.game} />
+                        </div>
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">{server.name}</h3>
                         <p className="text-gray-400">{server.game} • {server.plan}</p>
