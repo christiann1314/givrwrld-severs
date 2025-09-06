@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Server, MapPin, Zap } from 'lucide-react';
+import { Check, Server, MapPin, Zap, Package, Info } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useAuth } from '../hooks/useAuth';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import PaymentModal from './PaymentModal';
+
+interface ModpackOption {
+  key: string;
+  name: string;
+  description: string;
+  surcharge: number;
+  recommended?: boolean;
+}
 
 interface GameData {
   name: string;
   icon: string | React.ReactNode;
   basePrice: number;
   features: string[];
+  modpacks: ModpackOption[];
   planOptions: Array<{
     ram: string;
     cpu: string;
@@ -36,6 +47,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const [serverName, setServerName] = useState('');
   const [location, setLocation] = useState('us-west');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  
+  // Modpack state
+  const [selectedModpack, setSelectedModpack] = useState(gameData.modpacks.find(pack => pack.key === 'vanilla') || gameData.modpacks[0]);
+  const [customModpackUrl, setCustomModpackUrl] = useState('');
   
   // Add-ons state
   const [addOns, setAddOns] = useState({
@@ -100,6 +115,11 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
 
   const calculateSubtotal = () => {
     let total = selectedPlan.price;
+    
+    // Add modpack surcharge
+    total += selectedModpack.surcharge;
+    
+    // Add-ons
     Object.entries(addOns).forEach(([key, enabled]) => {
       if (enabled) {
         const addOn = addOnOptions.find(option => option.key === key);
@@ -107,6 +127,13 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       }
     });
     return total;
+  };
+
+  const getRecommendedCombo = () => {
+    if (selectedPlan.recommended && selectedModpack.recommended) {
+      return `${selectedPlan.ram} + ${selectedModpack.name} = Optimal Performance`;
+    }
+    return null;
   };
 
   const calculateTotal = () => {
@@ -250,6 +277,84 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 </div>
               ))}
             </div>
+            
+            {/* Recommended Combo Badge */}
+            {getRecommendedCombo() && (
+              <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">Recommended</span>
+                  <span className="text-emerald-400 text-sm font-medium">{getRecommendedCombo()}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Modpack Selection */}
+          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+              <Package className="mr-2 text-emerald-400" size={20} />
+              Modpack Selection
+            </h3>
+            <div className="space-y-4">
+              <TooltipProvider>
+                <Select value={selectedModpack.key} onValueChange={(value) => {
+                  const modpack = gameData.modpacks.find(m => m.key === value);
+                  if (modpack) setSelectedModpack(modpack);
+                }}>
+                  <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
+                    <SelectValue placeholder="Select a modpack" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                    {gameData.modpacks.map((modpack) => (
+                      <SelectItem key={modpack.key} value={modpack.key} className="hover:bg-gray-700">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center space-x-2">
+                            <span>{modpack.name}</span>
+                            {modpack.recommended && (
+                              <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
+                                Recommended
+                              </span>
+                            )}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info size={14} className="text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-gray-700 border-gray-600 text-white">
+                                <p>{modpack.description}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <span className="text-emerald-400 font-semibold ml-4">
+                            {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}/mo` : 'Free'}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </TooltipProvider>
+              
+              {/* Custom URL Input */}
+              {selectedModpack.key === 'custom' && (
+                <div className="mt-4 animate-fade-in">
+                  <label htmlFor="customUrl" className="block text-sm font-medium text-gray-300 mb-2">
+                    {gameType === 'minecraft' ? 'Modpack/CurseForge URL' : 
+                     gameType === 'rust' ? 'Plugin URLs (one per line)' : 
+                     'Mod URLs (one per line)'}
+                  </label>
+                  <textarea
+                    id="customUrl"
+                    value={customModpackUrl}
+                    onChange={(e) => setCustomModpackUrl(e.target.value)}
+                    className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all resize-none"
+                    placeholder={gameType === 'minecraft' ? 'https://www.curseforge.com/minecraft/modpacks/your-modpack' :
+                                gameType === 'rust' ? 'https://umod.org/plugins/plugin-name\nhttps://umod.org/plugins/another-plugin' :
+                                'https://steamcommunity.com/sharedfiles/filedetails/?id=123456\nhttps://mod-site.com/mod-link'}
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Billing Period */}
@@ -309,6 +414,18 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 <span className="text-gray-400">Server Plan ({selectedPlan.ram})</span>
                 <span className="text-white">${selectedPlan.price.toFixed(2)}/mo</span>
               </div>
+              
+              {selectedModpack.surcharge > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">
+                    {selectedModpack.name} Modpack
+                    {selectedModpack.recommended && (
+                      <span className="bg-emerald-500 text-white text-xs px-1 py-0.5 rounded ml-2">Rec</span>
+                    )}
+                  </span>
+                  <span className="text-white">${selectedModpack.surcharge.toFixed(2)}/mo</span>
+                </div>
+              )}
               
               {Object.entries(addOns).map(([key, enabled]) => {
                 if (!enabled) return null;
