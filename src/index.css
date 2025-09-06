@@ -99,7 +99,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-cinzel;
+    @apply bg-background text-foreground;
     /* Global Medieval Throne Background */
     background-image: url('/src/assets/medieval-throne-backdrop.jpg');
     background-size: cover;
