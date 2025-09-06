@@ -60,6 +60,56 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     'additional-ssd': false
   });
 
+  // Service Bundle state
+  const [selectedBundle, setSelectedBundle] = useState<string>('none');
+
+  const serviceBundles = [
+    {
+      id: 'none',
+      name: 'None',
+      description: 'Basic server only',
+      price: 0,
+      inclusions: [],
+      icon: '⚪'
+    },
+    {
+      id: 'essentials',
+      name: 'GIVRwrld Essentials',
+      description: 'Daily backups, Discord bridge, analytics',
+      price: 6.99,
+      inclusions: [
+        'Daily automatic backups (7-day retention)',
+        'Discord bridge integration (status + start/stop alerts)',
+        'Analytics dashboard (basic player/CPU/RAM metrics)'
+      ],
+      icon: '🔧'
+    },
+    {
+      id: 'expansion',
+      name: 'Game Expansion Pack',
+      description: 'Cross-deploy capabilities and management',
+      price: 14.99,
+      inclusions: [
+        'Cross-deploy to supported game types (Minecraft/Rust/Palworld)',
+        'Shared resource allocation (keeps plan limits when switching games)',
+        'Cross-game player management tools'
+      ],
+      icon: '🎮'
+    },
+    {
+      id: 'community',
+      name: 'Community Pack',
+      description: 'Priority support and creator benefits',
+      price: 4.99,
+      inclusions: [
+        'Priority support queue',
+        'Creator spotlight eligibility & dev blog access',
+        'Private Discord channels/roles'
+      ],
+      icon: '👥'
+    }
+  ];
+
   const addOnOptions = [
     {
       key: 'automatic-backups',
@@ -119,6 +169,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     // Add modpack surcharge
     total += selectedModpack.surcharge;
     
+    // Add service bundle
+    const bundle = serviceBundles.find(b => b.id === selectedBundle);
+    if (bundle) total += bundle.price;
+    
     // Add-ons
     Object.entries(addOns).forEach(([key, enabled]) => {
       if (enabled) {
@@ -152,6 +206,27 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     }));
   };
 
+  const getBundleEnvVars = (bundleId: string) => {
+    switch (bundleId) {
+      case 'essentials':
+        return {
+          "BACKUPS_ENABLED": "1",
+          "BACKUPS_RETENTION_DAYS": "7",
+          "DISCORD_BRIDGE": "1",
+          "ANALYTICS_ENABLED": "1"
+        };
+      case 'expansion':
+        return {
+          "CROSS_DEPLOY_ENABLED": "1",
+          "PRESERVE_LIMITS_ON_GAME_SWITCH": "1"
+        };
+      case 'community':
+        return {};
+      default:
+        return {};
+    }
+  };
+
   const handleDeploy = async () => {
     // Check if user is authenticated before allowing deployment
     if (!isAuthenticated) {
@@ -165,6 +240,8 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     }
 
     try {
+      const bundleEnv = getBundleEnvVars(selectedBundle);
+      
       await createCheckoutSession({
         plan_name: `${gameData.name} - ${selectedPlan.ram}`,
         amount: calculateTotal(), // Send actual dollar amount, not cents
@@ -172,6 +249,11 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         cpu: selectedPlan.cpu,
         disk: selectedPlan.disk,
         location: location,
+        bundle_id: selectedBundle,
+        bundle_env: bundleEnv,
+        ...(selectedBundle === 'essentials' && {
+          bundle_limits_patch: { "feature_limits": { "backups": 7 } }
+        }),
         success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
         cancel_url: `${window.location.origin}/dashboard`,
       });
@@ -287,6 +369,87 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Service Bundles */}
+          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+            <h3 className="text-xl font-bold text-white mb-2">Service Bundles</h3>
+            <p className="text-gray-400 text-sm mb-6">Bundles are optional. You can add or change them later.</p>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              {serviceBundles.map((bundle) => (
+                <TooltipProvider key={bundle.id}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selectedBundle === bundle.id}
+                    onClick={() => setSelectedBundle(bundle.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedBundle(bundle.id);
+                      }
+                    }}
+                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:scale-105 ${
+                      selectedBundle === bundle.id
+                        ? 'border-emerald-500 bg-emerald-500/10'
+                        : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
+                    } ${bundle.id === 'none' ? 'md:col-span-3' : ''}`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xl">{bundle.icon}</span>
+                        <h4 className="font-semibold text-white text-sm">{bundle.name}</h4>
+                        {selectedBundle === bundle.id && (
+                          <Check className="w-4 h-4 text-emerald-400" />
+                        )}
+                      </div>
+                      {bundle.price > 0 && (
+                        <span className="font-bold text-emerald-400 text-sm">
+                          ${bundle.price.toFixed(2)}/mo
+                        </span>
+                      )}
+                    </div>
+                    
+                    {bundle.inclusions.length > 0 && (
+                      <>
+                        <div className="space-y-1 mb-3">
+                          {bundle.inclusions.slice(0, 3).map((inclusion, index) => (
+                            <div key={index} className="text-xs text-gray-300 flex items-start">
+                              <span className="text-emerald-400 mr-1">•</span>
+                              <span className="leading-tight">{inclusion}</span>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center text-xs text-emerald-400 hover:text-emerald-300 cursor-help">
+                              <Info size={12} className="mr-1" />
+                              What's included?
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-700 border-gray-600 text-white max-w-xs">
+                            <div className="space-y-1">
+                              {bundle.inclusions.map((inclusion, index) => (
+                                <div key={index} className="text-xs flex items-start">
+                                  <span className="text-emerald-400 mr-1">•</span>
+                                  <span>{inclusion}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
+                    
+                    {bundle.id === 'none' && (
+                      <p className="text-gray-400 text-xs">{bundle.description}</p>
+                    )}
+                  </div>
+                </TooltipProvider>
+              ))}
+            </div>
           </div>
 
           {/* Modpack Selection */}
@@ -423,7 +586,16 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                       <span className="bg-emerald-500 text-white text-xs px-1 py-0.5 rounded ml-2">Rec</span>
                     )}
                   </span>
-                  <span className="text-white">${selectedModpack.surcharge.toFixed(2)}/mo</span>
+                  <span className="text-white">+${selectedModpack.surcharge.toFixed(2)}/mo</span>
+                </div>
+              )}
+
+              {selectedBundle !== 'none' && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">
+                    {serviceBundles.find(b => b.id === selectedBundle)?.name}
+                  </span>
+                  <span className="text-emerald-400">+${serviceBundles.find(b => b.id === selectedBundle)?.price.toFixed(2)}/mo</span>
                 </div>
               )}
               
@@ -460,6 +632,22 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                   <span>{feature}</span>
                 </div>
               ))}
+              
+              {selectedBundle !== 'none' && (
+                <>
+                  <div className="pt-3 border-t border-gray-600">
+                    <h5 className="text-emerald-400 font-medium text-sm mb-2">
+                      {serviceBundles.find(b => b.id === selectedBundle)?.name} Benefits:
+                    </h5>
+                    {serviceBundles.find(b => b.id === selectedBundle)?.inclusions.map((inclusion, index) => (
+                      <div key={index} className="flex items-center text-gray-300 text-sm mb-1">
+                        <Check size={16} className="text-emerald-400 mr-2 flex-shrink-0" />
+                        <span>{inclusion}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <Button

@@ -11,6 +11,9 @@ export interface CheckoutSessionData {
   location?: string;
   success_url?: string;
   cancel_url?: string;
+  bundle_id?: string;
+  bundle_env?: Record<string, string>;
+  bundle_limits_patch?: Record<string, any>;
 }
 
 export interface CheckoutSessionResponse {
