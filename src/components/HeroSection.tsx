@@ -77,11 +77,11 @@ const HeroSection = () => {
           />
           
           <ServerCard
-            game="FiveM"
-            icon={<img src="/lovable-uploads/5dcb91b3-751c-4277-8656-bd80aecfe343.png" alt="FiveM" className="w-8 h-8 rounded" />}
-            title="FiveM Server"
-            description="Premium roleplay"
-            price="$6.50"
+            game="Rust"
+            icon={<img src="/lovable-uploads/rust-icon.png" alt="Rust" className="w-8 h-8 rounded" />}
+            title="Rust Server"
+            description="Survival multiplayer"
+            price="$8.50"
             buttonColor="blue"
           />
           

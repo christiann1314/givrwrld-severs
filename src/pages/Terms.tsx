@@ -58,7 +58,7 @@ const Terms = () => {
                 <p>GIVRwrld provides game server hosting services for various platforms including:</p>
                 <ul className="list-disc list-inside ml-4 space-y-2">
                   <li>Minecraft server hosting and management</li>
-                  <li>FiveM server hosting for GTA V roleplay</li>
+                  <li>Rust server hosting for survival multiplayer</li>
                   <li>Palworld dedicated server hosting</li>
                   <li>Additional game server types as announced</li>
                 </ul>

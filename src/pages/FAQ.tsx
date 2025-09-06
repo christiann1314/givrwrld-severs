@@ -15,7 +15,7 @@ const FAQ = () => {
         {
           id: 'what-is-givrworld',
           question: 'What is GIVRwrld Servers?',
-          answer: 'GIVRwrld Servers is a premium game server hosting platform that provides high-performance servers for games like Minecraft, FiveM, and Palworld. We offer instant setup, 24/7 support, and enterprise-grade infrastructure.'
+          answer: 'GIVRwrld Servers is a premium game server hosting platform that provides high-performance servers for games like Minecraft, Rust, and Palworld. We offer instant setup, 24/7 support, and enterprise-grade infrastructure.'
         },
         {
           id: 'getting-started',

@@ -59,7 +59,7 @@ const About = () => {
               <p className="text-xl text-gray-300 leading-relaxed">
                 We're building the intersection of gaming, ownership, education, and movement. 
                 GIVRwrld is built on performance, transparency, and community. We offer ultra-fast servers for 
-                Minecraft, FiveM, and Palworld — and now you can become part of our story by sharing what you already love.
+                Minecraft, Rust, and Palworld — and now you can become part of our story by sharing what you already love.
               </p>
             </div>
           </div>

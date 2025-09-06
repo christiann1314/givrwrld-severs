@@ -7,7 +7,7 @@ const Footer = () => {
       title: "Hosting",
       links: [
         { name: "Minecraft Hosting", path: "/configure/minecraft" },
-        { name: "FiveM Hosting", path: "/configure/fivem" }, 
+        { name: "Rust Hosting", path: "/configure/rust" }, 
         { name: "Palworld Hosting", path: "/configure/palworld" }
       ]
     },

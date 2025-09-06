@@ -40,7 +40,7 @@ const DashboardServices = () => {
     const gameIcons: { [key: string]: string } = {
       'minecraft': '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
       'palworld': '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
-      'fivem': '/lovable-uploads/93612882-aa8f-41c9-b904-f8747fa6eacd.png',
+      'rust': '/lovable-uploads/rust-icon.png',
     };
     
     const iconPath = gameIcons[game.toLowerCase()];

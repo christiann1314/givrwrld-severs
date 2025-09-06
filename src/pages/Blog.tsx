@@ -26,8 +26,8 @@ const Blog = () => {
     },
     {
       id: 3,
-      title: "FiveM Server Setup Guide",
-      excerpt: "A comprehensive guide to setting up and configuring your FiveM server for optimal gameplay.",
+      title: "Rust Server Setup Guide",
+      excerpt: "A comprehensive guide to setting up and configuring your Rust server for optimal gameplay.",
       author: "Community Manager",
       date: "2024-01-05",
       readTime: "12 min read",

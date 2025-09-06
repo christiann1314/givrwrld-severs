@@ -111,7 +111,7 @@ export default function Migration() {
             <CardContent>
               <ul className="space-y-2 text-sm">
                 <li>• Migrates Pterodactyl users to Supabase profiles</li>
-                <li>• Creates server entries for your 3 nodes (Minecraft, Palworld, FiveM)</li>
+                <li>• Creates server entries for your 3 nodes (Minecraft, Palworld, Rust)</li>
                 <li>• Sets up IP addresses and basic server configurations</li>
                 <li>• Establishes connection between Pterodactyl and Supabase systems</li>
               </ul>
