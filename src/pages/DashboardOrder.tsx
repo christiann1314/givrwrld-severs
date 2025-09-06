@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 import { Switch } from '../components/ui/switch';
 import UpgradePaymentModal from '../components/UpgradePaymentModal';
+import minecraftBanner from '../assets/minecraft-banner.jpg';
+import rustBanner from '../assets/rust-banner.jpg';
+import palworldBanner from '../assets/palworld-banner.jpg';
 
 const DashboardOrder = () => {
   const [activeTab, setActiveTab] = useState('servers');
@@ -39,6 +42,7 @@ const DashboardOrder = () => {
       name: 'Minecraft',
       description: 'Build, explore, survive',
       image: '/lovable-uploads/4dfe2f3f-d550-4d2c-a88c-6e072277df93.png',
+      banner: minecraftBanner,
       configPath: '/configure/minecraft',
       features: [
         'Up to 10 players',
@@ -71,6 +75,7 @@ const DashboardOrder = () => {
       name: 'Rust',
       description: 'Survival multiplayer game',
       image: '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+      banner: rustBanner,
       configPath: '/configure/rust',
       features: [
         'Up to 32 players',
@@ -103,6 +108,7 @@ const DashboardOrder = () => {
       name: 'Palworld',
       description: 'Creature collection survival',
       image: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+      banner: palworldBanner,
       configPath: '/configure/palworld',
       features: [
         'Up to 8 players',
@@ -347,16 +353,23 @@ const DashboardOrder = () => {
             {activeTab === 'servers' && (
               <div className="grid lg:grid-cols-3 gap-8 mb-12">
                 {gameServers.map((server) => (
-                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden shadow-xl hover:border-emerald-500/50 transition-all duration-300">
-                    {/* Server Header */}
+                  <div key={server.name} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden shadow-xl hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 group">
+                    {/* Server Header with Cinematic Banner */}
                     <div 
-                      className="h-48 bg-cover bg-center relative"
-                      style={{ backgroundImage: `url(${server.image})` }}
+                      className="h-48 bg-cover bg-center relative overflow-hidden"
+                      style={{ backgroundImage: `url(${server.banner})` }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
-                      <div className="absolute bottom-4 left-4">
-                        <h3 className="text-2xl font-bold text-white mb-1">{server.name}</h3>
-                        <p className="text-gray-300 text-sm">{server.description}</p>
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/40 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-900/60 via-transparent to-gray-900/60"></div>
+                      
+                      {/* Glowing border effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-transparent to-emerald-500/20"></div>
+                      </div>
+                      
+                      <div className="absolute bottom-4 left-4 z-10">
+                        <h3 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">{server.name}</h3>
+                        <p className="text-gray-200 text-sm drop-shadow-md">{server.description}</p>
                       </div>
                     </div>
 
