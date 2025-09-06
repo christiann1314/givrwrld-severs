@@ -15,7 +15,7 @@ const Deploy = () => {
         'Ryzen 9 5950X CPU',
         '75 GB NVMe SSD'
       ],
-      price: '$6.99',
+      price: '$3.99',
       buttonText: 'Deploy Minecraft Server',
       buttonColor: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500',
       configPath: '/configure/minecraft'
@@ -30,7 +30,7 @@ const Deploy = () => {
         'Plugin & mod support',
         'Ryzen 9 5950X CPU'
       ],
-      price: '$8.5',
+      price: '$8.99',
       buttonText: 'Deploy Rust Server',
       buttonColor: 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500',
       configPath: '/configure/rust'
@@ -45,7 +45,7 @@ const Deploy = () => {
         'Ryzen 9 5950X CPU',
         'Xbox Game Pass not supported'
       ],
-      price: '$15.4',
+      price: '$11.99',
       buttonText: 'Deploy Palworld Server',
       buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500',
       configPath: '/configure/palworld'
