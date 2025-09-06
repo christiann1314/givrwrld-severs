@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
-import minecraftWallpaper from '../assets/minecraft-wallpaper-clear.jpg';
+import minecraftWallpaper from '../assets/minecraft-gameplay-wallpaper.jpg';
 
 const MinecraftConfig = () => {
   const minecraftData = {
