@@ -1,38 +1,10 @@
-
 import React from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import ServerConfigurator from '../components/ServerConfigurator';
-import { Link } from 'react-router-dom';
+import DynamicServerConfigurator from '../components/DynamicServerConfigurator';
 import minecraftWallpaper from '../assets/minecraft-gameplay-wallpaper.jpg';
 
 const MinecraftConfig = () => {
-  const minecraftData = {
-    name: 'Minecraft',
-    icon: <img src="/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png" alt="Minecraft" className="w-8 h-8 rounded" />,
-    basePrice: 3.99,
-    features: [
-      '99.9% uptime SLA',
-      'Anti-DDoS Game protection',
-      'NVMe SSD storage',
-      'Ryzen 9 5950X CPU',
-      '24/7 support and Discord community access'
-    ],
-    modpacks: [
-      { key: 'vanilla', name: 'Vanilla', description: 'Pure Minecraft experience', surcharge: 0 },
-      { key: 'rlcraft', name: 'RLCraft', description: 'Hardcore survival modpack', surcharge: 4.99, recommended: true },
-      { key: 'atm', name: 'All the Mods', description: 'Tech and magic modpack', surcharge: 3.99 },
-      { key: 'skyfactory', name: 'SkyFactory', description: 'Skyblock automation modpack', surcharge: 3.99 },
-      { key: 'custom', name: 'Custom', description: 'Paste your modpack URL', surcharge: 2.99 }
-    ],
-    planOptions: [
-      { ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, description: 'Perfect for small groups and testing' },
-      { ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 6.99, description: 'Great for friends and small communities' },
-      { ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 13.99, description: 'Ideal for medium-sized servers with mods', recommended: true },
-      { ram: '8GB', cpu: '4 vCPU', disk: '80GB SSD', price: 27.99, description: 'Perfect for large communities and heavy modpacks' },
-    ]
-  };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Minecraft Game Background */}
@@ -55,28 +27,18 @@ const MinecraftConfig = () => {
       <div className="relative z-10">
         <Header />
         
-        {/* Hero Section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-8">
-            <Link to="/deploy" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
-              ← Back to Servers
-            </Link>
-          </div>
-          
-          <div className="text-center mb-12">
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                Configure Your Server
-              </span>
-            </h1>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white mb-4">Configure Your Minecraft Server</h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Customize your server settings to match your gaming needs
+              Create the perfect Minecraft experience with our customizable hosting plans, 
+              modpacks, and add-ons tailored for your community.
             </p>
           </div>
-
-          <ServerConfigurator gameType="minecraft" gameData={minecraftData} />
-        </section>
-
+          
+          <DynamicServerConfigurator gameType="minecraft" />
+        </div>
+        
         <Footer />
       </div>
     </div>
