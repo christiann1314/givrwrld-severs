@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Server, MapPin, Zap, Package, Info } from 'lucide-react';
 import { Button } from './ui/button';
@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useAuth } from '../hooks/useAuth';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
-import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
-import PaymentModal from './PaymentModal';
+import { useServerData } from '../hooks/useServerData';
 
 interface ModpackOption {
   key: string;
@@ -43,53 +42,25 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { createCheckoutSession, isLoading } = useStripeCheckout();
+  const { bundles, addons, modpacks, loading: dataLoading } = useServerData(gameType);
+  
   const [selectedPlan, setSelectedPlan] = useState(gameData.planOptions.find(plan => plan.recommended) || gameData.planOptions[0]);
   const [billingPeriod, setBillingPeriod] = useState('monthly');
   const [serverName, setServerName] = useState('');
   const [location, setLocation] = useState('us-west');
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
-  // Modpack state
-  const [selectedModpack, setSelectedModpack] = useState(gameData.modpacks.find(pack => pack.key === 'vanilla') || gameData.modpacks[0]);
-  const [customModpackUrl, setCustomModpackUrl] = useState('');
-  
-  // Add-ons state
-  const [addOns, setAddOns] = useState({
-    'automatic-backups': false,
-    'discord-integration': false,
-    'advanced-analytics': false,
-    'additional-ssd': false
-  });
-
-  // Service Bundle state
+  // Use database data for modpacks, addons, and bundles
+  const [selectedModpack, setSelectedModpack] = useState<any>(null);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [selectedBundle, setSelectedBundle] = useState<string>('none');
 
-  const addOnOptions = [
-    {
-      key: 'automatic-backups',
-      name: 'Automatic Backups',
-      description: 'Daily backups with 7-day retention',
-      price: 2.99
-    },
-    {
-      key: 'discord-integration', 
-      name: 'Discord Integration',
-      description: 'Sync server status with Discord',
-      price: 1.49
-    },
-    {
-      key: 'advanced-analytics',
-      name: 'Advanced Analytics',
-      description: 'Real-time player and performance stats',
-      price: 3.99
-    },
-    {
-      key: 'additional-ssd',
-      name: 'Additional SSD Storage (+50GB)',
-      description: 'Expand your storage capacity',
-      price: 2.50
+  // Initialize modpack when data loads
+  useEffect(() => {
+    if (modpacks.length > 0 && !selectedModpack) {
+      const vanillaModpack = modpacks.find(pack => pack.slug === 'vanilla') || modpacks[0];
+      setSelectedModpack(vanillaModpack);
     }
-  ];
+  }, [modpacks, selectedModpack]);
 
   const billingOptions = [
     { value: 'monthly', label: 'Monthly', discountPercent: 0 },
@@ -99,8 +70,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   ];
 
   const locationOptions = [
-    { value: 'us-west', label: 'US West (California)' },
-    { value: 'us-east', label: 'US East (New York)' }
+    { value: 'us-west', label: 'US West', description: 'Low latency for US West Coast' },
+    { value: 'us-east', label: 'US East', description: 'Low latency for US East Coast' },
+    { value: 'europe', label: 'Europe', description: 'Low latency for European players' },
+    { value: 'asia', label: 'Asia Pacific', description: 'Low latency for Asian players' },
   ];
 
   const getBillingMultiplier = () => {
@@ -120,25 +93,26 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const calculateSubtotal = () => {
     let total = selectedPlan.price;
     
-    // Add modpack surcharge
-    total += selectedModpack.surcharge;
+    // Add modpack price
+    if (selectedModpack && selectedModpack.price_monthly) {
+      total += selectedModpack.price_monthly;
+    }
     
     // Add service bundle
-    const bundle = serviceBundles.find(b => b.id === selectedBundle);
-    if (bundle) total += bundle.price;
+    const bundle = bundles.find(b => b.slug === selectedBundle);
+    if (bundle) total += bundle.price_monthly;
     
     // Add-ons
-    Object.entries(addOns).forEach(([key, enabled]) => {
-      if (enabled) {
-        const addOn = addOnOptions.find(option => option.key === key);
-        if (addOn) total += addOn.price;
-      }
+    selectedAddons.forEach(addonSlug => {
+      const addon = addons.find(a => a.slug === addonSlug);
+      if (addon) total += addon.price_monthly;
     });
+    
     return total;
   };
 
   const getRecommendedCombo = () => {
-    if (selectedPlan.recommended && selectedModpack.recommended) {
+    if (selectedPlan.recommended && selectedModpack?.recommended) {
       return `${selectedPlan.ram} + ${selectedModpack.name} = Optimal Performance`;
     }
     return null;
@@ -153,443 +127,448 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     return totalBeforeDiscount - discountAmount;
   };
 
-  const handleAddOnToggle = (key: string) => {
-    setAddOns(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const handleAddOnToggle = (addonSlug: string) => {
+    setSelectedAddons(prev => 
+      prev.includes(addonSlug) 
+        ? prev.filter(slug => slug !== addonSlug)
+        : [...prev, addonSlug]
+    );
   };
 
   const handleDeploy = async () => {
-    // Check if user is authenticated before allowing deployment
     if (!isAuthenticated) {
-      navigate('/signup', { 
-        state: { 
-          returnTo: window.location.pathname,
-          message: 'Please create an account to deploy your server'
-        }
-      });
+      navigate('/auth');
+      return;
+    }
+
+    if (!serverName.trim()) {
+      alert('Please enter a server name');
       return;
     }
 
     try {
-      const bundleEnv = getBundleEnvVars(selectedBundle);
-      
+      // Get bundle environment variables
+      const bundleEnv = selectedBundle !== 'none' 
+        ? bundles.find(b => b.slug === selectedBundle)?.pterodactyl_env || {}
+        : {};
+
       await createCheckoutSession({
         plan_name: `${gameData.name} - ${selectedPlan.ram}`,
-        amount: calculateTotal(), // Send actual dollar amount, not cents
+        amount: calculateTotal(),
         ram: selectedPlan.ram,
         cpu: selectedPlan.cpu,
         disk: selectedPlan.disk,
-        location: location,
+        location,
+        server_name: serverName,
+        game_type: gameType,
         bundle_id: selectedBundle,
+        addon_ids: selectedAddons,
+        modpack_id: selectedModpack?.slug || 'vanilla',
+        billing_term: billingPeriod,
         bundle_env: bundleEnv,
-        ...(selectedBundle === 'essentials' && {
-          bundle_limits_patch: { "feature_limits": { "backups": 7 } }
-        }),
-        success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
-        cancel_url: `${window.location.origin}/dashboard`,
+        success_url: `${window.location.origin}/success`,
+        cancel_url: `${window.location.origin}/dashboard`
       });
     } catch (error) {
-      console.error('Checkout failed:', error);
+      console.error('Deployment error:', error);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      {/* Authentication Notice */}
-      {!isAuthenticated && (
-        <div className="mb-8 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-black text-xs font-bold">!</span>
-            </div>
-            <h4 className="text-yellow-400 font-semibold">Account Required</h4>
-          </div>
-          <p className="text-yellow-300 text-sm">
-            You'll need to create an account to deploy your server. Click "Deploy Server" to sign up.
-          </p>
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading server options...</p>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Configuration Panel */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Server Details */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <Server className="mr-3 text-emerald-400" size={24} />
-              Server Configuration
-            </h2>
+  return (
+    <div className="min-h-screen py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Configuration */}
+          <div className="lg:col-span-2 space-y-8">
             
-            <div className="space-y-6">
-              {/* Server Name */}
-              <div>
-                <label htmlFor="serverName" className="block text-sm font-medium text-gray-300 mb-2">
-                  Server Name
-                </label>
-                <input
-                  type="text"
-                  id="serverName"
-                  value={serverName}
-                  onChange={(e) => setServerName(e.target.value)}
-                  className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all"
-                  placeholder="Enter your server name"
-                />
+            {/* Server Details */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <Server className="h-6 w-6 text-primary" />
+                Server Details
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Server Name</label>
+                  <input
+                    type="text"
+                    value={serverName}
+                    onChange={(e) => setServerName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    placeholder="My Awesome Server"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Server Location</label>
+                  <Select value={location} onValueChange={setLocation}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locationOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{option.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+            </div>
 
-              {/* Location Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  <MapPin className="inline mr-2" size={16} />
-                  Server Location
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {locationOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setLocation(option.value)}
-                      className={`p-4 rounded-lg border transition-all ${
-                        location === option.value
-                          ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
-                          : 'border-gray-600 bg-gray-700/30 text-gray-300 hover:border-gray-500'
+            {/* Plan Selection */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <Zap className="h-6 w-6 text-primary" />
+                Choose Your Plan
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {gameData.planOptions.map((plan, index) => (
+                  <div
+                    key={index}
+                    className={`relative rounded-xl border-2 p-6 cursor-pointer transition-all ${
+                      selectedPlan === plan
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border/50 bg-background/30 hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedPlan(plan)}
+                  >
+                    {plan.recommended && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium">
+                          Recommended
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold mb-2">{plan.ram}</h3>
+                      <p className="text-muted-foreground text-sm mb-3">{plan.description}</p>
+                      <div className="space-y-1 text-sm">
+                        <div>{plan.cpu}</div>
+                        <div>{plan.disk} Storage</div>
+                      </div>
+                      <div className="mt-4">
+                        <span className="text-2xl font-bold">${plan.price}</span>
+                        <span className="text-muted-foreground">/month</span>
+                      </div>
+                    </div>
+                    
+                    {selectedPlan === plan && (
+                      <div className="absolute top-3 right-3">
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Service Bundles */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                <Package className="h-6 w-6 text-primary" />
+                Service Bundles
+              </h2>
+              <p className="text-muted-foreground mb-6">Bundles are optional. You can add or change them later.</p>
+
+              <div className="space-y-4">
+                {/* None Option */}
+                <div
+                  className={`rounded-xl border-2 p-6 cursor-pointer transition-all ${
+                    selectedBundle === 'none'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/50 bg-background/30 hover:border-primary/50'
+                  }`}
+                  onClick={() => setSelectedBundle('none')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-500/20 flex items-center justify-center">
+                        ⚪
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">None</h3>
+                        <p className="text-muted-foreground text-sm">Basic server only</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold">Free</div>
+                    </div>
+                  </div>
+                </div>
+
+                {bundles.map((bundle) => (
+                  <div
+                    key={bundle.id}
+                    className={`rounded-xl border-2 p-6 cursor-pointer transition-all ${
+                      selectedBundle === bundle.slug
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border/50 bg-background/30 hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedBundle(bundle.slug)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          🔧
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{bundle.name}</h3>
+                          <p className="text-muted-foreground text-sm">{bundle.description}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-primary">
+                          ${bundle.price_monthly.toFixed(2)}/mo
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {bundle.features && bundle.features.length > 0 && (
+                      <div className="mt-4 pl-11">
+                        <div className="text-xs text-muted-foreground mb-2">What's included?</div>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          {bundle.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-center gap-2">
+                              <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modpack Selection */}
+            {modpacks.length > 0 && (
+              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                  <Package className="h-6 w-6 text-primary" />
+                  Modpack Selection
+                </h2>
+                
+                <div className="space-y-4">
+                  {modpacks.map((modpack) => (
+                    <div
+                      key={modpack.id}
+                      className={`rounded-xl border-2 p-4 cursor-pointer transition-all ${
+                        selectedModpack?.id === modpack.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border/50 bg-background/30 hover:border-primary/50'
                       }`}
+                      onClick={() => setSelectedModpack(modpack)}
                     >
-                      <div className="font-medium text-sm">{option.label}</div>
-                    </button>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">{modpack.name}</h3>
+                              {modpack.recommended && (
+                                <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
+                                  Recommended
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground text-sm">{modpack.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold">
+                            {modpack.price_monthly > 0 ? `+$${modpack.price_monthly.toFixed(2)}/mo` : 'Free'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Plan Selection */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Choose Your Plan</h3>
-            <div className="grid gap-4">
-              {gameData.planOptions.map((plan) => (
-                <div
-                  key={plan.ram}
-                  onClick={() => setSelectedPlan(plan)}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    selectedPlan.ram === plan.ram
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-white">{plan.ram}</span>
-                      {plan.recommended && (
-                        <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
-                          Recommended
-                        </span>
-                      )}
+            {/* Add-ons */}
+            {addons.length > 0 && (
+              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                  <Zap className="h-6 w-6 text-primary" />
+                  Optional Add-ons
+                </h2>
+                
+                <div className="space-y-4">
+                  {addons.map((addon) => (
+                    <div
+                      key={addon.id}
+                      className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <h3 className="font-semibold">{addon.name}</h3>
+                          <p className="text-muted-foreground text-sm">{addon.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-primary">
+                            +${addon.price_monthly.toFixed(2)}/month
+                          </div>
+                        </div>
+                        <Switch
+                          checked={selectedAddons.includes(addon.slug)}
+                          onCheckedChange={() => handleAddOnToggle(addon.slug)}
+                        />
+                      </div>
                     </div>
-                    <span className="font-bold text-white">${plan.price.toFixed(2)}/mo</span>
-                  </div>
-                  <p className="text-gray-400 text-sm">{plan.description}</p>
-                </div>
-              ))}
-            </div>
-            
-            {/* Recommended Combo Badge */}
-            {getRecommendedCombo() && (
-              <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">Recommended</span>
-                  <span className="text-emerald-400 text-sm font-medium">{getRecommendedCombo()}</span>
+                  ))}
                 </div>
               </div>
             )}
+
+            {/* Billing Period */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-6">Billing Period</h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {billingOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className={`rounded-xl border-2 p-4 cursor-pointer transition-all text-center ${
+                      billingPeriod === option.value
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border/50 bg-background/30 hover:border-primary/50'
+                    }`}
+                    onClick={() => setBillingPeriod(option.value)}
+                  >
+                    <div className="font-semibold">{option.label}</div>
+                    {option.discountPercent > 0 && (
+                      <div className="text-sm text-primary mt-1">
+                        Save {option.discountPercent}%
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Service Bundles */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-2">Service Bundles</h3>
-            <p className="text-gray-400 text-sm mb-6">Bundles are optional. You can add or change them later.</p>
-            
-            <div className="grid md:grid-cols-3 gap-4">
-              {serviceBundles.map((bundle) => (
-                <TooltipProvider key={bundle.id}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={selectedBundle === bundle.id}
-                    onClick={() => setSelectedBundle(bundle.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedBundle(bundle.id);
-                      }
-                    }}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:scale-105 ${
-                      selectedBundle === bundle.id
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
-                    } ${bundle.id === 'none' ? 'md:col-span-3' : ''}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xl">{bundle.icon}</span>
-                        <h4 className="font-semibold text-white text-sm">{bundle.name}</h4>
-                        {selectedBundle === bundle.id && (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        )}
-                      </div>
-                      {bundle.price > 0 && (
-                        <span className="font-bold text-emerald-400 text-sm">
-                          ${bundle.price.toFixed(2)}/mo
-                        </span>
-                      )}
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h3 className="text-xl font-bold mb-6">Order Summary</h3>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Base Plan ({selectedPlan.ram})</span>
+                  <span>${selectedPlan.price.toFixed(2)}</span>
+                </div>
+                
+                {selectedModpack && selectedModpack.price_monthly > 0 && (
+                  <div className="flex justify-between">
+                    <span>Modpack ({selectedModpack.name})</span>
+                    <span>${selectedModpack.price_monthly.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {selectedBundle !== 'none' && (
+                  <div className="flex justify-between">
+                    <span>Service Bundle</span>
+                    <span>${bundles.find(b => b.slug === selectedBundle)?.price_monthly.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {selectedAddons.map(addonSlug => {
+                  const addon = addons.find(a => a.slug === addonSlug);
+                  return addon ? (
+                    <div key={addon.id} className="flex justify-between text-sm">
+                      <span>{addon.name}</span>
+                      <span>${addon.price_monthly.toFixed(2)}</span>
+                    </div>
+                  ) : null;
+                })}
+
+                <hr className="border-border/50" />
+                
+                <div className="flex justify-between text-lg font-semibold">
+                  <span>Monthly Total</span>
+                  <span>${calculateSubtotal().toFixed(2)}</span>
+                </div>
+
+                {billingPeriod !== 'monthly' && (
+                  <>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Billing Period ({getBillingMultiplier()} months)</span>
+                      <span>${(calculateSubtotal() * getBillingMultiplier()).toFixed(2)}</span>
                     </div>
                     
-                    {bundle.inclusions.length > 0 && (
-                      <>
-                        <div className="space-y-1 mb-3">
-                          {bundle.inclusions.slice(0, 3).map((inclusion, index) => (
-                            <div key={index} className="text-xs text-gray-300 flex items-start">
-                              <span className="text-emerald-400 mr-1">•</span>
-                              <span className="leading-tight">{inclusion}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center text-xs text-emerald-400 hover:text-emerald-300 cursor-help">
-                              <Info size={12} className="mr-1" />
-                              What's included?
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-gray-700 border-gray-600 text-white max-w-xs">
-                            <div className="space-y-1">
-                              {bundle.inclusions.map((inclusion, index) => (
-                                <div key={index} className="text-xs flex items-start">
-                                  <span className="text-emerald-400 mr-1">•</span>
-                                  <span>{inclusion}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </>
+                    {getBillingDiscount() > 0 && (
+                      <div className="flex justify-between text-sm text-green-500">
+                        <span>Discount ({(getBillingDiscount() * 100).toFixed(0)}%)</span>
+                        <span>-${(calculateSubtotal() * getBillingMultiplier() * getBillingDiscount()).toFixed(2)}</span>
+                      </div>
                     )}
                     
-                    {bundle.id === 'none' && (
-                      <p className="text-gray-400 text-xs">{bundle.description}</p>
-                    )}
-                  </div>
-                </TooltipProvider>
-              ))}
-            </div>
-          </div>
+                    <hr className="border-border/50" />
+                    
+                    <div className="flex justify-between text-xl font-bold">
+                      <span>Total</span>
+                      <span>${calculateTotal().toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
 
-          {/* Modpack Selection */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-              <Package className="mr-2 text-emerald-400" size={20} />
-              Modpack Selection
-            </h3>
-            <div className="space-y-4">
-              <TooltipProvider>
-                <Select value={selectedModpack.key} onValueChange={(value) => {
-                  const modpack = gameData.modpacks.find(m => m.key === value);
-                  if (modpack) setSelectedModpack(modpack);
-                }}>
-                  <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
-                    <SelectValue placeholder="Select a modpack" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                    {gameData.modpacks.map((modpack) => (
-                      <SelectItem key={modpack.key} value={modpack.key} className="hover:bg-gray-700">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center space-x-2">
-                            <span>{modpack.name}</span>
-                            {modpack.recommended && (
-                              <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
-                                Recommended
-                              </span>
-                            )}
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info size={14} className="text-gray-400" />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-gray-700 border-gray-600 text-white">
-                                <p>{modpack.description}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                          <span className="text-emerald-400 font-semibold ml-4">
-                            {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}/mo` : 'Free'}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TooltipProvider>
-              
-              {/* Custom URL Input */}
-              {selectedModpack.key === 'custom' && (
-                <div className="mt-4 animate-fade-in">
-                  <label htmlFor="customUrl" className="block text-sm font-medium text-gray-300 mb-2">
-                    {gameType === 'minecraft' ? 'Modpack/CurseForge URL' : 
-                     gameType === 'rust' ? 'Plugin URLs (one per line)' : 
-                     'Mod URLs (one per line)'}
-                  </label>
-                  <textarea
-                    id="customUrl"
-                    value={customModpackUrl}
-                    onChange={(e) => setCustomModpackUrl(e.target.value)}
-                    className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all resize-none"
-                    placeholder={gameType === 'minecraft' ? 'https://www.curseforge.com/minecraft/modpacks/your-modpack' :
-                                gameType === 'rust' ? 'https://umod.org/plugins/plugin-name\nhttps://umod.org/plugins/another-plugin' :
-                                'https://steamcommunity.com/sharedfiles/filedetails/?id=123456\nhttps://mod-site.com/mod-link'}
-                    rows={3}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Billing Period */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Billing Period</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {billingOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setBillingPeriod(option.value)}
-                  className={`p-4 rounded-lg border transition-all ${
-                    billingPeriod === option.value
-                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
-                      : 'border-gray-600 bg-gray-700/30 text-gray-300 hover:border-gray-500'
-                  }`}
-                >
-                  <div className="font-medium text-sm mb-1">{option.label}</div>
-                  {option.discountPercent > 0 && (
-                    <div className="text-xs text-emerald-400">Save {option.discountPercent}%</div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Add-ons */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-              <Zap className="mr-2 text-emerald-400" size={20} />
-              Optional Add-ons
-            </h3>
-            <div className="space-y-4">
-              {addOnOptions.map((addOn) => (
-                <div key={addOn.key} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-white">{addOn.name}</h4>
-                    <p className="text-gray-400 text-sm">{addOn.description}</p>
-                    <span className="text-emerald-400 font-semibold text-sm">+${addOn.price.toFixed(2)}/month</span>
-                  </div>
-                  <Switch
-                    checked={addOns[addOn.key]}
-                    onCheckedChange={() => handleAddOnToggle(addOn.key)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Order Summary */}
-        <div className="lg:col-span-1">
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6 sticky top-8">
-            <h3 className="text-xl font-bold text-white mb-4">Order Summary</h3>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Server Plan ({selectedPlan.ram})</span>
-                <span className="text-white">${selectedPlan.price.toFixed(2)}/mo</span>
-              </div>
-              
-              {selectedModpack.surcharge > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">
-                    {selectedModpack.name} Modpack
-                    {selectedModpack.recommended && (
-                      <span className="bg-emerald-500 text-white text-xs px-1 py-0.5 rounded ml-2">Rec</span>
-                    )}
-                  </span>
-                  <span className="text-white">+${selectedModpack.surcharge.toFixed(2)}/mo</span>
-                </div>
-              )}
-
-              {selectedBundle !== 'none' && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">
-                    {serviceBundles.find(b => b.id === selectedBundle)?.name}
-                  </span>
-                  <span className="text-emerald-400">+${serviceBundles.find(b => b.id === selectedBundle)?.price.toFixed(2)}/mo</span>
-                </div>
-              )}
-              
-              {Object.entries(addOns).map(([key, enabled]) => {
-                if (!enabled) return null;
-                const addOn = addOnOptions.find(option => option.key === key);
-                if (!addOn) return null;
-                return (
-                  <div key={key} className="flex justify-between text-sm">
-                    <span className="text-gray-400">{addOn.name}</span>
-                    <span className="text-white">${addOn.price.toFixed(2)}/mo</span>
-                  </div>
-                );
-              })}
-              
-              <div className="border-t border-gray-600 pt-4">
-                <div className="flex justify-between">
-                  <span className="text-white font-semibold">Total</span>
-                  <span className="text-emerald-400 font-bold text-lg">${calculateTotal().toFixed(2)}</span>
-                </div>
-                {getBillingDiscount() > 0 && (
-                  <div className="text-emerald-400 text-sm mt-1">
-                    You save ${(calculateSubtotal() * getBillingMultiplier() * getBillingDiscount()).toFixed(2)}!
+                {getRecommendedCombo() && (
+                  <div className="mt-4 p-3 bg-primary/10 rounded-lg text-sm">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Check className="w-4 h-4" />
+                      <span className="font-medium">Recommended Combo</span>
+                    </div>
+                    <p className="text-muted-foreground mt-1">{getRecommendedCombo()}</p>
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="space-y-3 mb-6">
-              <h4 className="text-white font-medium">Included Features:</h4>
-              {gameData.features.map((feature, index) => (
-                <div key={index} className="flex items-center text-gray-300 text-sm">
-                  <Check size={16} className="text-emerald-400 mr-2 flex-shrink-0" />
-                  <span>{feature}</span>
+              {!isAuthenticated && (
+                <div className="mt-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                  <p className="text-sm text-orange-600 dark:text-orange-400 mb-2">
+                    <Info className="w-4 h-4 inline mr-1" />
+                    Authentication Required
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    You need to sign in or create an account to deploy a server.
+                  </p>
                 </div>
-              ))}
-              
-              {selectedBundle !== 'none' && (
-                <>
-                  <div className="pt-3 border-t border-gray-600">
-                    <h5 className="text-emerald-400 font-medium text-sm mb-2">
-                      {serviceBundles.find(b => b.id === selectedBundle)?.name} Benefits:
-                    </h5>
-                    {serviceBundles.find(b => b.id === selectedBundle)?.inclusions.map((inclusion, index) => (
-                      <div key={index} className="flex items-center text-gray-300 text-sm mb-1">
-                        <Check size={16} className="text-emerald-400 mr-2 flex-shrink-0" />
-                        <span>{inclusion}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
               )}
-            </div>
 
-            <Button
-              onClick={handleDeploy}
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
-            >
-              {isLoading ? 'Creating Checkout...' : !isAuthenticated ? 'Sign Up to Deploy Server' : 'Deploy Server'}
-            </Button>
+              <Button
+                onClick={handleDeploy}
+                disabled={isLoading || !serverName.trim()}
+                className="w-full mt-6"
+                size="lg"
+              >
+                {isLoading ? 'Processing...' : isAuthenticated ? 'Deploy Server' : 'Sign In to Deploy'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

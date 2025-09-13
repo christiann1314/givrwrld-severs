@@ -14,6 +14,11 @@ export interface CheckoutSessionData {
   bundle_id?: string;
   bundle_env?: Record<string, string>;
   bundle_limits_patch?: Record<string, any>;
+  server_name?: string;
+  game_type?: string;
+  addon_ids?: string[];
+  modpack_id?: string;
+  billing_term?: string;
 }
 
 export interface CheckoutSessionResponse {
