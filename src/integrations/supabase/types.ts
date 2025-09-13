@@ -365,6 +365,8 @@ export type Database = {
           display_name: string | null
           email: string
           id: string
+          pterodactyl_password: string | null
+          pterodactyl_user_id: number | null
           updated_at: string
           user_id: string | null
         }
@@ -373,6 +375,8 @@ export type Database = {
           display_name?: string | null
           email: string
           id?: string
+          pterodactyl_password?: string | null
+          pterodactyl_user_id?: number | null
           updated_at?: string
           user_id?: string | null
         }
@@ -381,6 +385,8 @@ export type Database = {
           display_name?: string | null
           email?: string
           id?: string
+          pterodactyl_password?: string | null
+          pterodactyl_user_id?: number | null
           updated_at?: string
           user_id?: string | null
         }

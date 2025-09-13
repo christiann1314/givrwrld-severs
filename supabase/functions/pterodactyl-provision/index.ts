@@ -107,10 +107,19 @@ serve(async (req) => {
 
     const { serverId } = await req.json()
     
-    // Get server details from Supabase
+    // Get server details and user profile from Supabase
     const { data: server, error: fetchError } = await supabase
       .from('user_servers')
-      .select('*')
+      .select(`
+        *,
+        profiles!inner(
+          user_id,
+          email,
+          display_name,
+          pterodactyl_user_id,
+          pterodactyl_password
+        )
+      `)
       .eq('id', serverId)
       .single()
 
@@ -179,11 +188,44 @@ serve(async (req) => {
       return new Response('No available allocations', { status: 500 })
     }
 
+    // Get the user's Pterodactyl ID or create user if needed
+    let pterodactylUserId = server.profiles?.pterodactyl_user_id;
+    
+    if (!pterodactylUserId) {
+      // Create Pterodactyl user if doesn't exist
+      const createUserResponse = await supabase.functions.invoke('create-pterodactyl-user', {
+        body: {
+          userId: server.user_id,
+          email: server.profiles?.email,
+          displayName: server.profiles?.display_name
+        }
+      });
+      
+      if (createUserResponse.error) {
+        console.error('Failed to create Pterodactyl user:', createUserResponse.error)
+        return new Response('Failed to create Pterodactyl user', { status: 500 })
+      }
+      
+      // Fetch updated profile
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('pterodactyl_user_id')
+        .eq('user_id', server.user_id)
+        .single()
+      
+      pterodactylUserId = updatedProfile?.pterodactyl_user_id;
+    }
+
+    if (!pterodactylUserId) {
+      console.error('Unable to resolve Pterodactyl user ID')
+      return new Response('Unable to resolve Pterodactyl user ID', { status: 500 })
+    }
+
     // Create server in Pterodactyl Panel
     const serverData = {
       name: server.server_name,
-      description: `${server.game_type} server for user ${server.user_id}`,
-      user: 1, // Default admin user in Pterodactyl
+      description: `${server.game_type} server for ${server.profiles?.email}`,
+      user: pterodactylUserId, // Use actual user instead of admin
       egg: getEggId(server.game_type),
       docker_image: getDockerImage(server.game_type),
       startup: getStartupCommand(server.game_type),

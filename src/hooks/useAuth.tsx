@@ -31,13 +31,30 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
+
+    // Create Pterodactyl user if signup was successful
+    if (!error && data.user) {
+      try {
+        await supabase.functions.invoke('create-pterodactyl-user', {
+          body: {
+            userId: data.user.id,
+            email: data.user.email,
+            displayName: email.split('@')[0] // Default display name
+          }
+        });
+      } catch (pterodactylError) {
+        console.error('Failed to create Pterodactyl user:', pterodactylError);
+        // Don't fail the signup if Pterodactyl user creation fails
+      }
+    }
+
     return { error };
   };
 
