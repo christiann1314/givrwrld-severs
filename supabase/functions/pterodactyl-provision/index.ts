@@ -127,6 +127,59 @@ serve(async (req) => {
       return new Response('Server not found', { status: 404 })
     }
 
+    // Fetch bundle configuration if bundle is selected
+    let bundleConfig = { env: {}, limits: {} }
+    if (server.bundle_id) {
+      const { data: bundle } = await supabase
+        .from('bundles')
+        .select('pterodactyl_env, pterodactyl_limits_patch')
+        .eq('id', server.bundle_id)
+        .single()
+      
+      if (bundle) {
+        bundleConfig = {
+          env: bundle.pterodactyl_env || {},
+          limits: bundle.pterodactyl_limits_patch || {}
+        }
+      }
+    }
+
+    // Fetch addon configurations if addons are selected
+    let addonConfigs = { env: {}, limits: {} }
+    if (server.addon_ids && server.addon_ids.length > 0) {
+      const { data: addons } = await supabase
+        .from('addons')
+        .select('pterodactyl_env, pterodactyl_limits_patch')
+        .in('id', server.addon_ids)
+      
+      if (addons) {
+        addons.forEach(addon => {
+          addonConfigs.env = { ...addonConfigs.env, ...(addon.pterodactyl_env || {}) }
+          addonConfigs.limits = { ...addonConfigs.limits, ...(addon.pterodactyl_limits_patch || {}) }
+        })
+      }
+    }
+
+    // Fetch modpack configuration if modpack is selected
+    let modpackConfig = { env: {} }
+    if (server.modpack_id) {
+      const { data: modpack } = await supabase
+        .from('modpacks')
+        .select('pterodactyl_env')
+        .eq('id', server.modpack_id)
+        .single()
+      
+      if (modpack) {
+        modpackConfig = {
+          env: modpack.pterodactyl_env || {}
+        }
+      }
+    }
+
+    if (fetchError || !server) {
+      return new Response('Server not found', { status: 404 })
+    }
+
     // Pterodactyl Panel API configuration
     const pterodactylUrl = Deno.env.get('PTERODACTYL_URL')
     const pterodactylKey = Deno.env.get('PTERODACTYL_API_KEY')
@@ -221,6 +274,60 @@ serve(async (req) => {
       return new Response('Unable to resolve Pterodactyl user ID', { status: 500 })
     }
 
+    // Merge all environment variables (base + bundle + addons + modpack + stored env_vars)
+    const baseEnv = getEnvironmentVars(server.game_type)
+    const storedEnv = server.env_vars || {}
+    const mergedEnv = {
+      ...baseEnv,
+      ...bundleConfig.env,
+      ...addonConfigs.env,
+      ...modpackConfig.env,
+      ...storedEnv
+    }
+
+    // Merge server limits with bundle and addon patches
+    const baseLimits = {
+      memory: ramGB * 1024, // Convert GB to MB
+      swap: 0,
+      disk: diskGB * 1024, // Convert GB to MB
+      io: 500,
+      cpu: cpuCores * 100 // Convert cores to percentage
+    }
+    
+    const storedLimits = server.server_limits || {}
+    const mergedLimits = {
+      ...baseLimits,
+      ...bundleConfig.limits,
+      ...addonConfigs.limits,
+      ...storedLimits
+    }
+
+    // Set feature limits based on bundle level
+    let featureLimits = {
+      databases: 2,
+      allocations: 1,
+      backups: 5
+    }
+
+    // Enhance limits based on bundle
+    if (server.bundle_id) {
+      const { data: bundle } = await supabase
+        .from('bundles')
+        .select('slug')
+        .eq('id', server.bundle_id)
+        .single()
+      
+      if (bundle?.slug === 'essentials') {
+        featureLimits.backups = 10 // Daily backups with longer retention
+      } else if (bundle?.slug === 'expansion') {
+        featureLimits.databases = 5
+        featureLimits.allocations = 3
+        featureLimits.backups = 15
+      } else if (bundle?.slug === 'community') {
+        featureLimits.backups = 7
+      }
+    }
+
     // Create server in Pterodactyl Panel
     const serverData = {
       name: server.server_name,
@@ -229,19 +336,9 @@ serve(async (req) => {
       egg: getEggId(server.game_type),
       docker_image: getDockerImage(server.game_type),
       startup: getStartupCommand(server.game_type),
-      environment: getEnvironmentVars(server.game_type),
-      limits: {
-        memory: ramGB * 1024, // Convert GB to MB
-        swap: 0,
-        disk: diskGB * 1024, // Convert GB to MB
-        io: 500,
-        cpu: cpuCores * 100 // Convert cores to percentage
-      },
-      feature_limits: {
-        databases: 2,
-        allocations: 1,
-        backups: 5
-      },
+      environment: mergedEnv,
+      limits: mergedLimits,
+      feature_limits: featureLimits,
       allocation: {
         default: availableAllocation.attributes.id
       }
