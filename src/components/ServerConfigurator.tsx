@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Server, MapPin, Zap, Package, Info } from 'lucide-react';
 import { Button } from './ui/button';
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { useAuth } from '../hooks/useAuth';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
-import { useServerData } from '../hooks/useServerData';
+import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
 
 interface ModpackOption {
   key: string;
@@ -42,25 +42,52 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { createCheckoutSession, isLoading } = useStripeCheckout();
-  const { bundles, addons, modpacks, loading: dataLoading } = useServerData(gameType);
-  
   const [selectedPlan, setSelectedPlan] = useState(gameData.planOptions.find(plan => plan.recommended) || gameData.planOptions[0]);
   const [billingPeriod, setBillingPeriod] = useState('monthly');
   const [serverName, setServerName] = useState('');
   const [location, setLocation] = useState('us-west');
   
-  // Use database data for modpacks, addons, and bundles
-  const [selectedModpack, setSelectedModpack] = useState<any>(null);
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  // Modpack state
+  const [selectedModpack, setSelectedModpack] = useState(gameData.modpacks.find(pack => pack.key === 'vanilla') || gameData.modpacks[0]);
+  const [customModpackUrl, setCustomModpackUrl] = useState('');
+  
+  // Add-ons state
+  const [addOns, setAddOns] = useState({
+    'automatic-backups': false,
+    'discord-integration': false,
+    'advanced-analytics': false,
+    'additional-ssd': false
+  });
+
+  // Service Bundle state
   const [selectedBundle, setSelectedBundle] = useState<string>('none');
 
-  // Initialize modpack when data loads
-  useEffect(() => {
-    if (modpacks.length > 0 && !selectedModpack) {
-      const vanillaModpack = modpacks.find(pack => pack.slug === 'vanilla') || modpacks[0];
-      setSelectedModpack(vanillaModpack);
+  const addOnOptions = [
+    {
+      key: 'automatic-backups',
+      name: 'Automatic Backups',
+      description: 'Daily backups with 7-day retention',
+      price: 2.99
+    },
+    {
+      key: 'discord-integration', 
+      name: 'Discord Integration',
+      description: 'Sync server status with Discord',
+      price: 1.49
+    },
+    {
+      key: 'advanced-analytics',
+      name: 'Advanced Analytics',
+      description: 'Real-time player and performance stats',
+      price: 3.99
+    },
+    {
+      key: 'additional-ssd',
+      name: 'Additional SSD Storage (+50GB)',
+      description: 'Expand your storage capacity',
+      price: 2.50
     }
-  }, [modpacks, selectedModpack]);
+  ];
 
   const billingOptions = [
     { value: 'monthly', label: 'Monthly', discountPercent: 0 },
@@ -70,16 +97,14 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   ];
 
   const locationOptions = [
-    { value: 'us-west', label: 'US West', description: 'Low latency for US West Coast' },
-    { value: 'us-east', label: 'US East', description: 'Low latency for US East Coast' },
-    { value: 'europe', label: 'Europe', description: 'Low latency for European players' },
-    { value: 'asia', label: 'Asia Pacific', description: 'Low latency for Asian players' },
+    { value: 'us-west', label: 'US West (California)' },
+    { value: 'us-east', label: 'US East (New York)' }
   ];
 
   const getBillingMultiplier = () => {
     switch (billingPeriod) {
       case '3months': return 3;
-      case '6months': return 6;
+      case '6months': return 6; 
       case '12months': return 12;
       default: return 1;
     }
@@ -93,26 +118,25 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const calculateSubtotal = () => {
     let total = selectedPlan.price;
     
-    // Add modpack price
-    if (selectedModpack && selectedModpack.price_monthly) {
-      total += selectedModpack.price_monthly;
-    }
+    // Add modpack surcharge
+    total += selectedModpack.surcharge;
     
     // Add service bundle
-    const bundle = bundles.find(b => b.slug === selectedBundle);
-    if (bundle) total += bundle.price_monthly;
+    const bundle = serviceBundles.find(b => b.id === selectedBundle);
+    if (bundle) total += bundle.price;
     
     // Add-ons
-    selectedAddons.forEach(addonSlug => {
-      const addon = addons.find(a => a.slug === addonSlug);
-      if (addon) total += addon.price_monthly;
+    Object.entries(addOns).forEach(([key, enabled]) => {
+      if (enabled) {
+        const addOn = addOnOptions.find(option => option.key === key);
+        if (addOn) total += addOn.price;
+      }
     });
-    
     return total;
   };
 
   const getRecommendedCombo = () => {
-    if (selectedPlan.recommended && selectedModpack?.recommended) {
+    if (selectedPlan.recommended && selectedModpack.recommended) {
       return `${selectedPlan.ram} + ${selectedModpack.name} = Optimal Performance`;
     }
     return null;
@@ -127,12 +151,11 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     return totalBeforeDiscount - discountAmount;
   };
 
-  const handleAddOnToggle = (addonSlug: string) => {
-    setSelectedAddons(prev => 
-      prev.includes(addonSlug) 
-        ? prev.filter(slug => slug !== addonSlug)
-        : [...prev, addonSlug]
-    );
+  const handleAddOnToggle = (key: string) => {
+    setAddOns(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
   const handleDeploy = async () => {
@@ -147,10 +170,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
     }
 
     try {
-      // Get bundle environment variables
-      const bundleEnv = selectedBundle !== 'none' 
-        ? bundles.find(b => b.slug === selectedBundle)?.pterodactyl_env || {}
-        : {};
+      // Convert add-ons object to array of enabled addon keys
+      const enabledAddons = Object.entries(addOns)
+        .filter(([_, enabled]) => enabled)
+        .map(([key, _]) => key);
 
       await createCheckoutSession({
         plan_name: `${gameData.name} - ${selectedPlan.ram}`,
@@ -162,10 +185,10 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         server_name: serverName,
         game_type: gameType,
         bundle_id: selectedBundle,
-        addon_ids: selectedAddons,
-        modpack_id: selectedModpack?.slug || 'vanilla',
+        addon_ids: enabledAddons,
+        modpack_id: selectedModpack?.key || 'vanilla',
         billing_term: billingPeriod,
-        bundle_env: bundleEnv,
+        bundle_env: getBundleEnvVars(selectedBundle),
         success_url: `${window.location.origin}/success`,
         cancel_url: `${window.location.origin}/dashboard`
       });
@@ -173,17 +196,6 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       console.error('Deployment error:', error);
     }
   };
-
-  if (dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading server options...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen py-20">
@@ -292,8 +304,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               </h2>
               <p className="text-muted-foreground mb-6">Bundles are optional. You can add or change them later.</p>
 
-              <div className="space-y-4">
-                {/* None Option */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
                   className={`rounded-xl border-2 p-6 cursor-pointer transition-all ${
                     selectedBundle === 'none'
@@ -302,9 +313,9 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                   }`}
                   onClick={() => setSelectedBundle('none')}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-500/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-500/20 flex items-center justify-center text-xl">
                         ⚪
                       </div>
                       <div>
@@ -312,26 +323,23 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                         <p className="text-muted-foreground text-sm">Basic server only</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold">Free</div>
-                    </div>
                   </div>
                 </div>
 
-                {bundles.map((bundle) => (
+                {serviceBundles.slice(1).map((bundle) => (
                   <div
                     key={bundle.id}
                     className={`rounded-xl border-2 p-6 cursor-pointer transition-all ${
-                      selectedBundle === bundle.slug
+                      selectedBundle === bundle.id
                         ? 'border-primary bg-primary/10'
                         : 'border-border/50 bg-background/30 hover:border-primary/50'
                     }`}
-                    onClick={() => setSelectedBundle(bundle.slug)}
+                    onClick={() => setSelectedBundle(bundle.id)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          🔧
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-xl">
+                          {bundle.icon}
                         </div>
                         <div>
                           <h3 className="font-semibold">{bundle.name}</h3>
@@ -340,110 +348,116 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-semibold text-primary">
-                          ${bundle.price_monthly.toFixed(2)}/mo
+                          ${bundle.price.toFixed(2)}/mo
                         </div>
                       </div>
                     </div>
                     
-                    {bundle.features && bundle.features.length > 0 && (
-                      <div className="mt-4 pl-11">
-                        <div className="text-xs text-muted-foreground mb-2">What's included?</div>
-                        <ul className="space-y-1 text-sm text-muted-foreground">
-                          {bundle.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center gap-2">
-                              <Check className="w-3 h-3 text-primary flex-shrink-0" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div className="text-xs text-muted-foreground mb-2">What's included?</div>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      {bundle.inclusions.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <Check className="w-3 h-3 text-primary flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Modpack Selection */}
-            {modpacks.length > 0 && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                  <Package className="h-6 w-6 text-primary" />
-                  Modpack Selection
-                </h2>
-                
-                <div className="space-y-4">
-                  {modpacks.map((modpack) => (
-                    <div
-                      key={modpack.id}
-                      className={`rounded-xl border-2 p-4 cursor-pointer transition-all ${
-                        selectedModpack?.id === modpack.id
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border/50 bg-background/30 hover:border-primary/50'
-                      }`}
-                      onClick={() => setSelectedModpack(modpack)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{modpack.name}</h3>
-                              {modpack.recommended && (
-                                <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
-                                  Recommended
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-muted-foreground text-sm">{modpack.description}</p>
-                          </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <Package className="h-6 w-6 text-primary" />
+                Modpack Selection
+              </h2>
+              
+              <div className="space-y-4">
+                <Select
+                  value={selectedModpack.key}
+                  onValueChange={(value) => {
+                    const modpack = gameData.modpacks.find(m => m.key === value);
+                    if (modpack) setSelectedModpack(modpack);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <span>{selectedModpack.name}</span>
+                          {selectedModpack.recommended && (
+                            <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
+                              Recommended
+                            </span>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold">
-                            {modpack.price_monthly > 0 ? `+$${modpack.price_monthly.toFixed(2)}/mo` : 'Free'}
-                          </div>
-                        </div>
+                        <span className="text-muted-foreground">
+                          {selectedModpack.surcharge > 0 ? `+$${selectedModpack.surcharge.toFixed(2)}/mo` : 'Free'}
+                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gameData.modpacks.map((modpack) => (
+                      <SelectItem key={modpack.key} value={modpack.key}>
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <span>{modpack.name}</span>
+                            {modpack.recommended && (
+                              <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-muted-foreground ml-4">
+                            {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}/mo` : 'Free'}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <p className="text-sm text-muted-foreground">{selectedModpack.description}</p>
               </div>
-            )}
+            </div>
 
             {/* Add-ons */}
-            {addons.length > 0 && (
-              <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                  <Zap className="h-6 w-6 text-primary" />
-                  Optional Add-ons
-                </h2>
-                
-                <div className="space-y-4">
-                  {addons.map((addon) => (
-                    <div
-                      key={addon.id}
-                      className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/30"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <h3 className="font-semibold">{addon.name}</h3>
-                          <p className="text-muted-foreground text-sm">{addon.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-primary">
-                            +${addon.price_monthly.toFixed(2)}/month
-                          </div>
-                        </div>
-                        <Switch
-                          checked={selectedAddons.includes(addon.slug)}
-                          onCheckedChange={() => handleAddOnToggle(addon.slug)}
-                        />
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <Zap className="h-6 w-6 text-primary" />
+                Optional Add-ons
+              </h2>
+              
+              <div className="space-y-4">
+                {addOnOptions.map((addOn) => (
+                  <div
+                    key={addOn.key}
+                    className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <h3 className="font-semibold">{addOn.name}</h3>
+                        <p className="text-muted-foreground text-sm">{addOn.description}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-primary">
+                          +${addOn.price.toFixed(2)}/month
+                        </div>
+                      </div>
+                      <Switch
+                        checked={addOns[addOn.key as keyof typeof addOns]}
+                        onCheckedChange={() => handleAddOnToggle(addOn.key)}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Billing Period */}
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-8">
@@ -483,26 +497,27 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                   <span>${selectedPlan.price.toFixed(2)}</span>
                 </div>
                 
-                {selectedModpack && selectedModpack.price_monthly > 0 && (
+                {selectedModpack.surcharge > 0 && (
                   <div className="flex justify-between">
                     <span>Modpack ({selectedModpack.name})</span>
-                    <span>${selectedModpack.price_monthly.toFixed(2)}</span>
+                    <span>${selectedModpack.surcharge.toFixed(2)}</span>
                   </div>
                 )}
 
                 {selectedBundle !== 'none' && (
                   <div className="flex justify-between">
                     <span>Service Bundle</span>
-                    <span>${bundles.find(b => b.slug === selectedBundle)?.price_monthly.toFixed(2)}</span>
+                    <span>${serviceBundles.find(b => b.id === selectedBundle)?.price.toFixed(2)}</span>
                   </div>
                 )}
 
-                {selectedAddons.map(addonSlug => {
-                  const addon = addons.find(a => a.slug === addonSlug);
-                  return addon ? (
-                    <div key={addon.id} className="flex justify-between text-sm">
-                      <span>{addon.name}</span>
-                      <span>${addon.price_monthly.toFixed(2)}</span>
+                {Object.entries(addOns).map(([key, enabled]) => {
+                  if (!enabled) return null;
+                  const addOn = addOnOptions.find(option => option.key === key);
+                  return addOn ? (
+                    <div key={key} className="flex justify-between text-sm">
+                      <span>{addOn.name}</span>
+                      <span>${addOn.price.toFixed(2)}</span>
                     </div>
                   ) : null;
                 })}
