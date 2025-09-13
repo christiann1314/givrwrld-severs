@@ -76,9 +76,9 @@ serve(async (req) => {
           description: `${ram} RAM, ${cpu} CPU, ${disk} Storage - ${location}`
         },
         unit_amount: Math.round(amount * 100),
-        recurring: billing_term !== 'one-time' ? { 
+        recurring: billing_term !== 'one-time' && billing_term !== 'monthly' ? { 
           interval: billing_term === 'annual' ? 'year' : 'month' 
-        } : undefined,
+        } : billing_term === 'monthly' ? { interval: 'month' } : undefined,
       },
       quantity: 1,
     }]

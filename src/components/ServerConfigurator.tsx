@@ -172,18 +172,32 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       return;
     }
 
+    // Validate server name
+    if (!serverName.trim()) {
+      alert('Please enter a server name');
+      return;
+    }
+
     try {
       const bundleEnv = getBundleEnvVars(selectedBundle);
+      const enabledAddons = Object.entries(addOns)
+        .filter(([_, enabled]) => enabled)
+        .map(([key, _]) => key);
       
       await createCheckoutSession({
         plan_name: `${gameData.name} - ${selectedPlan.ram}`,
-        amount: calculateTotal(), // Send actual dollar amount, not cents
+        amount: calculateTotal(),
         ram: selectedPlan.ram,
         cpu: selectedPlan.cpu,
         disk: selectedPlan.disk,
         location: location,
+        server_name: serverName,
+        game_type: gameType,
         bundle_id: selectedBundle,
         bundle_env: bundleEnv,
+        addon_ids: enabledAddons,
+        modpack_id: selectedModpack.key,
+        billing_term: billingPeriod,
         ...(selectedBundle === 'essentials' && {
           bundle_limits_patch: { "feature_limits": { "backups": 7 } }
         }),

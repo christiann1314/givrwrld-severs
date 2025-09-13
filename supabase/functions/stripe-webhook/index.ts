@@ -13,151 +13,149 @@ serve(async (req) => {
   }
 
   try {
+    const signature = req.headers.get('stripe-signature')
+    const body = await req.text()
+    
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    })
+
+    const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+    let event
+
+    try {
+      event = stripe.webhooks.constructEvent(body, signature!, webhookSecret!)
+    } catch (err) {
+      console.log(`⚠️  Webhook signature verification failed.`, err.message)
+      return new Response('Webhook signature verification failed', { status: 400 })
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const signature = req.headers.get('stripe-signature')
-    const body = await req.text()
-    
-    // Verify webhook signature with Stripe
-    const stripeSigningSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    })
-    
-    if (!stripeSigningSecret) {
-      console.error('STRIPE_WEBHOOK_SECRET not configured')
-      return new Response('Webhook secret not configured', { status: 500 })
-    }
+    console.log(`🔔 Event received: ${event.type}`)
 
-    // Verify the webhook signature
-    let event
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, stripeSigningSecret)
-      console.log('Verified Stripe webhook event:', event.type)
-    } catch (err) {
-      console.error('Webhook signature verification failed:', err.message)
-      return new Response('Webhook signature verification failed', { status: 400 })
-    }
-    
-    console.log('Received Stripe event:', event.type)
-
+    // Handle successful checkout completion
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object
+      const session = event.data.object as Stripe.Checkout.Session
+      const metadata = session.metadata!
       
-      // Extract user info and plan details
-      const userEmail = session.customer_details?.email || session.metadata?.user_email
-      const userId = session.metadata?.user_id as string | undefined
-      const planName = session.metadata?.plan_name || 'Minecraft Server'
-      const ram = session.metadata?.ram || '1GB'
-      const cpu = session.metadata?.cpu || '0.5 vCPU'
-      const disk = session.metadata?.disk || '10GB'
-      const location = session.metadata?.location || 'US East'
-      const amount = session.amount_total / 100 // Convert from cents
-      
-      // Resolve user id – prefer metadata.user_id, fallback to email lookup
-      let resolvedUserId = userId
-      if (!resolvedUserId && userEmail) {
-        const { data: profileByEmail } = await supabase
-          .from('profiles')
-          .select('user_id')
-          .eq('email', userEmail)
-          .single()
-        resolvedUserId = profileByEmail?.user_id || undefined
+      console.log('Processing successful checkout:', {
+        sessionId: session.id,
+        userId: metadata.user_id,
+        serverName: metadata.server_name
+      })
+
+      // Create server record in user_servers table
+      const { data: server, error: serverError } = await supabase
+        .from('user_servers')
+        .insert({
+          user_id: metadata.user_id,
+          server_name: metadata.server_name || 'Game Server',
+          game_type: metadata.game_type || 'minecraft',
+          ram: metadata.ram || '2GB',
+          cpu: metadata.cpu || '1 vCPU', 
+          disk: metadata.disk || '20GB',
+          location: metadata.location || 'us-west',
+          bundle_id: metadata.bundle_id !== 'none' ? metadata.bundle_id : null,
+          addon_ids: metadata.addon_ids ? JSON.parse(metadata.addon_ids) : [],
+          modpack_id: metadata.modpack_id !== 'vanilla' ? metadata.modpack_id : null,
+          env_vars: metadata.bundle_env ? JSON.parse(metadata.bundle_env) : {},
+          server_limits: metadata.bundle_limits_patch ? JSON.parse(metadata.bundle_limits_patch) : {},
+          billing_term: metadata.billing_term || 'monthly',
+          stripe_session_id: session.id,
+          subscription_id: session.subscription?.toString(),
+          status: 'provisioning',
+          order_payload: {
+            plan_name: metadata.plan_name,
+            total_amount: session.amount_total ? session.amount_total / 100 : 0,
+            currency: session.currency
+          }
+        })
+        .select()
+        .single()
+
+      if (serverError) {
+        console.error('Error creating server record:', serverError)
+        return new Response('Failed to create server record', { status: 500 })
       }
-      
-      if (!resolvedUserId) {
-        console.error('Unable to resolve user id from Stripe session. Email:', userEmail)
-        return new Response('User not found', { status: 400 })
+
+      // Create order record
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: metadata.user_id,
+          server_id: server.id,
+          amount: session.amount_total ? session.amount_total / 100 : 0,
+          currency: session.currency || 'usd',
+          stripe_session_id: session.id,
+          stripe_subscription_id: session.subscription?.toString(),
+          status: 'completed',
+          order_payload: {
+            plan_name: metadata.plan_name,
+            server_config: {
+              ram: metadata.ram,
+              cpu: metadata.cpu,
+              disk: metadata.disk,
+              location: metadata.location
+            },
+            bundle_id: metadata.bundle_id,
+            addon_ids: metadata.addon_ids ? JSON.parse(metadata.addon_ids) : [],
+            modpack_id: metadata.modpack_id
+          }
+        })
+
+      if (orderError) {
+        console.error('Error creating order record:', orderError)
       }
 
       // Create purchase record
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
-          user_id: resolvedUserId,
-          plan_name: planName,
-          amount: amount,
+          user_id: metadata.user_id,
+          plan_name: metadata.plan_name || 'Game Server',
+          amount: session.amount_total ? session.amount_total / 100 : 0,
           status: 'completed'
         })
 
       if (purchaseError) {
-        console.error('Error creating purchase:', purchaseError)
+        console.error('Error creating purchase record:', purchaseError)
       }
 
-      // Create server record
-      const { data: server, error: serverError } = await supabase
-        .from('user_servers')
-        .insert({
-          user_id: resolvedUserId,
-          server_name: `${planName} - ${userEmail}`,
-          game_type: 'Minecraft',
-          ram: ram,
-          cpu: cpu,
-          disk: disk,
-          location: location,
-          status: 'provisioning'
-        })
-        .select()
-        .single()
+      // Update user stats
+      const { data: currentStats } = await supabase
+        .from('user_stats')
+        .select('active_servers, total_spent')
+        .eq('user_id', metadata.user_id)
+        .maybeSingle()
 
-      if (serverError) {
-        console.error('Error creating server:', serverError)
-        return new Response('Server creation failed', { status: 500 })
+      const currentActive = currentStats?.active_servers ?? 0
+      const currentTotal = currentStats?.total_spent ? parseFloat(String(currentStats.total_spent)) : 0
+      const newTotal = currentTotal + (session.amount_total ? session.amount_total / 100 : 0)
+
+      const { error: statsError } = await supabase
+        .from('user_stats')
+        .upsert({
+          user_id: metadata.user_id,
+          active_servers: currentActive + 1,
+          total_spent: newTotal,
+        }, { onConflict: 'user_id' })
+
+      if (statsError) {
+        console.error('Error updating user stats:', statsError)
       }
 
-// Get current user stats first
-const { data: currentStats } = await supabase
-  .from('user_stats')
-  .select('active_servers, total_spent')
-  .eq('user_id', resolvedUserId)
-  .maybeSingle()
+      // Trigger server provisioning
+      console.log('Triggering server provisioning for server:', server.id)
+      const provisionResponse = await supabase.functions.invoke('pterodactyl-provision', {
+        body: { serverId: server.id }
+      })
 
-// Coerce numeric fields safely
-const currentActive = currentStats?.active_servers ?? 0
-const currentTotalNum =
-  currentStats?.total_spent !== undefined && currentStats?.total_spent !== null
-    ? parseFloat(String(currentStats.total_spent))
-    : 0
-const newActive = currentActive + 1
-const newTotal = Number.isFinite(currentTotalNum) ? currentTotalNum + amount : amount
-
-// Upsert by user_id to avoid duplicates
-const { error: statsError } = await supabase
-  .from('user_stats')
-  .upsert(
-    {
-      user_id: resolvedUserId,
-      active_servers: newActive,
-      total_spent: newTotal,
-    },
-    { onConflict: 'user_id' }
-  )
-
-if (statsError) {
-  console.error('Error updating stats:', statsError)
-}
-
-      // Provision server in Pterodactyl Panel
-      try {
-        const { data: provisionResult, error: provisionError } = await supabase.functions.invoke('pterodactyl-provision', {
-          body: { serverId: server.id }
-        })
-        
-        if (provisionError) {
-          console.error('Error provisioning server:', provisionError)
-          // Update server status to failed
-          await supabase
-            .from('user_servers')
-            .update({ status: 'failed' })
-            .eq('id', server.id)
-        } else {
-          console.log('Server provisioning initiated for:', server.id)
-        }
-      } catch (provisionError) {
-        console.error('Failed to call pterodactyl-provision:', provisionError)
+      if (provisionResponse.error) {
+        console.error('Error provisioning server:', provisionResponse.error)
         // Update server status to failed
         await supabase
           .from('user_servers')
@@ -165,90 +163,34 @@ if (statsError) {
           .eq('id', server.id)
       }
 
-      console.log('Successfully processed payment and created server for:', userEmail)
+      console.log('Checkout processing completed successfully')
     }
 
-    // Also handle direct payments in case Stripe uses payment_intent.succeeded
-    if (event.type === 'payment_intent.succeeded') {
-      const intent: any = event.data.object
-      const amount = ((intent.amount_received ?? intent.amount) || 0) / 100
+    // Handle subscription events
+    if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object as Stripe.Subscription
+      
+      // Find and suspend servers linked to this subscription
+      const { error: suspendError } = await supabase
+        .from('user_servers')
+        .update({ status: 'suspended' })
+        .eq('subscription_id', subscription.id)
 
-      // Try to resolve email from charge or metadata
-      let userEmail: string | undefined = intent.charges?.data?.[0]?.billing_details?.email || intent.receipt_email || intent.metadata?.user_email
-
-      // Resolve the user id
-      let resolvedUserId: string | undefined = intent.metadata?.user_id
-      if (!resolvedUserId && userEmail) {
-        const { data: profileByEmail } = await supabase
-          .from('profiles')
-          .select('user_id')
-          .eq('email', userEmail)
-          .single()
-        resolvedUserId = profileByEmail?.user_id || undefined
-      }
-
-      if (resolvedUserId) {
-        const planName = intent.metadata?.plan_name || 'Minecraft Server'
-        const ram = intent.metadata?.ram || '1GB'
-        const cpu = intent.metadata?.cpu || '0.5 vCPU'
-        const disk = intent.metadata?.disk || '10GB'
-        const location = intent.metadata?.location || 'US East'
-
-        // Record purchase
-        const { error: purchaseError } = await supabase
-          .from('purchases')
-          .insert({ user_id: resolvedUserId, plan_name: planName, amount, status: 'completed' })
-        if (purchaseError) console.error('PI: purchase insert error', purchaseError)
-
-        // Create server
-        const { data: server, error: serverError } = await supabase
-          .from('user_servers')
-          .insert({
-            user_id: resolvedUserId,
-            server_name: `${planName} - ${userEmail ?? 'unknown'}`,
-            game_type: 'Minecraft',
-            ram, cpu, disk, location,
-            status: 'provisioning'
-          })
-          .select()
-          .single()
-        if (!serverError && server) {
-          // Update stats safely
-          const { data: currentStats } = await supabase
-            .from('user_stats')
-            .select('active_servers, total_spent')
-            .eq('user_id', resolvedUserId)
-            .maybeSingle()
-          const currentActive = currentStats?.active_servers ?? 0
-          const currentTotalNum = currentStats?.total_spent != null ? parseFloat(String(currentStats.total_spent)) : 0
-          await supabase
-            .from('user_stats')
-            .upsert({ user_id: resolvedUserId, active_servers: currentActive + 1, total_spent: currentTotalNum + amount }, { onConflict: 'user_id' })
-
-          try {
-            await supabase.functions.invoke('pterodactyl-provision', { body: { serverId: server.id } })
-          } catch (e) {
-            console.error('PI: provisioning error', e)
-            await supabase.from('user_servers').update({ status: 'failed' }).eq('id', server.id)
-          }
-        } else if (serverError) {
-          console.error('PI: server insert error', serverError)
-        }
-      } else {
-        console.warn('PI succeeded but user could not be resolved; skipping DB writes')
+      if (suspendError) {
+        console.error('Error suspending servers:', suspendError)
       }
     }
 
-    return new Response('Webhook processed', { 
+    return new Response('Webhook processed successfully', {
       status: 200,
-      headers: corsHeaders 
+      headers: corsHeaders
     })
 
   } catch (error) {
-    console.error('Webhook error:', error)
-    return new Response('Webhook error', { 
+    console.error('Webhook processing error:', error)
+    return new Response('Webhook processing failed', {
       status: 500,
-      headers: corsHeaders 
+      headers: corsHeaders
     })
   }
 })
