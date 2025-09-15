@@ -446,12 +446,14 @@ serve(async (req) => {
       egg: targetEgg,
       docker_image: targetDocker,
       startup: targetStartup,
-      environment: environment,
+      environment,
       limits: mergedLimits,
       feature_limits: featureLimits,
       allocation: {
         default: availableAllocation.attributes.id
-      }
+      },
+      start_on_completion: true,
+      skip_scripts: false
     }
 
     const response = await fetch(`${pterodactylUrl}/api/application/servers`, {
@@ -471,12 +473,12 @@ serve(async (req) => {
     }
 
     const pterodactylServer = await response.json()
-    
+
     // Update server record with Pterodactyl details
     const { error: updateError } = await supabase
       .from('user_servers')
       .update({
-        status: 'online',
+        status: 'installing',
         pterodactyl_url: `${pterodactylUrl}/server/${pterodactylServer.attributes.identifier}`,
         ip: 'dedicated.givrwrldservers.com', // Your server FQDN
         port: availableAllocation.attributes.port.toString(),
@@ -486,6 +488,20 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Error updating server:', updateError)
+    }
+
+    // Force egg installation to run with fresh image/env
+    try {
+      const reinstallRes = await fetch(`${pterodactylUrl}/api/application/servers/${pterodactylServer.attributes.id}/reinstall`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${pterodactylKey}`,
+          'Accept': 'Application/vnd.pterodactyl.v1+json'
+        }
+      });
+      console.log('Reinstall triggered:', reinstallRes.status);
+    } catch (e) {
+      console.error('Failed to trigger reinstall:', e);
     }
 
     return new Response('Server provisioned successfully', { 
