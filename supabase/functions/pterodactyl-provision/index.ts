@@ -94,6 +94,63 @@ function getDefaultPort(gameType: string): string {
   }
 }
 
+// Dynamically resolve the best Minecraft egg to avoid proxy eggs like Bungeecord
+async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
+  try {
+    const nestsRes = await fetch(`${pterodactylUrl}/api/application/nests`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Accept': 'Application/vnd.pterodactyl.v1+json'
+      }
+    });
+    if (!nestsRes.ok) return null;
+    const nests = await nestsRes.json();
+    const mcNest = nests.data.find((n: any) => (n.attributes.name || '').toLowerCase().includes('minecraft')) || nests.data.find((n: any) => n.attributes.id === 1);
+    if (!mcNest) return null;
+
+    const eggsRes = await fetch(`${pterodactylUrl}/api/application/nests/${mcNest.attributes.id}/eggs`, {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Accept': 'Application/vnd.pterodactyl.v1+json'
+      }
+    });
+    if (!eggsRes.ok) return null;
+    const eggs = await eggsRes.json();
+
+    const priority = ['paper', 'vanilla', 'purpur', 'fabric', 'forge'];
+    const avoid = ['bunge', 'waterfall', 'velocity', 'proxy'];
+    let chosen = eggs.data.find((e: any) => {
+      const name = (e.attributes.name || '').toLowerCase();
+      return priority.some(p => name.includes(p));
+    }) || eggs.data.find((e: any) => {
+      const name = (e.attributes.name || '').toLowerCase();
+      return !avoid.some(a => name.includes(a));
+    });
+    if (!chosen) return null;
+
+    let dockerImage: string;
+    const di = chosen.attributes.docker_image;
+    if (typeof di === 'string') dockerImage = di;
+    else if (di && typeof di === 'object') {
+      const values = Object.values(di as Record<string, string>);
+      dockerImage = (values[0] as string) || 'quay.io/pterodactyl/core:java';
+    } else dockerImage = 'quay.io/pterodactyl/core:java';
+
+    const startup = chosen.attributes.startup || "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}";
+    const env: Record<string, string> = {
+      EULA: 'TRUE',
+      MINECRAFT_VERSION: 'latest',
+      VANILLA_VERSION: 'latest',
+      VERSION: 'latest',
+      SERVER_JARFILE: 'server.jar'
+    };
+
+    return { eggId: chosen.attributes.id, dockerImage, startup, env };
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -349,14 +406,40 @@ serve(async (req) => {
     }
 
     // Create server in Pterodactyl Panel
+    // Resolve egg/image/startup dynamically for Minecraft to avoid proxy eggs
+    let targetEgg = getEggId(server.game_type);
+    let targetDocker = getDockerImage(server.game_type);
+    let targetStartup = getStartupCommand(server.game_type);
+    let environment = { ...mergedEnv } as Record<string, any>;
+
+    if ((server.game_type || '').toLowerCase() === 'minecraft') {
+      const resolved = await resolveMinecraftEgg(pterodactylUrl, pterodactylKey);
+      if (resolved) {
+        targetEgg = resolved.eggId ?? targetEgg;
+        targetDocker = resolved.dockerImage ?? targetDocker;
+        targetStartup = resolved.startup ?? targetStartup;
+        environment = { ...environment, ...(resolved.env || {}) };
+      }
+      // Always accept the EULA and provide safe defaults so the API doesn't fail on required vars
+      environment = {
+        EULA: 'TRUE',
+        MINECRAFT_VERSION: environment.MINECRAFT_VERSION || environment.VERSION || 'latest',
+        VANILLA_VERSION: environment.VANILLA_VERSION || 'latest',
+        VERSION: environment.VERSION || 'latest',
+        BUNGEE_VERSION: environment.BUNGEE_VERSION || 'latest',
+        SERVER_JARFILE: environment.SERVER_JARFILE || 'server.jar',
+        ...environment,
+      };
+    }
+
     const serverData = {
       name: server.server_name,
       description: `${server.game_type} server for ${userEmail || 'unknown user'}`,
       user: pterodactylUserId, // Use actual user instead of admin
-      egg: getEggId(server.game_type),
-      docker_image: getDockerImage(server.game_type),
-      startup: getStartupCommand(server.game_type),
-      environment: mergedEnv,
+      egg: targetEgg,
+      docker_image: targetDocker,
+      startup: targetStartup,
+      environment: environment,
       limits: mergedLimits,
       feature_limits: featureLimits,
       allocation: {
