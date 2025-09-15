@@ -118,25 +118,24 @@ serve(async (req) => {
     
     console.log('🔍 Looking for server:', serverId)
     
-    // Get server details and user profile from Supabase
+    // Get server details
     const { data: server, error: fetchError } = await supabase
       .from('user_servers')
-      .select(`
-        *,
-        profiles!inner(
-          user_id,
-          email,
-          display_name,
-          pterodactyl_user_id,
-          pterodactyl_password
-        )
-      `)
+      .select('*')
       .eq('id', serverId)
       .single()
 
     if (fetchError || !server) {
+      console.error('❌ Server not found or fetch error:', fetchError)
       return new Response('Server not found', { status: 404 })
     }
+
+    // Fetch profile (optional)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id, email, display_name, pterodactyl_user_id, pterodactyl_password')
+      .eq('user_id', server.user_id)
+      .maybeSingle()
 
     // Fetch bundle configuration if bundle is selected
     let bundleConfig = { env: {}, limits: {} }
@@ -252,16 +251,24 @@ serve(async (req) => {
       return new Response('No available allocations', { status: 500 })
     }
 
-    // Get the user's Pterodactyl ID or create user if needed
-    let pterodactylUserId = server.profiles?.pterodactyl_user_id;
+    // Resolve Pterodactyl user (profile optional)
+    let pterodactylUserId = (profile as any)?.pterodactyl_user_id as number | undefined;
+    let userEmail = (profile as any)?.email as string | undefined;
+    let displayName = (profile as any)?.display_name as string | undefined;
+    
+    if (!userEmail) {
+      const { data: adminUser } = await supabase.auth.admin.getUserById(server.user_id);
+      userEmail = adminUser?.user?.email || userEmail;
+      if (!displayName && userEmail) displayName = userEmail.split('@')[0];
+    }
     
     if (!pterodactylUserId) {
       // Create Pterodactyl user if doesn't exist
       const createUserResponse = await supabase.functions.invoke('create-pterodactyl-user', {
         body: {
           userId: server.user_id,
-          email: server.profiles?.email,
-          displayName: server.profiles?.display_name
+          email: userEmail,
+          displayName
         }
       });
       
@@ -273,11 +280,13 @@ serve(async (req) => {
       // Fetch updated profile
       const { data: updatedProfile } = await supabase
         .from('profiles')
-        .select('pterodactyl_user_id')
+        .select('pterodactyl_user_id, email, display_name')
         .eq('user_id', server.user_id)
         .single()
       
-      pterodactylUserId = updatedProfile?.pterodactyl_user_id;
+      pterodactylUserId = updatedProfile?.pterodactyl_user_id as number | undefined;
+      userEmail = userEmail || (updatedProfile as any)?.email;
+      displayName = displayName || (updatedProfile as any)?.display_name as string | undefined;
     }
 
     if (!pterodactylUserId) {
@@ -342,7 +351,7 @@ serve(async (req) => {
     // Create server in Pterodactyl Panel
     const serverData = {
       name: server.server_name,
-      description: `${server.game_type} server for ${server.profiles?.email}`,
+      description: `${server.game_type} server for ${userEmail || 'unknown user'}`,
       user: pterodactylUserId, // Use actual user instead of admin
       egg: getEggId(server.game_type),
       docker_image: getDockerImage(server.game_type),
