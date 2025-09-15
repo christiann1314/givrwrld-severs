@@ -100,12 +100,23 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🚀 Pterodactyl provisioning started')
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const { serverId } = await req.json()
+    const requestBody = await req.json()
+    console.log('📝 Request body:', requestBody)
+    
+    const { serverId } = requestBody
+    if (!serverId) {
+      console.error('❌ No serverId provided')
+      return new Response('No serverId provided', { status: 400, headers: corsHeaders })
+    }
+    
+    console.log('🔍 Looking for server:', serverId)
     
     // Get server details and user profile from Supabase
     const { data: server, error: fetchError } = await supabase
@@ -384,10 +395,14 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Provisioning error:', error)
-    return new Response('Provisioning failed', { 
+    console.error('❌ Provisioning error:', error)
+    console.error('Error stack:', error.stack)
+    return new Response(JSON.stringify({ 
+      error: 'Provisioning failed', 
+      details: error.message 
+    }), { 
       status: 500,
-      headers: corsHeaders 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
 })
