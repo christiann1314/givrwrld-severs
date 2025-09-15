@@ -17,16 +17,23 @@ serve(async (req) => {
     const body = await req.text()
     
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
+      apiVersion: '2025-08-27.basil',
     })
 
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')
+    if (!signature || !webhookSecret) {
+      console.log('⚠️  Missing Stripe signature or webhook secret')
+      return new Response('Missing signature', { status: 400 })
+    }
+
     let event
 
     try {
-      event = stripe.webhooks.constructEvent(body, signature!, webhookSecret!)
+      // Use async verification in edge/Deno runtime
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
     } catch (err) {
-      console.log(`⚠️  Webhook signature verification failed.`, err.message)
+      const message = err instanceof Error ? err.message : String(err)
+      console.log(`⚠️  Webhook signature verification failed.`, message)
       return new Response('Webhook signature verification failed', { status: 400 })
     }
 
