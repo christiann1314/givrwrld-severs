@@ -334,16 +334,23 @@ serve(async (req) => {
         return new Response('Failed to create Pterodactyl user', { status: 500 })
       }
       
-      // Fetch updated profile
-      const { data: updatedProfile } = await supabase
-        .from('profiles')
-        .select('pterodactyl_user_id, email, display_name')
-        .eq('user_id', server.user_id)
-        .single()
+      // Prefer the ID returned by the function to avoid relying on profile schema columns
+      const returnedId = (createUserResponse.data as any)?.pterodactylUserId as number | undefined
       
-      pterodactylUserId = updatedProfile?.pterodactyl_user_id as number | undefined;
-      userEmail = userEmail || (updatedProfile as any)?.email;
-      displayName = displayName || (updatedProfile as any)?.display_name as string | undefined;
+      if (returnedId) {
+        pterodactylUserId = returnedId
+      } else {
+        // Fallback: fetch updated profile
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('pterodactyl_user_id, email, display_name')
+          .eq('user_id', server.user_id)
+          .single()
+        
+        pterodactylUserId = updatedProfile?.pterodactyl_user_id as number | undefined;
+        userEmail = userEmail || (updatedProfile as any)?.email;
+        displayName = displayName || (updatedProfile as any)?.display_name as string | undefined;
+      }
     }
 
     if (!pterodactylUserId) {

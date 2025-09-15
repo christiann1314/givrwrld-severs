@@ -47,9 +47,9 @@ serve(async (req) => {
           .update({ pterodactyl_user_id: pterodactylUserId })
           .eq('user_id', userId)
         
-        return new Response('User already exists in Pterodactyl', { 
+        return new Response(JSON.stringify({ pterodactylUserId }), { 
           status: 200,
-          headers: corsHeaders 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
     }
@@ -101,9 +101,9 @@ serve(async (req) => {
       console.error('Error updating profile with Pterodactyl details:', updateError)
     }
 
-    return new Response('Pterodactyl user created successfully', { 
+    return new Response(JSON.stringify({ pterodactylUserId }), { 
       status: 200,
-      headers: corsHeaders 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
