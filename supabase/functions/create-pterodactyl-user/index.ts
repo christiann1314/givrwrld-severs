@@ -88,12 +88,21 @@ serve(async (req) => {
     const pterodactylUser = await response.json()
     const pterodactylUserId = pterodactylUser.attributes.id
     
-    // Update profile with Pterodactyl details
+    // Encrypt the password before storing (SECURITY FIX)
+    const { data: encryptedPassword, error: encryptError } = await supabase
+      .rpc('encrypt_sensitive_data', { data: password })
+    
+    if (encryptError) {
+      console.error('Error encrypting password:', encryptError)
+      return new Response('Password encryption failed', { status: 500, headers: corsHeaders })
+    }
+
+    // Update profile with Pterodactyl details (using encrypted password)
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ 
         pterodactyl_user_id: pterodactylUserId,
-        pterodactyl_password: password  // Store encrypted or hash this in production
+        pterodactyl_password_encrypted: encryptedPassword
       })
       .eq('user_id', userId)
 
