@@ -365,7 +365,7 @@ export type Database = {
           display_name: string | null
           email: string
           id: string
-          pterodactyl_password: string | null
+          pterodactyl_password_encrypted: string | null
           pterodactyl_user_id: number | null
           updated_at: string
           user_id: string | null
@@ -375,7 +375,7 @@ export type Database = {
           display_name?: string | null
           email: string
           id?: string
-          pterodactyl_password?: string | null
+          pterodactyl_password_encrypted?: string | null
           pterodactyl_user_id?: number | null
           updated_at?: string
           user_id?: string | null
@@ -385,7 +385,7 @@ export type Database = {
           display_name?: string | null
           email?: string
           id?: string
-          pterodactyl_password?: string | null
+          pterodactyl_password_encrypted?: string | null
           pterodactyl_user_id?: number | null
           updated_at?: string
           user_id?: string | null
@@ -566,7 +566,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      encrypt_sensitive_data: {
+        Args: { data: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
