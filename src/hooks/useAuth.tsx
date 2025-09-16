@@ -29,10 +29,18 @@ export const useAuth = () => {
   }, []);
 
   const signUp = async (email: string, password: string) => {
+    // Security: Validate input parameters
+    if (!email || !password) {
+      return { error: { message: 'Email and password are required' } };
+    }
+    
+    // Security: Sanitize email
+    const sanitizedEmail = email.trim().toLowerCase();
+    
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: sanitizedEmail,
       password,
       options: {
         emailRedirectTo: redirectUrl
@@ -59,8 +67,16 @@ export const useAuth = () => {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Security: Validate input parameters
+    if (!email || !password) {
+      return { error: { message: 'Email and password are required' } };
+    }
+    
+    // Security: Sanitize email
+    const sanitizedEmail = email.trim().toLowerCase();
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: sanitizedEmail,
       password
     });
     return { error };

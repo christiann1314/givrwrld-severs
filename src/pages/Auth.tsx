@@ -3,6 +3,9 @@ import { UserPlus, ArrowLeft, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-reac
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/use-toast';
+import { useRateLimit } from '../hooks/useRateLimit';
+import { validatePassword } from '../utils/passwordValidation';
+import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,9 +16,11 @@ const Auth = () => {
     confirmPassword: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState(validatePassword(''));
   
   const { signUp, signIn, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { checkRateLimit, recordAttempt, isBlocked, attempts, maxAttempts } = useRateLimit();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -29,8 +34,25 @@ const Auth = () => {
     }
   }, [isAuthenticated, navigate, returnTo]);
 
+  // Update password validation when password changes
+  useEffect(() => {
+    setPasswordValidation(validatePassword(formData.password));
+  }, [formData.password]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Security: Check rate limiting
+    const { allowed, timeRemaining } = checkRateLimit();
+    if (!allowed) {
+      toast({
+        title: "Too Many Attempts",
+        description: `Please wait ${Math.ceil(timeRemaining / 60)} minutes before trying again.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -38,12 +60,18 @@ const Auth = () => {
         // Login
         const { error } = await signIn(formData.email, formData.password);
         if (error) {
+          // Security: Record failed attempt
+          recordAttempt(true);
+          
           toast({
             title: "Login Failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
+          // Security: Record successful attempt
+          recordAttempt(false);
+          
           toast({
             title: "Welcome back!",
             description: "You've been logged in successfully.",
@@ -51,7 +79,16 @@ const Auth = () => {
           navigate('/'); // Always redirect to home page after login
         }
       } else {
-        // Sign up
+        // Sign up - Security: Validate password strength
+        if (!passwordValidation.isValid) {
+          toast({
+            title: "Password Not Secure",
+            description: "Please create a stronger password that meets all requirements.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         if (formData.password !== formData.confirmPassword) {
           toast({
             title: "Password Mismatch",
@@ -63,12 +100,18 @@ const Auth = () => {
 
         const { error } = await signUp(formData.email, formData.password);
         if (error) {
+          // Security: Record failed attempt
+          recordAttempt(true);
+          
           toast({
             title: "Signup Failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
+          // Security: Record successful attempt
+          recordAttempt(false);
+          
           toast({
             title: "Check your email",
             description: "We've sent you a confirmation link to complete your registration.",
@@ -129,6 +172,22 @@ const Auth = () => {
             {message && (
               <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
                 <p className="text-emerald-300 text-sm">{message}</p>
+              </div>
+            )}
+            
+            {/* Security: Rate limit warning */}
+            {isBlocked && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-300 text-sm">Account temporarily locked due to multiple failed attempts.</p>
+              </div>
+            )}
+            
+            {/* Security: Show attempt warning */}
+            {attempts > 0 && !isBlocked && (
+              <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-300 text-sm">
+                  {attempts}/{maxAttempts} failed attempts. Account will be locked after {maxAttempts} attempts.
+                </p>
               </div>
             )}
           </div>
@@ -201,6 +260,14 @@ const Auth = () => {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              
+              {/* Security: Password strength indicator for signup */}
+              {!isLogin && formData.password && (
+                <PasswordStrengthIndicator 
+                  password={formData.password} 
+                  showErrors={true}
+                />
+              )}
             </div>
 
             {!isLogin && (
@@ -225,7 +292,7 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isBlocked || (!isLogin && !passwordValidation.isValid)}
               className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isSubmitting ? (
