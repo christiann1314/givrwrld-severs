@@ -23,13 +23,13 @@ function getEggId(gameType: string): number {
 function getDockerImage(gameType: string): string {
   switch (gameType.toLowerCase()) {
     case 'minecraft':
-      return "quay.io/pterodactyl/core:java";
+      return "ghcr.io/pterodactyl/yolks:java_21";
     case 'rust':
-      return "quay.io/parkervcp/pterodactyl-images:debian_rust";
+      return "ghcr.io/pterodactyl/yolks:rust_latest";
     case 'palworld':
-      return "steamcmd_debianghcr_io/parkervcp/steamcmd-debian";
+      return "ghcr.io/pterodactyl/yolks:steamcmd_debian";
     default:
-      return "quay.io/pterodactyl/core:java";
+      return "ghcr.io/pterodactyl/yolks:java_21";
   }
 }
 
