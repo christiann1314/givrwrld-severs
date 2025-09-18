@@ -132,8 +132,8 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
 
     // NEVER use these proxy/incompatible eggs
     const strictAvoid = ['bunge', 'waterfall', 'velocity', 'proxy', 'bedrock', 'travertine', 'flamecord'];
-    // Prefer these vanilla-compatible eggs
-    const priority = ['paper', 'purpur', 'vanilla', 'fabric', 'forge', 'spigot', 'bukkit'];
+    // Prefer these vanilla-compatible eggs (adjust based on what's actually available)
+    const priority = ['vanilla', 'spigot', 'bukkit', 'paper', 'purpur', 'fabric', 'forge'];
     
     // First pass: Find eggs that match priority and DON'T match avoid
     let chosen = eggs.data.find((e: any) => {
@@ -157,7 +157,19 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
     
     if (!chosen) {
       console.error('❌ No suitable egg found! All eggs seem to be proxy/incompatible')
-      return null;
+      console.error('Available eggs were:', eggs.data.map((e: any) => e.attributes.name))
+      console.error('Avoiding:', strictAvoid)
+      console.error('Would prefer:', priority)
+      // As a last resort, try the first egg that's not explicitly avoided
+      chosen = eggs.data.find((e: any) => {
+        const name = (e.attributes.name || '').toLowerCase();
+        return !strictAvoid.some(a => name.includes(a));
+      });
+      if (!chosen) {
+        console.error('❌ Even fallback failed - no usable eggs found!')
+        return null;
+      }
+      console.log('⚠️ Using fallback egg:', chosen.attributes.name)
     }
     
     console.log('✅ Selected egg:', chosen.attributes.name)
@@ -465,7 +477,8 @@ serve(async (req) => {
     let environment = { ...mergedEnv } as Record<string, any>;
 
     if ((server.game_type || '').toLowerCase() === 'minecraft') {
-      console.log('🎯 Resolving Minecraft egg (prioritizing Paper for vanilla)')
+      console.log('🎯 Resolving Minecraft egg (looking for vanilla-compatible options)')
+      console.log('🔍 Available Pterodactyl eggs will be logged...')
       const resolved = await resolveMinecraftEgg(pterodactylUrl, pterodactylKey);
       if (resolved) {
         console.log('✅ Minecraft egg resolved:', { eggId: resolved.eggId, dockerImage: resolved.dockerImage })
@@ -474,7 +487,8 @@ serve(async (req) => {
         targetStartup = resolved.startup ?? targetStartup;
         environment = { ...environment, ...(resolved.env || {}) };
       } else {
-        console.log('⚠️ Failed to resolve Minecraft egg, using defaults (Paper preferred)')
+        console.log('⚠️ Failed to resolve Minecraft egg, using defaults (first available)')
+        console.log('🆘 This may result in BungeeCord being selected - check available eggs!')
       }
       
       // Normalize deprecated quay images to GHCR yolks
