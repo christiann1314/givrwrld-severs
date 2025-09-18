@@ -196,7 +196,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         bundle_id: selectedBundle,
         bundle_env: bundleEnv,
         addon_ids: enabledAddons,
-        modpack_id: selectedModpack.key,
+        modpack_id: selectedModpack.key === 'vanilla' ? null : selectedModpack.key,
         billing_term: billingPeriod,
         ...(selectedBundle === 'essentials' && {
           bundle_limits_patch: { "feature_limits": { "backups": 7 } }

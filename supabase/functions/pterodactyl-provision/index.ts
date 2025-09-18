@@ -117,8 +117,8 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
     if (!eggsRes.ok) return null;
     const eggs = await eggsRes.json();
 
-    const priority = ['paper', 'vanilla', 'purpur', 'fabric', 'forge'];
-    const avoid = ['bunge', 'waterfall', 'velocity', 'proxy'];
+    const priority = ['paper', 'purpur', 'vanilla', 'fabric', 'forge'];
+    const avoid = ['bunge', 'waterfall', 'velocity', 'proxy', 'bedrock'];
     let chosen = eggs.data.find((e: any) => {
       const name = (e.attributes.name || '').toLowerCase();
       return priority.some(p => name.includes(p));
@@ -232,9 +232,10 @@ serve(async (req) => {
       }
     }
 
-    // Fetch modpack configuration if modpack is selected
+    // Fetch modpack configuration if modpack is selected (skip for vanilla/null)
     let modpackConfig = { env: {} }
-    if (server.modpack_id) {
+    if (server.modpack_id && server.modpack_id !== 'vanilla') {
+      console.log('🎮 Loading modpack configuration for:', server.modpack_id)
       const { data: modpack } = await supabase
         .from('modpacks')
         .select('pterodactyl_env')
@@ -242,10 +243,15 @@ serve(async (req) => {
         .single()
       
       if (modpack) {
+        console.log('✅ Modpack config loaded:', modpack.pterodactyl_env)
         modpackConfig = {
           env: modpack.pterodactyl_env || {}
         }
+      } else {
+        console.log('⚠️ Modpack not found in database')
       }
+    } else {
+      console.log('🎯 Vanilla Minecraft - no modpack configuration needed')
     }
 
     if (fetchError || !server) {
@@ -425,17 +431,23 @@ serve(async (req) => {
     let environment = { ...mergedEnv } as Record<string, any>;
 
     if ((server.game_type || '').toLowerCase() === 'minecraft') {
+      console.log('🎯 Resolving Minecraft egg (prioritizing Paper for vanilla)')
       const resolved = await resolveMinecraftEgg(pterodactylUrl, pterodactylKey);
       if (resolved) {
+        console.log('✅ Minecraft egg resolved:', { eggId: resolved.eggId, dockerImage: resolved.dockerImage })
         targetEgg = resolved.eggId ?? targetEgg;
         targetDocker = resolved.dockerImage ?? targetDocker;
         targetStartup = resolved.startup ?? targetStartup;
         environment = { ...environment, ...(resolved.env || {}) };
+      } else {
+        console.log('⚠️ Failed to resolve Minecraft egg, using defaults (Paper preferred)')
       }
+      
       // Normalize deprecated quay images to GHCR yolks
       if (targetDocker.includes('quay.io/pterodactyl/core')) {
         targetDocker = 'ghcr.io/pterodactyl/yolks:java_21';
       }
+      
       // Always accept the EULA and provide safe defaults so the API doesn't fail on required vars
       environment = {
         EULA: 'TRUE',
@@ -446,6 +458,8 @@ serve(async (req) => {
         SERVER_JARFILE: environment.SERVER_JARFILE || 'server.jar',
         ...environment,
       };
+      
+      console.log('🏗️ Final Minecraft environment:', environment)
     }
 
     const serverData = {
