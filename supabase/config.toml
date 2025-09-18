@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.pterodactyl-provision]
 verify_jwt = false
 
+[functions.start-server]
+verify_jwt = false
+
 [functions.repair-failed-servers]
 verify_jwt = true

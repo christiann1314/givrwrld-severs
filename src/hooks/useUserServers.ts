@@ -142,6 +142,28 @@ export const useUserServers = (userEmail?: string) => {
             console.log('🚨 Server data changed! Payload:', payload);
             console.log('📡 Refetching server data...');
             fetchUserServers();
+            
+            // Auto-start servers that just finished installing
+            if (payload.eventType === 'UPDATE' && 
+                payload.new?.status === 'installing' && 
+                payload.old?.status === 'provisioning' &&
+                payload.new?.pterodactyl_server_id) {
+              console.log('🚀 Server finished provisioning, attempting auto-start in 30 seconds...');
+              setTimeout(async () => {
+                try {
+                  const response = await supabase.functions.invoke('start-server', {
+                    body: { serverId: payload.new.id }
+                  });
+                  if (response.error) {
+                    console.error('❌ Auto-start failed:', response.error);
+                  } else {
+                    console.log('✅ Auto-start successful');
+                  }
+                } catch (error) {
+                  console.error('❌ Auto-start error:', error);
+                }
+              }, 30000); // Wait 30 seconds for installation to complete
+            }
           }
         )
         .subscribe((status) => {

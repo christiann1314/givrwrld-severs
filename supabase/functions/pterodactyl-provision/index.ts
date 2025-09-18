@@ -97,36 +97,70 @@ function getDefaultPort(gameType: string): string {
 // Dynamically resolve the best Minecraft egg to avoid proxy eggs like Bungeecord
 async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
   try {
+    console.log('🔍 Fetching Minecraft nests...')
     const nestsRes = await fetch(`${pterodactylUrl}/api/application/nests`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Accept': 'Application/vnd.pterodactyl.v1+json'
       }
     });
-    if (!nestsRes.ok) return null;
+    if (!nestsRes.ok) {
+      console.error('❌ Failed to fetch nests:', nestsRes.status)
+      return null;
+    }
     const nests = await nestsRes.json();
     const mcNest = nests.data.find((n: any) => (n.attributes.name || '').toLowerCase().includes('minecraft')) || nests.data.find((n: any) => n.attributes.id === 1);
-    if (!mcNest) return null;
+    if (!mcNest) {
+      console.error('❌ No Minecraft nest found')
+      return null;
+    }
+    console.log('✅ Found Minecraft nest:', mcNest.attributes.name)
 
+    console.log('🔍 Fetching eggs for nest:', mcNest.attributes.id)
     const eggsRes = await fetch(`${pterodactylUrl}/api/application/nests/${mcNest.attributes.id}/eggs`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Accept': 'Application/vnd.pterodactyl.v1+json'
       }
     });
-    if (!eggsRes.ok) return null;
+    if (!eggsRes.ok) {
+      console.error('❌ Failed to fetch eggs:', eggsRes.status)
+      return null;
+    }
     const eggs = await eggsRes.json();
+    console.log('📦 Available eggs:', eggs.data.map((e: any) => e.attributes.name))
 
-    const priority = ['paper', 'purpur', 'vanilla', 'fabric', 'forge'];
-    const avoid = ['bunge', 'waterfall', 'velocity', 'proxy', 'bedrock'];
+    // NEVER use these proxy/incompatible eggs
+    const strictAvoid = ['bunge', 'waterfall', 'velocity', 'proxy', 'bedrock', 'travertine', 'flamecord'];
+    // Prefer these vanilla-compatible eggs
+    const priority = ['paper', 'purpur', 'vanilla', 'fabric', 'forge', 'spigot', 'bukkit'];
+    
+    // First pass: Find eggs that match priority and DON'T match avoid
     let chosen = eggs.data.find((e: any) => {
       const name = (e.attributes.name || '').toLowerCase();
-      return priority.some(p => name.includes(p));
-    }) || eggs.data.find((e: any) => {
-      const name = (e.attributes.name || '').toLowerCase();
-      return !avoid.some(a => name.includes(a));
+      const hasStrictAvoid = strictAvoid.some(a => name.includes(a));
+      const hasPriority = priority.some(p => name.includes(p));
+      console.log(`🧪 Testing egg "${e.attributes.name}": hasStrictAvoid=${hasStrictAvoid}, hasPriority=${hasPriority}`)
+      return hasPriority && !hasStrictAvoid;
     });
-    if (!chosen) return null;
+    
+    // Second pass: Any egg that doesn't match avoid list
+    if (!chosen) {
+      console.log('⚠️ No priority eggs found, looking for any non-proxy egg...')
+      chosen = eggs.data.find((e: any) => {
+        const name = (e.attributes.name || '').toLowerCase();
+        const hasStrictAvoid = strictAvoid.some(a => name.includes(a));
+        console.log(`🧪 Testing egg "${e.attributes.name}": hasStrictAvoid=${hasStrictAvoid}`)
+        return !hasStrictAvoid;
+      });
+    }
+    
+    if (!chosen) {
+      console.error('❌ No suitable egg found! All eggs seem to be proxy/incompatible')
+      return null;
+    }
+    
+    console.log('✅ Selected egg:', chosen.attributes.name)
 
     let dockerImage: string;
     const di = chosen.attributes.docker_image;
