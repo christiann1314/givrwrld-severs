@@ -19,14 +19,15 @@ const RustConfig = () => {
       '24/7 support and Discord community access'
     ],
     serverTypes: [
-      { key: 'vanilla', name: 'Vanilla Rust', description: 'Pure Rust server experience', surcharge: 0 },
-      { key: 'umod', name: 'uMod/Oxide + Plugins', description: 'Popular plugin collection for enhanced gameplay', surcharge: 4.99, recommended: true },
-      { key: 'custom', name: 'Custom Plugins', description: 'Custom plugin configuration', surcharge: 2.99 }
+      { key: 'vanilla', name: 'Vanilla Rust', description: 'Official Rust server without modifications', surcharge: 0, recommended: true },
+      { key: 'umod', name: 'uMod/Oxide', description: 'Plugin framework for enhanced gameplay', surcharge: 0 }
     ],
     modpacks: [
       { key: 'vanilla', name: 'Vanilla', description: 'Pure Rust experience', surcharge: 0 },
-      { key: 'umod', name: 'uMod/Oxide + Plugins', description: 'Popular plugin collection', surcharge: 4.99, recommended: true },
-      { key: 'custom', name: 'Custom', description: 'Paste your plugin URLs', surcharge: 2.99 }
+      { key: 'essential', name: 'Essential Plugins', description: 'Admin tools, teleportation, economics', surcharge: 3.99, recommended: true },
+      { key: 'pvp', name: 'PvP Enhancement Pack', description: 'Combat plugins, tournaments, clans', surcharge: 4.99 },
+      { key: 'pve', name: 'PvE/RP Pack', description: 'NPCs, quests, role-playing features', surcharge: 4.99 },
+      { key: 'custom', name: 'Custom Plugins', description: 'Specify your own plugin collection', surcharge: 2.99 }
     ],
     planOptions: [
       { ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.99, description: 'Small survival servers, 50-100 players' },

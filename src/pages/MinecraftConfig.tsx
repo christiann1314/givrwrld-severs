@@ -19,18 +19,19 @@ const MinecraftConfig = () => {
       '24/7 support and Discord community access'
     ],
     serverTypes: [
-      { key: 'vanilla', name: 'Vanilla Minecraft', description: 'Pure Minecraft server experience', surcharge: 0 },
-      { key: 'paper', name: 'Paper', description: 'High performance server with gameplay fixes', surcharge: 0, recommended: true },
+      { key: 'vanilla', name: 'Vanilla Minecraft', description: 'Pure vanilla Minecraft server', surcharge: 0 },
+      { key: 'paper', name: 'Paper', description: 'High-performance server with optimizations', surcharge: 0, recommended: true },
       { key: 'spigot', name: 'Spigot', description: 'Plugin-compatible server platform', surcharge: 0 },
-      { key: 'forge', name: 'Forge', description: 'Mod-compatible server with Forge API', surcharge: 2.99 },
-      { key: 'bungeecord', name: 'BungeeCord', description: 'Proxy server for multiple server networks', surcharge: 4.99 }
+      { key: 'forge', name: 'Forge', description: 'Mod support with Minecraft Forge', surcharge: 0 },
+      { key: 'fabric', name: 'Fabric', description: 'Lightweight mod support with Fabric', surcharge: 0 }
     ],
     modpacks: [
       { key: 'vanilla', name: 'Vanilla', description: 'Pure Minecraft experience', surcharge: 0 },
-      { key: 'rlcraft', name: 'RLCraft', description: 'Hardcore survival modpack', surcharge: 4.99, recommended: true },
-      { key: 'atm', name: 'All the Mods', description: 'Tech and magic modpack', surcharge: 3.99 },
-      { key: 'skyfactory', name: 'SkyFactory', description: 'Skyblock automation modpack', surcharge: 3.99 },
-      { key: 'custom', name: 'Custom', description: 'Paste your modpack URL', surcharge: 2.99 }
+      { key: 'rlcraft', name: 'RLCraft', description: 'Hardcore survival modpack with dragons', surcharge: 4.99, recommended: true },
+      { key: 'atm9', name: 'All The Mods 9', description: 'Kitchen sink modpack with 400+ mods', surcharge: 5.99 },
+      { key: 'create', name: 'Create Above & Beyond', description: 'Engineering and automation focused', surcharge: 4.99 },
+      { key: 'skyfactory', name: 'Sky Factory 4', description: 'Skyblock with tech progression', surcharge: 3.99 },
+      { key: 'custom', name: 'Custom Modpack', description: 'Upload your own modpack', surcharge: 2.99 }
     ],
     planOptions: [
       { ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, description: 'Perfect for small groups and testing' },
