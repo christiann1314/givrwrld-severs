@@ -351,19 +351,51 @@ serve(async (req) => {
         'Accept': 'Application/vnd.pterodactyl.v1+json'
       }
     });
-
+    
     if (!allocationsResponse.ok) {
       console.error('Failed to fetch allocations')
       return new Response('Failed to fetch allocations', { status: 500 })
     }
-
+    
     const allocationsData = await allocationsResponse.json();
-    const availableAllocation = allocationsData.data.find((alloc: any) => !alloc.attributes.assigned);
 
-    if (!availableAllocation) {
+    // Filter unassigned allocations and try to pick a safe IP to avoid Docker bind errors
+    const unassigned = allocationsData.data.filter((alloc: any) => !alloc.attributes.assigned);
+
+    // Optional hard filters via env secrets (comma-separated IPs and/or a preferred alias)
+    const allowedIPs = (Deno.env.get('PTERODACTYL_ALLOWED_IPS') || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    const preferredAlias = (Deno.env.get('PTERODACTYL_ALLOWED_ALIAS') || '').trim();
+
+    console.log('📡 Node FQDN:', dedicatedNode.attributes.fqdn)
+    console.log('🌐 Unassigned allocations:', unassigned.map((a: any) => ({ id: a.attributes.id, ip: a.attributes.ip, alias: a.attributes.alias, port: a.attributes.port })))
+    if (allowedIPs.length) console.log('✅ Allowed IPs filter active:', allowedIPs)
+    if (preferredAlias) console.log('✅ Preferred alias filter active:', preferredAlias)
+
+    // 1) Prefer alias matching configured alias or node FQDN
+    let selectedAllocation = unassigned.find((a: any) => {
+      const alias = (a.attributes.alias || '').toLowerCase();
+      return alias && (alias === preferredAlias.toLowerCase() || alias === dedicatedNode.attributes.fqdn.toLowerCase());
+    });
+
+    // 2) Prefer IPs in allowed list
+    if (!selectedAllocation && allowedIPs.length) {
+      selectedAllocation = unassigned.find((a: any) => allowedIPs.includes(a.attributes.ip));
+    }
+
+    // 3) Fallback: first unassigned
+    if (!selectedAllocation) {
+      selectedAllocation = unassigned[0];
+    }
+
+    if (!selectedAllocation) {
       console.error('No available allocations')
       return new Response('No available allocations', { status: 500 })
     }
+
+    console.log('🎯 Selected allocation:', { id: selectedAllocation.attributes.id, ip: selectedAllocation.attributes.ip, alias: selectedAllocation.attributes.alias, port: selectedAllocation.attributes.port })
 
     // Resolve Pterodactyl user (profile optional)
     let pterodactylUserId = (profile as any)?.pterodactyl_user_id as number | undefined;
@@ -521,7 +553,7 @@ serve(async (req) => {
       limits: mergedLimits,
       feature_limits: featureLimits,
       allocation: {
-        default: availableAllocation.attributes.id
+        default: selectedAllocation.attributes.id
       },
       start_on_completion: true,
       skip_scripts: false
@@ -551,8 +583,8 @@ serve(async (req) => {
       .update({
         status: 'installing',
         pterodactyl_url: `${pterodactylUrl}/server/${pterodactylServer.attributes.identifier}`,
-        ip: 'dedicated.givrwrldservers.com', // Your server FQDN
-        port: availableAllocation.attributes.port.toString(),
+        ip: (selectedAllocation.attributes.alias || selectedAllocation.attributes.ip || 'dedicated.givrwrldservers.com'), // Prefer alias if set
+        port: selectedAllocation.attributes.port.toString(),
         pterodactyl_server_id: pterodactylServer.attributes.id.toString()
       })
       .eq('id', serverId)
