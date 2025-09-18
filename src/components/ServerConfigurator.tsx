@@ -10,7 +10,7 @@ import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
 import PaymentModal from './PaymentModal';
 
-interface ModpackOption {
+interface ServerTypeOption {
   key: string;
   name: string;
   description: string;
@@ -23,7 +23,7 @@ interface GameData {
   icon: string | React.ReactNode;
   basePrice: number;
   features: string[];
-  modpacks: ModpackOption[];
+  serverTypes: ServerTypeOption[];
   planOptions: Array<{
     ram: string;
     cpu: string;
@@ -49,8 +49,8 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const [location, setLocation] = useState('us-west');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
-  // Modpack state
-  const [selectedModpack, setSelectedModpack] = useState(gameData.modpacks.find(pack => pack.key === 'vanilla') || gameData.modpacks[0]);
+  // Server Type state
+  const [selectedServerType, setSelectedServerType] = useState(gameData.serverTypes.find(type => type.key === 'vanilla') || gameData.serverTypes[0]);
   const [customModpackUrl, setCustomModpackUrl] = useState('');
   
   // Add-ons state
@@ -120,8 +120,8 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const calculateSubtotal = () => {
     let total = selectedPlan.price;
     
-    // Add modpack surcharge
-    total += selectedModpack.surcharge;
+    // Add server type surcharge
+    total += selectedServerType.surcharge;
     
     // Add service bundle
     const bundle = serviceBundles.find(b => b.id === selectedBundle);
@@ -138,8 +138,8 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   };
 
   const getRecommendedCombo = () => {
-    if (selectedPlan.recommended && selectedModpack.recommended) {
-      return `${selectedPlan.ram} + ${selectedModpack.name} = Optimal Performance`;
+    if (selectedPlan.recommended && selectedServerType.recommended) {
+      return `${selectedPlan.ram} + ${selectedServerType.name} = Optimal Performance`;
     }
     return null;
   };
@@ -196,7 +196,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         bundle_id: selectedBundle,
         bundle_env: bundleEnv,
         addon_ids: enabledAddons,
-        modpack_id: selectedModpack.key === 'vanilla' ? null : selectedModpack.key,
+        modpack_id: selectedServerType.key === 'vanilla' ? null : selectedServerType.key,
         billing_term: billingPeriod,
         ...(selectedBundle === 'essentials' && {
           bundle_limits_patch: { "feature_limits": { "backups": 7 } }
@@ -399,28 +399,28 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
             </div>
           </div>
 
-          {/* Modpack Selection */}
+          {/* Server Type Selection */}
           <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center">
               <Package className="mr-2 text-emerald-400" size={20} />
-              Modpack Selection
+              Server Software Type
             </h3>
             <div className="space-y-4">
               <TooltipProvider>
-                <Select value={selectedModpack.key} onValueChange={(value) => {
-                  const modpack = gameData.modpacks.find(m => m.key === value);
-                  if (modpack) setSelectedModpack(modpack);
+                <Select value={selectedServerType.key} onValueChange={(value) => {
+                  const serverType = gameData.serverTypes.find(s => s.key === value);
+                  if (serverType) setSelectedServerType(serverType);
                 }}>
                   <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
-                    <SelectValue placeholder="Select a modpack" />
+                    <SelectValue placeholder="Select server type" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                    {gameData.modpacks.map((modpack) => (
-                      <SelectItem key={modpack.key} value={modpack.key} className="hover:bg-gray-700">
+                    {gameData.serverTypes.map((serverType) => (
+                      <SelectItem key={serverType.key} value={serverType.key} className="hover:bg-gray-700">
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center space-x-2">
-                            <span>{modpack.name}</span>
-                            {modpack.recommended && (
+                            <span>{serverType.name}</span>
+                            {serverType.recommended && (
                               <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
                                 Recommended
                               </span>
@@ -430,12 +430,12 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                                 <Info size={14} className="text-gray-400" />
                               </TooltipTrigger>
                               <TooltipContent className="bg-gray-700 border-gray-600 text-white">
-                                <p>{modpack.description}</p>
+                                <p>{serverType.description}</p>
                               </TooltipContent>
                             </Tooltip>
                           </div>
-                          <span className="text-emerald-400 font-semibold ml-4">
-                            {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}/mo` : 'Free'}
+                          <span className="text-emerald-400 font-medium">
+                            {serverType.surcharge > 0 ? `+$${serverType.surcharge.toFixed(2)}` : 'Free'}
                           </span>
                         </div>
                       </SelectItem>
@@ -444,8 +444,18 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 </Select>
               </TooltipProvider>
               
+              <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
+                <h4 className="text-white font-medium mb-2">{selectedServerType.name}</h4>
+                <p className="text-gray-400 text-sm">{selectedServerType.description}</p>
+                {selectedServerType.surcharge > 0 && (
+                  <p className="text-emerald-400 text-sm mt-2 font-medium">
+                    Additional cost: ${selectedServerType.surcharge.toFixed(2)}/month
+                  </p>
+                )}
+              </div>
+
               {/* Custom URL Input */}
-              {selectedModpack.key === 'custom' && (
+              {selectedServerType.key === 'custom' && (
                 <div className="mt-4 animate-fade-in">
                   <label htmlFor="customUrl" className="block text-sm font-medium text-gray-300 mb-2">
                     {gameType === 'minecraft' ? 'Modpack/CurseForge URL' : 
@@ -457,7 +467,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                     value={customModpackUrl}
                     onChange={(e) => setCustomModpackUrl(e.target.value)}
                     className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all resize-none"
-                    placeholder={gameType === 'minecraft' ? 'https://www.curseforge.com/minecraft/modpacks/your-modpack' :
+                    placeholder={gameType === 'minecraft' ? 'https://www.curseforge.com/minecraft/modpack-name' :
                                 gameType === 'rust' ? 'https://umod.org/plugins/plugin-name\nhttps://umod.org/plugins/another-plugin' :
                                 'https://steamcommunity.com/sharedfiles/filedetails/?id=123456\nhttps://mod-site.com/mod-link'}
                     rows={3}
@@ -525,15 +535,15 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
                 <span className="text-white">${selectedPlan.price.toFixed(2)}/mo</span>
               </div>
               
-              {selectedModpack.surcharge > 0 && (
+              {selectedServerType.surcharge > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">
-                    {selectedModpack.name} Modpack
-                    {selectedModpack.recommended && (
+                    {selectedServerType.name}
+                    {selectedServerType.recommended && (
                       <span className="bg-emerald-500 text-white text-xs px-1 py-0.5 rounded ml-2">Rec</span>
                     )}
                   </span>
-                  <span className="text-white">+${selectedModpack.surcharge.toFixed(2)}/mo</span>
+                  <span className="text-white">+${selectedServerType.surcharge.toFixed(2)}/mo</span>
                 </div>
               )}
 

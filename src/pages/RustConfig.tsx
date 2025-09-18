@@ -18,10 +18,10 @@ const RustConfig = () => {
       'Ryzen 9 5950X CPU',
       '24/7 support and Discord community access'
     ],
-    modpacks: [
-      { key: 'vanilla', name: 'Vanilla', description: 'Pure Rust experience', surcharge: 0 },
-      { key: 'umod', name: 'uMod/Oxide + Plugins', description: 'Popular plugin collection', surcharge: 4.99, recommended: true },
-      { key: 'custom', name: 'Custom', description: 'Paste your plugin URLs', surcharge: 2.99 }
+    serverTypes: [
+      { key: 'vanilla', name: 'Vanilla Rust', description: 'Pure Rust server experience', surcharge: 0 },
+      { key: 'umod', name: 'uMod/Oxide + Plugins', description: 'Popular plugin collection for enhanced gameplay', surcharge: 4.99, recommended: true },
+      { key: 'custom', name: 'Custom Plugins', description: 'Custom plugin configuration', surcharge: 2.99 }
     ],
     planOptions: [
       { ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.99, description: 'Small survival servers, 50-100 players' },

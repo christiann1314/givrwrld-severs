@@ -18,11 +18,9 @@ const PalworldConfig = () => {
       'Ryzen 9 5950X CPU',
       '24/7 support and Discord community access'
     ],
-    modpacks: [
-      { key: 'vanilla', name: 'Vanilla', description: 'Pure Palworld experience', surcharge: 0 },
-      { key: 'popular', name: 'Popular Mods', description: 'Curated collection of popular mods', surcharge: 3.99, recommended: true },
-      { key: 'workshop', name: 'Workshop IDs', description: 'Steam Workshop mod IDs', surcharge: 2.99 },
-      { key: 'custom', name: 'Custom', description: 'Paste your mod URLs', surcharge: 2.99 }
+    serverTypes: [
+      { key: 'vanilla', name: 'Vanilla Palworld', description: 'Pure Palworld server experience', surcharge: 0 },
+      { key: 'mods', name: 'Modded Server', description: 'Server with community mods support', surcharge: 2.99, recommended: true }
     ],
     planOptions: [
       { ram: '4GB', cpu: '2 vCPU', disk: '25GB SSD', price: 11.99, description: 'Small co-op sessions (2-4 players)' },
