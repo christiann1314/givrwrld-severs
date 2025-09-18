@@ -629,6 +629,15 @@ export type Database = {
       }
     }
     Views: {
+      my_financial_overview: {
+        Row: {
+          avg_order_value: number | null
+          last_purchase_date: string | null
+          total_orders: number | null
+          total_spent: number | null
+        }
+        Relationships: []
+      }
       orders_secure: {
         Row: {
           access_level: string | null
@@ -676,11 +685,50 @@ export type Database = {
           },
         ]
       }
+      safe_user_profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: never
+          id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: never
+          id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_my_rate_limit: {
         Args: { max_ops?: number; operation_name: string }
         Returns: boolean
+      }
+      create_user_profile: {
+        Args: {
+          new_display_name?: string
+          new_email: string
+          new_user_id: string
+        }
+        Returns: string
+      }
+      create_user_stats: {
+        Args: { user_id_param: string }
+        Returns: string
       }
       encrypt_sensitive_data: {
         Args: { data: string }
@@ -707,6 +755,10 @@ export type Database = {
       hash_data: {
         Args: { data: string }
         Returns: string
+      }
+      log_user_action: {
+        Args: { action_name: string; details?: Json }
+        Returns: boolean
       }
     }
     Enums: {
