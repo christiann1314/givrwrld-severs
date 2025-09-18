@@ -6,9 +6,9 @@ import { API_BASE_URL } from '../config/api';
 interface ServerSpec {
   id: string;
   name: string;
-  server_name: string; // Add this field for database mapping
+  server_name: string;
   game: string;
-  game_type: string; // Add this field
+  game_type: string;
   status: string;
   ram: string;
   cpu: string;
@@ -17,8 +17,19 @@ interface ServerSpec {
   ip?: string;
   port?: string;
   pterodactylUrl: string;
-  pterodactyl_url?: string; // Add this for database mapping
-  bundle_id?: string; // Add bundle support
+  pterodactyl_url?: string;
+  bundle_id?: string;
+  live_stats?: {
+    cpu_percent?: number;
+    memory_used_mb?: number;
+    memory_limit_mb?: number;
+    disk_used_mb?: number;
+    network_rx_bytes?: number;
+    network_tx_bytes?: number;
+    uptime?: number;
+    is_suspended?: boolean;
+    last_updated?: string;
+  };
 }
 
 interface UserServersData {
@@ -54,10 +65,24 @@ export const useUserServers = (userEmail?: string) => {
 
       console.log('🔍 Fetching servers from Supabase for user:', user.id);
       
+      // First sync with Pterodactyl to get live data
+      try {
+        console.log('🔄 Syncing live data from Pterodactyl...');
+        const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-server-status');
+        if (syncError) {
+          console.warn('Sync warning:', syncError);
+        } else {
+          console.log('✅ Live sync completed:', syncData);
+        }
+      } catch (syncError) {
+        console.warn('Live sync failed, continuing with cached data:', syncError);
+      }
+      
       const { data: sbServers, error } = await supabase
         .from('user_servers')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('status', 'deleted');
 
       if (error) {
         console.error('Error fetching user servers from Supabase:', error);
@@ -82,7 +107,8 @@ export const useUserServers = (userEmail?: string) => {
         port: server.port,
         pterodactylUrl: server.pterodactyl_url || '',
         pterodactyl_url: server.pterodactyl_url || '',
-        bundle_id: server.bundle_id || 'none'
+        bundle_id: server.bundle_id || 'none',
+        live_stats: server.live_stats || {}
       }));
 
       console.log('🎮 Formatted servers for display:', formattedServers);
@@ -118,7 +144,7 @@ export const useUserServers = (userEmail?: string) => {
     }
   }, [userEmail]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription and periodic sync
   useEffect(() => {
     if (!userEmail) return;
 
@@ -170,8 +196,20 @@ export const useUserServers = (userEmail?: string) => {
           console.log('📻 Subscription status:', status);
         });
 
+      // Set up periodic live sync every 2 minutes
+      const syncInterval = setInterval(async () => {
+        try {
+          console.log('🔄 Periodic live sync...');
+          await supabase.functions.invoke('sync-server-status');
+          fetchUserServers(); // Refresh after sync
+        } catch (error) {
+          console.log('Periodic sync failed:', error);
+        }
+      }, 120000); // 2 minutes
+
       return () => {
         supabase.removeChannel(channel);
+        clearInterval(syncInterval);
       };
     };
 

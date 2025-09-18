@@ -500,6 +500,7 @@ export type Database = {
           game_type: string
           id: string
           ip: string | null
+          live_stats: Json | null
           location: string
           modpack_id: string | null
           order_payload: Json | null
@@ -527,6 +528,7 @@ export type Database = {
           game_type: string
           id?: string
           ip?: string | null
+          live_stats?: Json | null
           location: string
           modpack_id?: string | null
           order_payload?: Json | null
@@ -554,6 +556,7 @@ export type Database = {
           game_type?: string
           id?: string
           ip?: string | null
+          live_stats?: Json | null
           location?: string
           modpack_id?: string | null
           order_payload?: Json | null

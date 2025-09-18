@@ -87,19 +87,19 @@ const DashboardServices = () => {
   const syncWithPterodactyl = async () => {
     setRepairing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-pterodactyl-servers');
+      const { data, error } = await supabase.functions.invoke('sync-server-status');
       if (error) throw error;
       
       toast({
-        title: 'Sync completed',
-        description: data.message || 'Dashboard synced with Pterodactyl',
+        title: 'Live data refreshed',
+        description: data.message || 'Dashboard synced with Pterodactyl panel',
       });
       
-      // Refresh server list
-      setTimeout(() => refetchServers(), 1000);
+      // Refresh server list immediately
+      setTimeout(() => refetchServers(), 500);
     } catch (error: any) {
       toast({
-        title: 'Sync failed',
+        title: 'Refresh failed',
         description: error.message || 'Failed to sync with Pterodactyl',
         variant: 'destructive'
       });
@@ -146,24 +146,42 @@ const DashboardServices = () => {
     );
   };
   
-  const servers = serversData.servers.map(server => ({
-    id: server.id,
-    name: server.name || server.server_name,
-    game: server.game_type || server.game, // Use game_type from database
-    status: server.status.toLowerCase(),
-    players: '0/8',
-    uptime: '0 hours',
-    cpu: '0%', 
-    ram: `0GB/${server.ram}`,
-    storage: `0GB/${server.disk}`,
-    location: server.location,
-    ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
-    lastBackup: 'Never',
-    plan: `${server.ram} • ${server.cpu}`,
-    pterodactylUrl: server.pterodactyl_url || server.pterodactylUrl, // Add pterodactyl URL
-    bundle: server.bundle_id || 'none', // Add bundle info
-    bundleName: getBundleName(server.bundle_id || 'none')
-  }));
+  const servers = serversData.servers.map(server => {
+    const liveStats = server.live_stats || {};
+    
+    // Use live stats if available, otherwise fall back to static data
+    const cpuUsage = liveStats.cpu_percent !== undefined ? `${liveStats.cpu_percent}%` : '0%';
+    const ramUsage = liveStats.memory_used_mb && liveStats.memory_limit_mb 
+      ? `${Math.round(liveStats.memory_used_mb / 1024 * 100) / 100}GB/${Math.round(liveStats.memory_limit_mb / 1024 * 100) / 100}GB`
+      : `0GB/${server.ram}`;
+    const diskUsage = liveStats.disk_used_mb
+      ? `${Math.round(liveStats.disk_used_mb / 1024 * 100) / 100}GB/${server.disk}`
+      : `0GB/${server.disk}`;
+    const uptime = liveStats.uptime 
+      ? `${Math.floor(liveStats.uptime / 3600)} hours`
+      : '0 hours';
+    
+    return {
+      id: server.id,
+      name: server.name || server.server_name,
+      game: server.game_type || server.game,
+      status: server.status.toLowerCase(),
+      players: '0/8', // TODO: Get from live stats when available
+      uptime,
+      cpu: cpuUsage,
+      ram: ramUsage,
+      storage: diskUsage,
+      location: server.location,
+      ip: server.ip && server.port ? `${server.ip}:${server.port}` : 'Setting up...',
+      lastBackup: 'Never',
+      plan: `${server.ram} • ${server.cpu}`,
+      pterodactylUrl: server.pterodactyl_url || server.pterodactylUrl,
+      bundle: server.bundle_id || 'none',
+      bundleName: getBundleName(server.bundle_id || 'none'),
+      isLiveData: !!liveStats.last_updated,
+      lastUpdated: liveStats.last_updated
+    };
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -255,6 +273,9 @@ const DashboardServices = () => {
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(server.status)}`}>
                             {getStatusIcon(server.status)}
                             <span className="ml-1 capitalize">{server.status}</span>
+                            {server.isLiveData && (
+                              <span className="ml-1 text-emerald-400">●</span>
+                            )}
                           </span>
                           <span className="text-sm text-gray-400">{server.location}</span>
                           <BundleBadge bundleId={server.bundle} />
@@ -414,13 +435,13 @@ const DashboardServices = () => {
               
               <button
                 onClick={syncWithPterodactyl}
-                className="flex items-center space-x-3 p-4 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg transition-all disabled:opacity-60"
+                className="flex items-center space-x-3 p-4 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg transition-all disabled:opacity-60"
                 disabled={repairing}
               >
-                <Monitor className="text-emerald-400" size={24} />
+                <Monitor className="text-blue-400" size={24} />
                 <div>
-                  <div className="text-white font-semibold">{repairing ? 'Syncing…' : 'Sync with Pterodactyl'}</div>
-                  <div className="text-gray-400 text-sm">Remove deleted servers & update status</div>
+                  <div className="text-white font-semibold">{repairing ? 'Refreshing…' : 'Refresh Live Data'}</div>
+                  <div className="text-gray-400 text-sm">Sync with Pterodactyl panel</div>
                 </div>
               </button>
             </div>
