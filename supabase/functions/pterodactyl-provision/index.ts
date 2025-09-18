@@ -359,36 +359,14 @@ serve(async (req) => {
     
     const allocationsData = await allocationsResponse.json();
 
-    // Filter unassigned allocations and try to pick a safe IP to avoid Docker bind errors
+    // Filter unassigned allocations - your setup uses 15.204.251.116
     const unassigned = allocationsData.data.filter((alloc: any) => !alloc.attributes.assigned);
-
-    // Optional hard filters via env secrets (comma-separated IPs and/or a preferred alias)
-    const allowedIPs = (Deno.env.get('PTERODACTYL_ALLOWED_IPS') || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-    const preferredAlias = (Deno.env.get('PTERODACTYL_ALLOWED_ALIAS') || '').trim();
 
     console.log('📡 Node FQDN:', dedicatedNode.attributes.fqdn)
     console.log('🌐 Unassigned allocations:', unassigned.map((a: any) => ({ id: a.attributes.id, ip: a.attributes.ip, alias: a.attributes.alias, port: a.attributes.port })))
-    if (allowedIPs.length) console.log('✅ Allowed IPs filter active:', allowedIPs)
-    if (preferredAlias) console.log('✅ Preferred alias filter active:', preferredAlias)
 
-    // 1) Prefer alias matching configured alias or node FQDN
-    let selectedAllocation = unassigned.find((a: any) => {
-      const alias = (a.attributes.alias || '').toLowerCase();
-      return alias && (alias === preferredAlias.toLowerCase() || alias === dedicatedNode.attributes.fqdn.toLowerCase());
-    });
-
-    // 2) Prefer IPs in allowed list
-    if (!selectedAllocation && allowedIPs.length) {
-      selectedAllocation = unassigned.find((a: any) => allowedIPs.includes(a.attributes.ip));
-    }
-
-    // 3) Fallback: first unassigned
-    if (!selectedAllocation) {
-      selectedAllocation = unassigned[0];
-    }
+    // Select first unassigned allocation - Pterodactyl will handle port mapping
+    let selectedAllocation = unassigned[0];
 
     if (!selectedAllocation) {
       console.error('No available allocations')
