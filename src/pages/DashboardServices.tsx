@@ -5,6 +5,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useUserServers } from '../hooks/useUserServers';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '../hooks/use-toast';
 import {
   ArrowLeft,
   Server,
@@ -31,8 +33,10 @@ import { getBundleName } from '../utils/bundleUtils';
 
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
+  const [repairing, setRepairing] = useState(false);
   const { user } = useAuth();
-  const { serversData } = useUserServers(user?.email);
+  const { serversData, refetchServers } = useUserServers(user?.email);
+  const { toast } = useToast();
 
   // Get servers from Supabase data
   console.log('DashboardServices - serversData:', serversData);
@@ -292,7 +296,7 @@ const DashboardServices = () => {
             </div>
           )}
 
-          {/* Quick Actions */}
+{/* Quick Actions */}
           <div className="mt-8 bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
             <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -326,11 +330,31 @@ const DashboardServices = () => {
                 </div>
               </Link>
               
-              <button className="flex items-center space-x-3 p-4 bg-gray-700/30 hover:bg-gray-600/30 border border-gray-600/30 rounded-lg transition-all">
-                <Calendar className="text-pink-400" size={24} />
+              <button
+                onClick={async () => {
+                  try {
+                    setRepairing(true);
+                    const { data, error } = await supabase.functions.invoke('repair-failed-servers');
+                    if (error) throw error;
+                    toast({
+                      title: 'Repair triggered',
+                      description: `Attempted: ${data?.attempted ?? 0}, Triggered: ${data?.triggered ?? 0}`,
+                    });
+                    // Give it a moment and then refresh
+                    setTimeout(() => refetchServers(), 2000);
+                  } catch (e: any) {
+                    toast({ title: 'Repair failed', description: e?.message || 'Unknown error', variant: 'destructive' });
+                  } finally {
+                    setRepairing(false);
+                  }
+                }}
+                className="flex items-center space-x-3 p-4 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg transition-all disabled:opacity-60"
+                disabled={repairing}
+              >
+                <Monitor className="text-emerald-400" size={24} />
                 <div>
-                  <div className="text-white font-semibold">Schedule Restart</div>
-                  <div className="text-gray-400 text-sm">Automated maintenance</div>
+                  <div className="text-white font-semibold">{repairing ? 'Repairing…' : 'Repair Failed Servers'}</div>
+                  <div className="text-gray-400 text-sm">Retry provisioning automatically</div>
                 </div>
               </button>
             </div>
