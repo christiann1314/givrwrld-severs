@@ -85,11 +85,9 @@ serve(async (req) => {
       // Create new allocations with proper port ranges
       const ip = '15.204.251.32'; // Main server IP
       const portRanges = [
-        { start: 25565, end: 25600 }, // Minecraft
-        { start: 27015, end: 27050 }, // Source games
-        { start: 7777, end: 7800 },   // Rust/ARK
-        { start: 8211, end: 8250 },   // Palworld
-        { start: 2456, end: 2500 },   // Valheim
+        { start: 25565, end: 25665 }, // Minecraft (100 ports)
+        { start: 28015, end: 28115 }, // Rust (100 ports)
+        { start: 8211, end: 8311 },   // Palworld (100 ports)
       ];
 
       let createdCount = 0;
