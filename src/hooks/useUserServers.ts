@@ -65,19 +65,6 @@ export const useUserServers = (userEmail?: string) => {
 
       console.log('🔍 Fetching servers from Supabase for user:', user.id);
       
-      // First sync with Pterodactyl to get live data
-      try {
-        console.log('🔄 Syncing live data from Pterodactyl...');
-        const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-server-status');
-        if (syncError) {
-          console.warn('Sync warning:', syncError);
-        } else {
-          console.log('✅ Live sync completed:', syncData);
-        }
-      } catch (syncError) {
-        console.warn('Live sync failed, continuing with cached data:', syncError);
-      }
-      
       const { data: sbServers, error } = await supabase
         .from('user_servers')
         .select('*')
@@ -114,22 +101,23 @@ export const useUserServers = (userEmail?: string) => {
       console.log('🎮 Formatted servers for display:', formattedServers);
       setServersData({ servers: formattedServers, loading: false });
 
-      // Optional: Try Laravel API as backup for real-time status updates
-      try {
-        const apiRes = await fetch(`${API_BASE_URL}/user/servers`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userEmail })
-        });
-
-        if (apiRes.ok) {
-          const apiJson = await apiRes.json();
-          const list = Array.isArray(apiJson) ? apiJson : (apiJson.servers || []);
-          console.log('🛰️ Laravel API response (backup):', list);
-          // Could merge status updates here if needed
+      // Auto-sync with Pterodactyl after loading initial data
+      if (formattedServers.length > 0) {
+        try {
+          console.log('🔄 Auto-syncing with Pterodactyl...');
+          const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-server-status');
+          if (syncError) {
+            console.warn('Auto-sync warning:', syncError);
+          } else {
+            console.log('✅ Auto-sync completed:', syncData);
+            // Refetch after sync to get updated data
+            setTimeout(() => {
+              fetchUserServers();
+            }, 1000);
+          }
+        } catch (syncError) {
+          console.warn('Auto-sync failed, using cached data:', syncError);
         }
-      } catch (apiError) {
-        console.log('Laravel API unavailable (using Supabase data):', apiError);
       }
 
     } catch (error) {

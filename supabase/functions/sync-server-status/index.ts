@@ -53,9 +53,9 @@ serve(async (req) => {
     // Sync each server's live data
     for (const server of dbServers || []) {
       try {
-        console.log(`🔍 Syncing server: ${server.server_name}`)
+        console.log(`🔍 Syncing server: ${server.server_name} (ID: ${server.pterodactyl_server_id})`)
 
-        // Get server details from Pterodactyl (Application API)
+        // Get server details from Pterodactyl (Application API for status)
         const appResponse = await fetch(`${pterodactylUrl}/api/application/servers/${server.pterodactyl_server_id}`, {
           headers: {
             'Authorization': `Bearer ${pterodactylKey}`,
@@ -78,37 +78,60 @@ serve(async (req) => {
             })
             continue
           }
-          throw new Error(`Failed to fetch server: ${appResponse.status}`)
+          console.error(`❌ Failed to fetch server from Pterodactyl: ${appResponse.status} ${appResponse.statusText}`)
+          const errorText = await appResponse.text()
+          console.error('Error details:', errorText)
+          throw new Error(`Pterodactyl API error: ${appResponse.status}`)
         }
 
         const appData = await appResponse.json()
-        const serverIdentifier = appData.attributes.identifier
+        const serverAttributes = appData.attributes
+        const serverIdentifier = serverAttributes.identifier
 
-        // Get real-time server stats (Client API)
-        const statsResponse = await fetch(`${pterodactylUrl}/api/client/servers/${serverIdentifier}/resources`, {
-          headers: {
-            'Authorization': `Bearer ${pterodactylKey}`,
-            'Accept': 'Application/vnd.pterodactyl.v1+json'
-          }
+        console.log(`📊 Pterodactyl server data:`, {
+          identifier: serverIdentifier,
+          status: serverAttributes.status,
+          suspended: serverAttributes.is_suspended
         })
-
-        let liveStats = null
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json()
-          liveStats = statsData.attributes
-        }
 
         // Map Pterodactyl status to our status
         let mappedStatus = 'offline'
-        const pterodactylStatus = appData.attributes.status
+        const pterodactylStatus = serverAttributes.status
         
-        switch (pterodactylStatus) {
-          case 'running': mappedStatus = 'online'; break
-          case 'starting': mappedStatus = 'starting'; break
-          case 'stopping': mappedStatus = 'stopping'; break
-          case 'offline': mappedStatus = 'offline'; break
-          case 'installing': mappedStatus = 'installing'; break
-          default: mappedStatus = 'offline'
+        if (serverAttributes.is_suspended) {
+          mappedStatus = 'suspended'
+        } else {
+          switch (pterodactylStatus) {
+            case 'running': mappedStatus = 'online'; break
+            case 'starting': mappedStatus = 'starting'; break
+            case 'stopping': mappedStatus = 'stopping'; break
+            case 'offline': mappedStatus = 'offline'; break
+            case 'installing': mappedStatus = 'installing'; break
+            default: mappedStatus = 'offline'
+          }
+        }
+
+        console.log(`📈 Status mapping: ${pterodactylStatus} → ${mappedStatus}`)
+
+        // Try to get real-time server stats (Client API - this might fail with different API key)
+        let liveStats = null
+        try {
+          const statsResponse = await fetch(`${pterodactylUrl}/api/client/servers/${serverIdentifier}/resources`, {
+            headers: {
+              'Authorization': `Bearer ${pterodactylKey}`,
+              'Accept': 'Application/vnd.pterodactyl.v1+json'
+            }
+          })
+
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json()
+            liveStats = statsData.attributes
+            console.log(`📊 Got live stats for ${server.server_name}`)
+          } else {
+            console.log(`⚠️ Could not get live stats: ${statsResponse.status} (using status only)`)
+          }
+        } catch (statsError) {
+          console.log(`⚠️ Live stats unavailable: ${statsError.message}`)
         }
 
         // Prepare update data
@@ -132,7 +155,13 @@ serve(async (req) => {
             network_rx_bytes: liveStats.network_rx_bytes || 0,
             network_tx_bytes: liveStats.network_tx_bytes || 0,
             uptime: liveStats.uptime || 0,
-            is_suspended: appData.attributes.is_suspended,
+            is_suspended: serverAttributes.is_suspended,
+            last_updated: new Date().toISOString()
+          }
+        } else {
+          // At least update the basic info without live stats
+          updateData.live_stats = {
+            is_suspended: serverAttributes.is_suspended,
             last_updated: new Date().toISOString()
           }
         }
@@ -170,6 +199,8 @@ serve(async (req) => {
         })
       }
     }
+
+    console.log(`🎯 Sync completed: ${syncResults.length} servers processed`)
 
     return new Response(JSON.stringify({
       success: true,
