@@ -133,8 +133,13 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
     if (typeof di === 'string') dockerImage = di;
     else if (di && typeof di === 'object') {
       const values = Object.values(di as Record<string, string>);
-      dockerImage = (values[0] as string) || 'quay.io/pterodactyl/core:java';
-    } else dockerImage = 'quay.io/pterodactyl/core:java';
+      dockerImage = (values[0] as string) || 'ghcr.io/pterodactyl/yolks:java_21';
+    } else dockerImage = 'ghcr.io/pterodactyl/yolks:java_21';
+
+    // Normalize deprecated quay images to GHCR yolks
+    if (dockerImage.includes('quay.io/pterodactyl/core')) {
+      dockerImage = 'ghcr.io/pterodactyl/yolks:java_21';
+    }
 
     const startup = chosen.attributes.startup || "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}";
     const env: Record<string, string> = {
@@ -426,6 +431,10 @@ serve(async (req) => {
         targetDocker = resolved.dockerImage ?? targetDocker;
         targetStartup = resolved.startup ?? targetStartup;
         environment = { ...environment, ...(resolved.env || {}) };
+      }
+      // Normalize deprecated quay images to GHCR yolks
+      if (targetDocker.includes('quay.io/pterodactyl/core')) {
+        targetDocker = 'ghcr.io/pterodactyl/yolks:java_21';
       }
       // Always accept the EULA and provide safe defaults so the API doesn't fail on required vars
       environment = {
