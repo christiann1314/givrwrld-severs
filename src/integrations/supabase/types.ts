@@ -718,6 +718,10 @@ export type Database = {
         Args: { max_ops?: number; operation_name: string }
         Returns: boolean
       }
+      cleanup_user_data: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       create_user_profile: {
         Args: {
           new_display_name?: string
@@ -755,6 +759,10 @@ export type Database = {
       hash_data: {
         Args: { data: string }
         Returns: string
+      }
+      initialize_user_data: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       log_user_action: {
         Args: { action_name: string; details?: Json }
