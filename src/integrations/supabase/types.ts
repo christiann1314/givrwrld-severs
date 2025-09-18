@@ -631,6 +631,7 @@ export type Database = {
     Views: {
       orders_secure: {
         Row: {
+          access_level: string | null
           amount: number | null
           created_at: string | null
           currency: string | null
@@ -638,12 +639,11 @@ export type Database = {
           order_summary: Json | null
           server_id: string | null
           status: string | null
-          stripe_session_id: string | null
-          stripe_subscription_id: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          access_level?: never
           amount?: never
           created_at?: string | null
           currency?: never
@@ -651,12 +651,11 @@ export type Database = {
           order_summary?: never
           server_id?: string | null
           status?: string | null
-          stripe_session_id?: never
-          stripe_subscription_id?: never
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          access_level?: never
           amount?: never
           created_at?: string | null
           currency?: never
@@ -664,8 +663,6 @@ export type Database = {
           order_summary?: never
           server_id?: string | null
           status?: string | null
-          stripe_session_id?: never
-          stripe_subscription_id?: never
           updated_at?: string | null
           user_id?: string | null
         }
@@ -692,6 +689,15 @@ export type Database = {
       encrypt_sensitive_data: {
         Args: { data: string }
         Returns: string
+      }
+      get_safe_financial_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_avg_order: number
+          user_last_purchase: string
+          user_total_orders: number
+          user_total_spent: number
+        }[]
       }
       get_user_financial_summary: {
         Args: { target_user_id?: string }
