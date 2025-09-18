@@ -704,6 +704,10 @@ export type Database = {
           user_total_spent: number
         }[]
       }
+      hash_data: {
+        Args: { data: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
