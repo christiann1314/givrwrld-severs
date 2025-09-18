@@ -34,9 +34,79 @@ import { getBundleName } from '../utils/bundleUtils';
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [repairing, setRepairing] = useState(false);
+  const [serverOperations, setServerOperations] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
   const { serversData, refetchServers } = useUserServers(user?.email);
   const { toast } = useToast();
+
+  const handleServerAction = async (serverId: string, action: 'start' | 'stop' | 'console', serverName: string) => {
+    setServerOperations(prev => ({ ...prev, [serverId]: true }));
+    
+    try {
+      if (action === 'console') {
+        const { data, error } = await supabase.functions.invoke('get-server-console', {
+          body: { serverId }
+        });
+        
+        if (error) throw error;
+        
+        // Open console in new tab
+        window.open(data.consoleUrl, '_blank');
+        toast({
+          title: 'Console opened',
+          description: `Opened console for ${serverName}`,
+        });
+      } else {
+        const functionName = action === 'start' ? 'start-server' : 'stop-server';
+        const { data, error } = await supabase.functions.invoke(functionName, {
+          body: { serverId }
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: `Server ${action} initiated`,
+          description: `${serverName} is ${action === 'start' ? 'starting' : 'stopping'}...`,
+        });
+        
+        // Refresh server data after a short delay
+        setTimeout(() => refetchServers(), 2000);
+      }
+    } catch (error: any) {
+      console.error(`Failed to ${action} server:`, error);
+      toast({
+        title: `Failed to ${action} server`,
+        description: error.message || 'Unknown error occurred',
+        variant: 'destructive'
+      });
+    } finally {
+      setServerOperations(prev => ({ ...prev, [serverId]: false }));
+    }
+  };
+
+  const syncWithPterodactyl = async () => {
+    setRepairing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-pterodactyl-servers');
+      if (error) throw error;
+      
+      toast({
+        title: 'Sync completed',
+        description: data.message || 'Dashboard synced with Pterodactyl',
+      });
+      
+      // Refresh server list
+      setTimeout(() => refetchServers(), 1000);
+    } catch (error: any) {
+      toast({
+        title: 'Sync failed',
+        description: error.message || 'Failed to sync with Pterodactyl',
+        variant: 'destructive'
+      });
+    } finally {
+      setRepairing(false);
+    }
+  };
 
   // Get servers from Supabase data
   console.log('DashboardServices - serversData:', serversData);
@@ -247,14 +317,22 @@ const DashboardServices = () => {
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-3">
                     {server.status === 'online' ? (
-                      <button className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleServerAction(server.id, 'stop', server.name)}
+                        disabled={serverOperations[server.id]}
+                        className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                      >
                         <PowerOff size={16} />
-                        <span>Stop Server</span>
+                        <span>{serverOperations[server.id] ? 'Stopping...' : 'Stop Server'}</span>
                       </button>
                     ) : (
-                      <button className="flex items-center space-x-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleServerAction(server.id, 'start', server.name)}
+                        disabled={serverOperations[server.id]}
+                        className="flex items-center space-x-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                      >
                         <Power size={16} />
-                        <span>Start Server</span>
+                        <span>{serverOperations[server.id] ? 'Starting...' : 'Start Server'}</span>
                       </button>
                     )}
                     
@@ -275,17 +353,21 @@ const DashboardServices = () => {
                       </button>
                     )}
                     
-                    <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
+                    <button className="flex items-center space-x-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/30 px-4 py-2 rounded-lg transition-colors">
                       <Database size={16} />
                       <span>Backup</span>
                     </button>
                     
-                    <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
+                    <button className="flex items-center space-x-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 px-4 py-2 rounded-lg transition-colors">
                       <Users size={16} />
                       <span>Players</span>
                     </button>
                     
-                    <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleServerAction(server.id, 'console', server.name)}
+                      disabled={serverOperations[server.id]}
+                      className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
                       <Activity size={16} />
                       <span>Console</span>
                     </button>
@@ -331,30 +413,14 @@ const DashboardServices = () => {
               </Link>
               
               <button
-                onClick={async () => {
-                  try {
-                    setRepairing(true);
-                    const { data, error } = await supabase.functions.invoke('repair-failed-servers');
-                    if (error) throw error;
-                    toast({
-                      title: 'Repair triggered',
-                      description: `Attempted: ${data?.attempted ?? 0}, Triggered: ${data?.triggered ?? 0}`,
-                    });
-                    // Give it a moment and then refresh
-                    setTimeout(() => refetchServers(), 2000);
-                  } catch (e: any) {
-                    toast({ title: 'Repair failed', description: e?.message || 'Unknown error', variant: 'destructive' });
-                  } finally {
-                    setRepairing(false);
-                  }
-                }}
+                onClick={syncWithPterodactyl}
                 className="flex items-center space-x-3 p-4 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg transition-all disabled:opacity-60"
                 disabled={repairing}
               >
                 <Monitor className="text-emerald-400" size={24} />
                 <div>
-                  <div className="text-white font-semibold">{repairing ? 'Repairing…' : 'Repair Failed Servers'}</div>
-                  <div className="text-gray-400 text-sm">Retry provisioning automatically</div>
+                  <div className="text-white font-semibold">{repairing ? 'Syncing…' : 'Sync with Pterodactyl'}</div>
+                  <div className="text-gray-400 text-sm">Remove deleted servers & update status</div>
                 </div>
               </button>
             </div>
