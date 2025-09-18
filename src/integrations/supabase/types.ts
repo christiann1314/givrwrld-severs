@@ -678,17 +678,22 @@ export type Database = {
       }
     }
     Functions: {
-      check_financial_rate_limit: {
-        Args: {
-          max_operations?: number
-          operation: string
-          window_minutes?: number
-        }
+      check_my_rate_limit: {
+        Args: { max_ops?: number; operation_name: string }
         Returns: boolean
       }
       encrypt_sensitive_data: {
         Args: { data: string }
         Returns: string
+      }
+      get_my_financial_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avg_order_value: number
+          last_purchase_date: string
+          total_orders: number
+          total_spent: number
+        }[]
       }
       get_safe_financial_summary: {
         Args: Record<PropertyKey, never>
@@ -697,15 +702,6 @@ export type Database = {
           user_last_purchase: string
           user_total_orders: number
           user_total_spent: number
-        }[]
-      }
-      get_user_financial_summary: {
-        Args: { target_user_id?: string }
-        Returns: {
-          avg_order_value: number
-          last_purchase_date: string
-          total_orders: number
-          total_spent: number
         }[]
       }
     }
