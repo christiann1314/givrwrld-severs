@@ -490,19 +490,7 @@ serve(async (req) => {
       console.error('Error updating server:', updateError)
     }
 
-    // Force egg installation to run with fresh image/env
-    try {
-      const reinstallRes = await fetch(`${pterodactylUrl}/api/application/servers/${pterodactylServer.attributes.id}/reinstall`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${pterodactylKey}`,
-          'Accept': 'Application/vnd.pterodactyl.v1+json'
-        }
-      });
-      console.log('Reinstall triggered:', reinstallRes.status);
-    } catch (e) {
-      console.error('Failed to trigger reinstall:', e);
-    }
+    console.log('✅ Server created successfully in Pterodactyl, installation will begin automatically');
 
     return new Response('Server provisioned successfully', { 
       status: 200,
