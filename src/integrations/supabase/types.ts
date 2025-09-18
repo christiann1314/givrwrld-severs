@@ -137,6 +137,72 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_audit: {
+        Row: {
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          row_id: string
+          table_name: string
+          timestamp: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          row_id: string
+          table_name: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          row_id?: string
+          table_name?: string
+          timestamp?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_rate_limits: {
+        Row: {
+          created_at: string | null
+          id: string
+          operation_count: number | null
+          operation_type: string
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          operation_count?: number | null
+          operation_type: string
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          operation_count?: number | null
+          operation_type?: string
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       games: {
         Row: {
           banner_url: string | null
@@ -563,12 +629,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      orders_secure: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          id: string | null
+          order_summary: Json | null
+          server_id: string | null
+          status: string | null
+          stripe_session_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: never
+          created_at?: string | null
+          currency?: never
+          id?: string | null
+          order_summary?: never
+          server_id?: string | null
+          status?: string | null
+          stripe_session_id?: never
+          stripe_subscription_id?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: never
+          created_at?: string | null
+          currency?: never
+          id?: string | null
+          order_summary?: never
+          server_id?: string | null
+          status?: string | null
+          stripe_session_id?: never
+          stripe_subscription_id?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "user_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      check_financial_rate_limit: {
+        Args: {
+          max_operations?: number
+          operation: string
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       encrypt_sensitive_data: {
         Args: { data: string }
         Returns: string
+      }
+      get_user_financial_summary: {
+        Args: { target_user_id?: string }
+        Returns: {
+          avg_order_value: number
+          last_purchase_date: string
+          total_orders: number
+          total_spent: number
+        }[]
       }
     }
     Enums: {
