@@ -43,57 +43,24 @@ export const useUserServers = (userEmail?: string) => {
     setServersData(prev => ({ ...prev, loading: true }));
 
     try {
-      // 1) Try Laravel API (Pterodactyl as source of truth)
-      const apiRes = await fetch(`${API_BASE_URL}/user/servers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail })
-      });
-
-      if (apiRes.ok) {
-        const apiJson = await apiRes.json();
-        const list = Array.isArray(apiJson) ? apiJson : (apiJson.servers || []);
-
-        if (Array.isArray(list) && list.length > 0) {
-          const formattedFromApi = list.map((s: any, idx: number) => ({
-            id: s.id || `${s.name || 'server'}-${idx}`,
-            name: s.name || s.server_name,
-            server_name: s.name || s.server_name,
-            game: s.game_type || s.game,
-            game_type: s.game_type || s.game,
-            status: (s.status || 'unknown').toString(),
-            ram: s.ram || s.memory || '—',
-            cpu: s.cpu || '—',
-            disk: s.disk || '—',
-            location: s.location || s.node || '—',
-            ip: s.ip,
-            port: s.port,
-            pterodactylUrl: s.pterodactyl_url || s.panel_url || '',
-            pterodactyl_url: s.pterodactyl_url || s.panel_url || '',
-            bundle_id: s.bundle_id || 'none'
-          }));
-
-          console.log('🛰️ Servers from Laravel/Pterodactyl:', formattedFromApi);
-          setServersData({ servers: formattedFromApi, loading: false });
-          return;
-        }
-      }
-
-      // 2) Fallback to Supabase table
+      // Primary source: Supabase (more reliable than Laravel API)
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         console.log('No authenticated user found');
         setServersData(prev => ({ ...prev, loading: false }));
         return;
       }
 
+      console.log('🔍 Fetching servers from Supabase for user:', user.id);
+      
       const { data: sbServers, error } = await supabase
         .from('user_servers')
         .select('*')
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Error fetching user servers:', error);
+        console.error('Error fetching user servers from Supabase:', error);
         setServersData({ servers: [], loading: false });
         return;
       }
@@ -105,7 +72,7 @@ export const useUserServers = (userEmail?: string) => {
         name: server.server_name,
         server_name: server.server_name,
         game: server.game_type,
-        game_type: server.game_type, // Include both for compatibility
+        game_type: server.game_type,
         status: server.status,
         ram: server.ram,
         cpu: server.cpu,
@@ -113,19 +80,38 @@ export const useUserServers = (userEmail?: string) => {
         location: server.location,
         ip: server.ip,
         port: server.port,
-        pterodactylUrl: server.pterodactyl_url,
-        pterodactyl_url: server.pterodactyl_url,
+        pterodactylUrl: server.pterodactyl_url || '',
+        pterodactyl_url: server.pterodactyl_url || '',
         bundle_id: server.bundle_id || 'none'
       }));
 
       console.log('🎮 Formatted servers for display:', formattedServers);
-
       setServersData({ servers: formattedServers, loading: false });
+
+      // Optional: Try Laravel API as backup for real-time status updates
+      try {
+        const apiRes = await fetch(`${API_BASE_URL}/user/servers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail })
+        });
+
+        if (apiRes.ok) {
+          const apiJson = await apiRes.json();
+          const list = Array.isArray(apiJson) ? apiJson : (apiJson.servers || []);
+          console.log('🛰️ Laravel API response (backup):', list);
+          // Could merge status updates here if needed
+        }
+      } catch (apiError) {
+        console.log('Laravel API unavailable (using Supabase data):', apiError);
+      }
+
     } catch (error) {
       console.error('Failed to fetch user servers:', error);
       setServersData({ servers: [], loading: false });
     }
   };
+
   useEffect(() => {
     if (userEmail) {
       fetchUserServers();
