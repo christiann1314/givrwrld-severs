@@ -359,18 +359,20 @@ serve(async (req) => {
     
     const allocationsData = await allocationsResponse.json();
 
-    // Filter unassigned allocations - your setup uses 15.204.251.116
-    const unassigned = allocationsData.data.filter((alloc: any) => !alloc.attributes.assigned);
+    // Filter unassigned allocations - use correct IP address from DNS records
+    const unassigned = allocationsData.data.filter((alloc: any) => 
+      !alloc.attributes.assigned && alloc.attributes.ip === '15.204.251.32'
+    );
 
     console.log('📡 Node FQDN:', dedicatedNode.attributes.fqdn)
-    console.log('🌐 Unassigned allocations:', unassigned.map((a: any) => ({ id: a.attributes.id, ip: a.attributes.ip, alias: a.attributes.alias, port: a.attributes.port })))
+    console.log('🌐 Unassigned allocations with correct IP:', unassigned.map((a: any) => ({ id: a.attributes.id, ip: a.attributes.ip, alias: a.attributes.alias, port: a.attributes.port })))
 
-    // Select first unassigned allocation - Pterodactyl will handle port mapping
+    // Select first unassigned allocation with correct IP
     let selectedAllocation = unassigned[0];
 
     if (!selectedAllocation) {
-      console.error('No available allocations')
-      return new Response('No available allocations', { status: 500 })
+      console.error('No available allocations with correct IP (15.204.251.32)')
+      return new Response('No available allocations with correct IP', { status: 500 })
     }
 
     console.log('🎯 Selected allocation:', { id: selectedAllocation.attributes.id, ip: selectedAllocation.attributes.ip, alias: selectedAllocation.attributes.alias, port: selectedAllocation.attributes.port })

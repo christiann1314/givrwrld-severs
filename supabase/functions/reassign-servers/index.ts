@@ -65,7 +65,12 @@ serve(async (req) => {
     }
 
     const allocationsData = await allocationsResponse.json()
-    const unassignedAllocations = allocationsData.data.filter((alloc: any) => !alloc.attributes.assigned)
+    // Filter for unassigned allocations with correct IP and high ports to avoid conflicts
+    const unassignedAllocations = allocationsData.data.filter((alloc: any) => 
+      !alloc.attributes.assigned && 
+      alloc.attributes.ip === '15.204.251.32' && 
+      alloc.attributes.port >= 25567
+    )
     
     console.log(`📍 Found ${unassignedAllocations.length} unassigned allocations`)
 
