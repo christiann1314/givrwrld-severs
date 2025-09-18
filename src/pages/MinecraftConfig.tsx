@@ -25,6 +25,13 @@ const MinecraftConfig = () => {
       { key: 'forge', name: 'Forge', description: 'Mod-compatible server with Forge API', surcharge: 2.99 },
       { key: 'bungeecord', name: 'BungeeCord', description: 'Proxy server for multiple server networks', surcharge: 4.99 }
     ],
+    modpacks: [
+      { key: 'vanilla', name: 'Vanilla', description: 'Pure Minecraft experience', surcharge: 0 },
+      { key: 'rlcraft', name: 'RLCraft', description: 'Hardcore survival modpack', surcharge: 4.99, recommended: true },
+      { key: 'atm', name: 'All the Mods', description: 'Tech and magic modpack', surcharge: 3.99 },
+      { key: 'skyfactory', name: 'SkyFactory', description: 'Skyblock automation modpack', surcharge: 3.99 },
+      { key: 'custom', name: 'Custom', description: 'Paste your modpack URL', surcharge: 2.99 }
+    ],
     planOptions: [
       { ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, description: 'Perfect for small groups and testing' },
       { ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 6.99, description: 'Great for friends and small communities' },
