@@ -55,6 +55,32 @@ serve(async (req) => {
         serverName: metadata.server_name
       })
 
+      // Resolve optional identifiers (slugs -> UUIDs)
+      let resolvedModpackId: string | null = null
+      if (metadata.modpack_id && metadata.modpack_id !== 'vanilla') {
+        const ident = String(metadata.modpack_id)
+        const { data: mp } = await supabase
+          .from('modpacks')
+          .select('id')
+          .or(`slug.eq.${ident},modpack_id.eq.${ident},id.eq.${ident}`)
+          .maybeSingle()
+        resolvedModpackId = mp?.id ?? null
+        if (!resolvedModpackId) {
+          console.log('Modpack not found for identifier:', ident)
+        }
+      }
+
+      let resolvedBundleId: string | null = null
+      if (metadata.bundle_id && metadata.bundle_id !== 'none') {
+        const ident = String(metadata.bundle_id)
+        const { data: b } = await supabase
+          .from('bundles')
+          .select('id')
+          .or(`slug.eq.${ident},id.eq.${ident}`)
+          .maybeSingle()
+        resolvedBundleId = b?.id ?? null
+      }
+
       // Create server record in user_servers table
       const { data: server, error: serverError } = await supabase
         .from('user_servers')
@@ -66,9 +92,9 @@ serve(async (req) => {
           cpu: metadata.cpu || '1 vCPU', 
           disk: metadata.disk || '20GB',
           location: metadata.location || 'us-west',
-          bundle_id: metadata.bundle_id !== 'none' ? metadata.bundle_id : null,
+          bundle_id: resolvedBundleId,
           addon_ids: metadata.addon_ids ? JSON.parse(metadata.addon_ids) : [],
-          modpack_id: metadata.modpack_id !== 'vanilla' ? metadata.modpack_id : null,
+          modpack_id: resolvedModpackId,
           env_vars: metadata.bundle_env ? JSON.parse(metadata.bundle_env) : {},
           server_limits: metadata.bundle_limits_patch ? JSON.parse(metadata.bundle_limits_patch) : {},
           billing_term: metadata.billing_term || 'monthly',

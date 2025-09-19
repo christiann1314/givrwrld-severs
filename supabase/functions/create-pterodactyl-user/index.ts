@@ -63,9 +63,10 @@ serve(async (req) => {
     // Create user in Pterodactyl
     const userData = {
       email: email,
-      username: displayName || email.split('@')[0],
+      username: (displayName || email.split('@')[0]),
       first_name: displayName?.split(' ')[0] || email.split('@')[0],
-      last_name: displayName?.split(' ')[1] || '',
+      // Ensure last_name is always provided to satisfy Pterodactyl validation
+      last_name: (displayName?.split(' ').slice(1).join(' ') || 'User'),
       password: password
     }
 

@@ -79,6 +79,26 @@ export const useAuth = () => {
       email: sanitizedEmail,
       password
     });
+
+    // On successful login, ensure Pterodactyl account exists/linked
+    if (!error) {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const uid = userData?.user?.id;
+        if (uid) {
+          await supabase.functions.invoke('create-pterodactyl-user', {
+            body: {
+              userId: uid,
+              email: sanitizedEmail,
+              displayName: sanitizedEmail.split('@')[0]
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Post-login Pterodactyl link failed:', e);
+      }
+    }
+
     return { error };
   };
 
