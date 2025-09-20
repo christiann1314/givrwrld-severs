@@ -1,24 +1,17 @@
 
-import * as React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings, LogOut, Server } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../integrations/supabase/client';
 
 const Header = () => {
-  console.log('Header component mounting...');
-  
-  const [isAccountOpen, setIsAccountOpen] = React.useState(false);
-  const [isHostingOpen, setIsHostingOpen] = React.useState(false);
-  
-  console.log('Header useState calls completed');
-  
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [isHostingOpen, setIsHostingOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
-  
-  console.log('Header component initialized successfully');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     setIsAccountOpen(false);
