@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Admin2FAManager } from '../components/Admin2FAManager';
 import { InitialAdminSetup } from '../components/InitialAdminSetup';
 import { SecurityAuditManager } from '../components/SecurityAuditManager';
+import { ErrorLogViewer } from '../components/ErrorLogViewer';
 import { 
   ArrowLeft, 
   User, 
@@ -179,6 +180,17 @@ const DashboardSettings = () => {
                   >
                     <Shield size={20} />
                     <span>Security Audits</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('error-logs')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'error-logs'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Shield size={20} />
+                    <span>Error Logs</span>
                   </button>
                 </nav>
               </div>
@@ -575,12 +587,19 @@ const DashboardSettings = () => {
                    </div>
                  )}
 
-                 {/* Security Audit Tab */}
-                 {activeTab === 'security-audit' && (
-                   <div>
-                     <SecurityAuditManager />
-                   </div>
-                 )}
+                  {/* Security Audit Tab */}
+                  {activeTab === 'security-audit' && (
+                    <div>
+                      <SecurityAuditManager />
+                    </div>
+                  )}
+
+                  {/* Error Logs Tab */}
+                  {activeTab === 'error-logs' && (
+                    <div>
+                      <ErrorLogViewer />
+                    </div>
+                  )}
                </div>
              </div>
            </div>

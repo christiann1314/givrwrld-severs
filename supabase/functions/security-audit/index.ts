@@ -5,6 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Sanitized error messages for security
+const ERROR_MESSAGES = {
+  UNAUTHORIZED: 'Authentication required',
+  FORBIDDEN: 'Insufficient permissions',
+  INVALID_ACTION: 'Invalid operation requested',
+  AUDIT_FAILED: 'Security audit could not be completed',
+  INVALID_INPUT: 'Invalid request parameters',
+  SERVER_ERROR: 'Internal server error'
+} as const;
+
+// Secure error logging function
+function logSecureError(error: any, context: string, userId?: string): string {
+  const errorId = crypto.randomUUID();
+  const timestamp = new Date().toISOString();
+  
+  // Log error securely (in production, this would go to a secure logging service)
+  console.error(`[${errorId}] ${timestamp} - ${context}:`, {
+    message: error?.message || 'Unknown error',
+    userId: userId || 'anonymous',
+    stack: error?.stack ? '[REDACTED]' : undefined
+  });
+  
+  return errorId;
+}
+
 interface SecurityFinding {
   id: string;
   title: string;
@@ -29,6 +54,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  let userId: string | undefined;
+  
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -37,7 +64,13 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      return new Response(JSON.stringify({ 
+        error: ERROR_MESSAGES.UNAUTHORIZED,
+        errorId: logSecureError(new Error('Missing auth header'), 'auth_check')
+      }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     // Get the authenticated user
@@ -49,19 +82,44 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: userError } = await userSupabase.auth.getUser()
     if (userError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      const errorId = logSecureError(userError, 'user_auth', user?.id)
+      return new Response(JSON.stringify({ 
+        error: ERROR_MESSAGES.UNAUTHORIZED,
+        errorId
+      }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
+
+    userId = user.id
 
     // Check if user is admin
     const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: user.id })
     if (!isAdmin) {
-      return new Response('Forbidden: Admin access required', { 
+      const errorId = logSecureError(new Error('Non-admin access attempt'), 'permission_check', userId)
+      return new Response(JSON.stringify({ 
+        error: ERROR_MESSAGES.FORBIDDEN,
+        errorId
+      }), { 
         status: 403, 
-        headers: corsHeaders 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const { action, audit_type } = await req.json()
+    const requestBody = await req.json().catch(() => ({}))
+    const { action, audit_type, audit_id } = requestBody
+
+    if (!action) {
+      const errorId = logSecureError(new Error('Missing action parameter'), 'validation', userId)
+      return new Response(JSON.stringify({ 
+        error: ERROR_MESSAGES.INVALID_INPUT,
+        errorId
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     if (action === 'start_audit') {
       // Create new audit record
@@ -76,7 +134,11 @@ Deno.serve(async (req) => {
         .single()
 
       if (auditError) {
-        return new Response(JSON.stringify({ error: auditError.message }), {
+        const errorId = logSecureError(auditError, 'audit_creation', userId)
+        return new Response(JSON.stringify({ 
+          error: ERROR_MESSAGES.AUDIT_FAILED,
+          errorId
+        }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
@@ -128,7 +190,7 @@ Deno.serve(async (req) => {
         .eq('id', audit.id)
 
       if (updateError) {
-        console.error('Error updating audit:', updateError)
+        logSecureError(updateError, 'audit_update', userId)
       }
 
       // Insert dependency audit results
@@ -143,7 +205,7 @@ Deno.serve(async (req) => {
           .insert(dependencyInserts)
 
         if (depError) {
-          console.error('Error inserting dependency audits:', depError)
+          logSecureError(depError, 'dependency_audit_insert', userId)
         }
       }
 
@@ -159,7 +221,16 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'get_audit_results') {
-      const { audit_id } = await req.json()
+      if (!audit_id) {
+        const errorId = logSecureError(new Error('Missing audit_id'), 'validation', userId)
+        return new Response(JSON.stringify({ 
+          error: ERROR_MESSAGES.INVALID_INPUT,
+          errorId
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
       
       const { data: audit, error } = await supabase
         .from('security_audits')
@@ -171,7 +242,11 @@ Deno.serve(async (req) => {
         .single()
 
       if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+        const errorId = logSecureError(error, 'audit_fetch', userId)
+        return new Response(JSON.stringify({ 
+          error: ERROR_MESSAGES.AUDIT_FAILED,
+          errorId
+        }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
@@ -190,7 +265,11 @@ Deno.serve(async (req) => {
         .limit(20)
 
       if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+        const errorId = logSecureError(error, 'audit_list', userId)
+        return new Response(JSON.stringify({ 
+          error: ERROR_MESSAGES.AUDIT_FAILED,
+          errorId
+        }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
@@ -201,11 +280,21 @@ Deno.serve(async (req) => {
       })
     }
 
-    return new Response('Invalid action', { status: 400, headers: corsHeaders })
+    const errorId = logSecureError(new Error(`Invalid action: ${action}`), 'validation', userId)
+    return new Response(JSON.stringify({ 
+      error: ERROR_MESSAGES.INVALID_ACTION,
+      errorId
+    }), { 
+      status: 400, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
 
   } catch (error) {
-    console.error('Security audit error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorId = logSecureError(error, 'security_audit_function', userId)
+    return new Response(JSON.stringify({ 
+      error: ERROR_MESSAGES.SERVER_ERROR,
+      errorId
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
@@ -267,7 +356,7 @@ async function performRLSCheck(supabase: any): Promise<SecurityFinding[]> {
     })
 
   } catch (error) {
-    console.error('RLS check error:', error)
+    logSecureError(error, 'rls_check')
   }
 
   return findings
@@ -305,7 +394,7 @@ async function performAccessAudit(supabase: any): Promise<SecurityFinding[]> {
     })
 
   } catch (error) {
-    console.error('Access audit error:', error)
+    logSecureError(error, 'access_audit')
   }
 
   return findings

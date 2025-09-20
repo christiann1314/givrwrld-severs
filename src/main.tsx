@@ -1,10 +1,13 @@
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
-import GlobalErrorBoundary from './components/GlobalErrorBoundary';
+import { SecureErrorBoundary } from './components/SecureErrorBoundary'
 
 createRoot(document.getElementById("root")!).render(
-  <GlobalErrorBoundary>
-    <App />
-  </GlobalErrorBoundary>
+  <SecureErrorBoundary>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </SecureErrorBoundary>
 );
