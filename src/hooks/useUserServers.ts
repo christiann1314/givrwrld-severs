@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { API_BASE_URL } from '../config/api';
 
 interface ServerSpec {
@@ -44,7 +44,7 @@ export const useUserServers = (userEmail?: string) => {
     servers: [],
     loading: false
   });
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const fetchUserServers = async (skipSync = false) => {
     if (!userEmail) {

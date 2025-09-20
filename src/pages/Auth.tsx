@@ -2,7 +2,7 @@ import * as React from 'react';
 import { UserPlus, ArrowLeft, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useToast } from '../hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useRateLimit } from '../hooks/useRateLimit';
 import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
@@ -19,7 +19,7 @@ const Auth = () => {
   const [passwordValidation, setPasswordValidation] = React.useState(validatePassword(''));
   
   const { signUp, signIn, isAuthenticated } = useAuth();
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
   const { checkRateLimit, recordAttempt, isBlocked, attempts, maxAttempts } = useRateLimit();
   const navigate = useNavigate();
   const location = useLocation();

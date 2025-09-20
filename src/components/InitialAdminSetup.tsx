@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Crown, Shield, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 export const InitialAdminSetup = () => {
   const { isAdmin, canBecomeAdmin, loading, assignAdminRole } = useAdminStatus();
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const handleBecomeAdmin = async () => {
     const result = await assignAdminRole();

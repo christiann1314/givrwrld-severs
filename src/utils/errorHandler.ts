@@ -1,4 +1,4 @@
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Sanitized error messages that are safe to show to users
@@ -270,7 +270,7 @@ export const errorHandler = SecureErrorHandler.getInstance();
  * Hook for handling errors with toast notifications
  */
 export const useErrorHandler = () => {
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const handleError = (
     error: Error | unknown,

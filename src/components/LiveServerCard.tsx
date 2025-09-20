@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '../hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import {
   Power,
   PowerOff,
@@ -42,7 +42,7 @@ interface LiveServerCardProps {
 const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction }) => {
   const [imageError, setImageError] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const GameIcon = ({ game }: { game: string }) => {
     const getGameIcon = (game: string) => {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { API_BASE_URL } from '../config/api';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { getBundleName } from '../utils/bundleUtils';
 
 interface PaymentMethod {
@@ -58,7 +58,7 @@ export const useBillingData = (userEmail?: string) => {
     upcomingBills: [],
     loading: false
   });
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const fetchBillingData = async () => {
     if (!userEmail) return;

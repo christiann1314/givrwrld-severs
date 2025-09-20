@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface RateLimitState {
   isLimited: boolean;
@@ -18,7 +18,7 @@ export const useApiRateLimit = () => {
     remaining: 0
   });
   
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const parseRateLimitHeaders = useCallback((headers: Headers): RateLimitState => {
     const limit = parseInt(headers.get('x-ratelimit-limit') || '0');

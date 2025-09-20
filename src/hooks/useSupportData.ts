@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { API_BASE_URL } from '../config/api';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface SupportTicket {
   id: string;
@@ -24,7 +24,7 @@ export const useSupportData = (userEmail?: string) => {
     tickets: [],
     loading: false
   });
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const fetchSupportData = async () => {
     if (!userEmail) return;

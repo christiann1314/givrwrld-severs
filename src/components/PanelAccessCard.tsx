@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '../hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '../hooks/useAuth';
 import {
   ExternalLink,
@@ -23,7 +23,7 @@ const PanelAccessCard: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [creating, setCreating] = React.useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const fetchExternalAccount = async () => {
     if (!user?.id) return;

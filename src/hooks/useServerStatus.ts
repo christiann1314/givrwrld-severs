@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ServerStatus {
@@ -19,7 +19,7 @@ export const useServerStatus = (userEmail?: string) => {
     hasServer: false,
     loading: false
   });
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const checkServerStatus = async () => {
     if (!userEmail) return;

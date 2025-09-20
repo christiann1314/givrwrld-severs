@@ -8,7 +8,7 @@ import { useUserServers } from '../hooks/useUserServers';
 import { useAuth } from '../hooks/useAuth';
 import { useServerStats } from '../hooks/useServerStats';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '../hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import {
   ArrowLeft,
   Server,
@@ -36,7 +36,7 @@ const DashboardServices = () => {
   const [serverOperations, setServerOperations] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
   const { serversData, refetchServers } = useUserServers(user?.email);
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const handleServerAction = async (serverId: string, action: 'start' | 'stop' | 'console', serverName: string) => {
     setServerOperations(prev => ({ ...prev, [serverId]: true }));

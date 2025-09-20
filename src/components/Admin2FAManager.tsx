@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { Shield, ShieldCheck, ShieldAlert, Key, Settings } from 'lucide-react';
 
 interface AdminStatus {
@@ -17,7 +17,7 @@ interface AdminStatus {
 
 export const Admin2FAManager = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
   const [adminStatus, setAdminStatus] = useState<AdminStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [enrolling2FA, setEnrolling2FA] = useState(false);
