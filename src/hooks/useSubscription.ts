@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../config/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 interface SubscriptionStatus {
@@ -22,25 +22,24 @@ export const useSubscription = (userEmail?: string) => {
     setSubscriptionStatus(prev => ({ ...prev, loading: true }));
     
     try {
-      const response = await fetch(`${API_BASE_URL}/check-subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userEmail })
+      // Call Supabase Edge Function instead of Laravel API
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        body: { email: userEmail }
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setSubscriptionStatus({
-          subscribed: data.subscribed,
-          subscription_tier: data.subscription_tier,
-          subscription_end: data.subscription_end,
-          loading: false
-        });
-      } else {
+      if (error) {
+        console.error('Failed to check subscription:', error);
         setSubscriptionStatus(prev => ({ ...prev, loading: false }));
+        return;
       }
+      
+      setSubscriptionStatus({
+        subscribed: data.hasSubscription,
+        subscription_tier: data.subscription?.items?.[0]?.price?.interval || 'monthly',
+        subscription_end: data.subscription?.current_period_end ? 
+          new Date(data.subscription.current_period_end * 1000).toISOString() : undefined,
+        loading: false
+      });
     } catch (error) {
       console.error('Failed to check subscription:', error);
       setSubscriptionStatus(prev => ({ ...prev, loading: false }));
@@ -58,33 +57,29 @@ export const useSubscription = (userEmail?: string) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/create-checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userEmail,
+      // Use existing create-checkout-session Supabase function
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
           plan_name: planName,
           amount: amount,
           success_url: `${window.location.origin}/success`,
-          cancel_url: `${window.location.origin}/cancel`
-        })
+          cancel_url: `${window.location.origin}/cancel`,
+          billing_term: 'monthly'
+        }
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        window.open(data.url, '_blank');
-        
-        toast({
-          title: "Redirecting to Stripe",
-          description: "Please complete your subscription in the new tab.",
-        });
-        
-        return data;
-      } else {
-        throw new Error('Failed to create checkout session');
+      if (error) {
+        throw new Error(error.message || 'Failed to create checkout session');
       }
+      
+      window.open(data.checkout_url, '_blank');
+      
+      toast({
+        title: "Redirecting to Stripe",
+        description: "Please complete your subscription in the new tab.",
+      });
+      
+      return data;
     } catch (error) {
       toast({
         title: "Checkout Error",
@@ -106,28 +101,24 @@ export const useSubscription = (userEmail?: string) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/customer-portal`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Call Supabase Edge Function instead of Laravel API
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        body: {
           email: userEmail,
           return_url: window.location.origin
-        })
+        }
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        window.open(data.url, '_blank');
-        
-        toast({
-          title: "Opening Customer Portal",
-          description: "Manage your subscription in the new tab.",
-        });
-      } else {
-        throw new Error('Failed to open customer portal');
+      if (error) {
+        throw new Error(error.message || 'Failed to open customer portal');
       }
+      
+      window.open(data.url, '_blank');
+      
+      toast({
+        title: "Opening Customer Portal",
+        description: "Manage your subscription in the new tab.",
+      });
     } catch (error) {
       toast({
         title: "Portal Error",

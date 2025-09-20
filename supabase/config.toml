@@ -3,6 +3,21 @@ project_id = "mjhvkvnshnbnxojnandf"
 [functions.rate-limiter]
 verify_jwt = false
 
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.get-server-status]
+verify_jwt = false
+
+[functions.get-user-stats]
+verify_jwt = false
+
+[functions.get-user-servers]
+verify_jwt = false
+
 [functions.migrate-pterodactyl-data]
 verify_jwt = false
 
