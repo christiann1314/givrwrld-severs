@@ -74,40 +74,70 @@ serve(async (req) => {
 
     console.log(`[FIX-PTERODACTYL] Generated new password for user`);
 
-    if (profile.pterodactyl_user_id) {
-      // Update existing Pterodactyl user password
-      console.log(`[FIX-PTERODACTYL] Updating password for existing Pterodactyl user ${profile.pterodactyl_user_id}`);
-      
-      const updateResponse = await fetch(`${pterodactylUrl}/api/application/users/${profile.pterodactyl_user_id}`, {
+    // Ensure a Pterodactyl user exists for this email and set a fresh password
+    let targetUserId: number | null = null;
+
+    try {
+      const searchResponse = await fetch(`${pterodactylUrl}/api/application/users?search=${encodeURIComponent(user.email || '')}`, {
+        headers: {
+          'Authorization': `Bearer ${pterodactylKey}`,
+          'Accept': 'Application/vnd.pterodactyl.v1+json'
+        }
+      });
+
+      if (searchResponse.ok) {
+        const result = await searchResponse.json();
+        const match = (result?.data || []).find((u: any) => u?.attributes?.email === user.email);
+        if (match) {
+          targetUserId = match.attributes.id;
+          console.log(`[FIX-PTERODACTYL] Found existing Pterodactyl user by email with ID: ${targetUserId}`);
+        } else {
+          console.log('[FIX-PTERODACTYL] No Pterodactyl user found for email search');
+        }
+      } else {
+        console.log(`[FIX-PTERODACTYL] User search failed with ${searchResponse.status}`);
+      }
+    } catch (e) {
+      console.log('[FIX-PTERODACTYL] User search threw error (continuing):', (e as Error).message);
+    }
+
+    // Prefer searched ID; fallback to profile value if present
+    if (!targetUserId && profile.pterodactyl_user_id) {
+      targetUserId = profile.pterodactyl_user_id;
+      console.log(`[FIX-PTERODACTYL] Falling back to profile.pterodactyl_user_id: ${targetUserId}`);
+    }
+
+    if (targetUserId) {
+      console.log(`[FIX-PTERODACTYL] Updating password for Pterodactyl user ${targetUserId}`);
+
+      const updateResponse = await fetch(`${pterodactylUrl}/api/application/users/${targetUserId}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${pterodactylKey}`,
           'Content-Type': 'application/json',
           'Accept': 'Application/vnd.pterodactyl.v1+json'
         },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ password, password_confirmation: password })
       });
 
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
-        console.error('[FIX-PTERODACTYL] Failed to update Pterodactyl password:', errorText);
-        return new Response(JSON.stringify({ error: 'Failed to update Pterodactyl password' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500,
-        });
+        console.error('[FIX-PTERODACTYL] Failed to update password, will try create:', errorText);
+        targetUserId = null; // force creation fallback
+      } else {
+        console.log('[FIX-PTERODACTYL] Password updated successfully');
       }
+    }
 
-      console.log(`[FIX-PTERODACTYL] Successfully updated Pterodactyl password`);
-    } else {
-      // Create new Pterodactyl user
-      console.log(`[FIX-PTERODACTYL] Creating new Pterodactyl user`);
-      
-      const userData = {
+    if (!targetUserId) {
+      console.log('[FIX-PTERODACTYL] Creating new Pterodactyl user');
+
+      const newUserPayload = {
         email: user.email,
-        username: profile.display_name || user.email.split('@')[0],
+        username: (profile.display_name || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9_\-]/g, ''),
         first_name: profile.display_name?.split(' ')[0] || user.email.split('@')[0],
         last_name: profile.display_name?.split(' ').slice(1).join(' ') || 'User',
-        password: password
+        password,
       };
 
       const createResponse = await fetch(`${pterodactylUrl}/api/application/users`, {
@@ -117,22 +147,25 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'Accept': 'Application/vnd.pterodactyl.v1+json'
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(newUserPayload)
       });
 
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
         console.error('[FIX-PTERODACTYL] Failed to create Pterodactyl user:', errorText);
-        return new Response(JSON.stringify({ error: 'Failed to create Pterodactyl user' }), {
+        return new Response(JSON.stringify({ error: 'Failed to create or update Pterodactyl user' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500,
         });
       }
 
-      const pterodactylUser = await createResponse.json();
-      profile.pterodactyl_user_id = pterodactylUser.attributes.id;
-      console.log(`[FIX-PTERODACTYL] Created new Pterodactyl user with ID: ${profile.pterodactyl_user_id}`);
+      const created = await createResponse.json();
+      targetUserId = created?.attributes?.id;
+      console.log(`[FIX-PTERODACTYL] Created Pterodactyl user with ID: ${targetUserId}`);
     }
+
+    // Persist the final user id to profile
+    profile.pterodactyl_user_id = targetUserId as number;
 
     // Encrypt and store the password
     const { data: encryptedPassword, error: encryptError } = await supabaseClient

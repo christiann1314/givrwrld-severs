@@ -412,12 +412,19 @@ const DashboardSettings = () => {
                                    >
                                      <Copy className="w-4 h-4" />
                                    </button>
-                                   <button
-                                     onClick={() => window.open(pterodactylCredentials.panel_url, '_blank')}
-                                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
-                                   >
-                                     Open Panel
-                                   </button>
+                                    <button
+                                      onClick={() => window.open(pterodactylCredentials.panel_url, '_blank')}
+                                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
+                                    >
+                                      Open Panel
+                                    </button>
+                                    <button
+                                      onClick={fixPterodactylCredentials}
+                                      disabled={credentialsLoading}
+                                      className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors"
+                                    >
+                                      {credentialsLoading ? 'Syncing…' : 'Sync/Fix Credentials'}
+                                    </button>
                                  </div>
                                </div>
                                
