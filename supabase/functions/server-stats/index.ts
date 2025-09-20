@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
 
     // Verify ownership and resolve identifier from your user_servers table
     if (orderId) {
-      const restBase = req.url.replace("/functions/v1/get-server-stats", "");
+      const restBase = req.url.replace("/functions/v1/server-stats", "");
       const r = await fetch(`${restBase}/rest/v1/user_servers?select=user_id,pterodactyl_server_id&id=eq.${orderId}`, {
         headers: { "apikey": apikey, "Authorization": auth }
       });
