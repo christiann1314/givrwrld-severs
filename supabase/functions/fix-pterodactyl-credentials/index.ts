@@ -110,6 +110,37 @@ serve(async (req) => {
     if (targetUserId) {
       console.log(`[FIX-PTERODACTYL] Updating password for Pterodactyl user ${targetUserId}`);
 
+      // Fetch existing user so we can include REQUIRED fields on PATCH
+      let existingAttrs: any = null;
+      try {
+        const getResp = await fetch(`${pterodactylUrl}/api/application/users/${targetUserId}`, {
+          headers: {
+            'Authorization': `Bearer ${pterodactylKey}`,
+            'Accept': 'Application/vnd.pterodactyl.v1+json'
+          }
+        });
+        if (getResp.ok) {
+          const getJson = await getResp.json();
+          existingAttrs = getJson?.attributes;
+          console.log('[FIX-PTERODACTYL] Loaded existing user attributes for patch');
+        } else {
+          console.log(`[FIX-PTERODACTYL] Failed to load existing user (status ${getResp.status}), will build payload from profile`);
+        }
+      } catch (e) {
+        console.log('[FIX-PTERODACTYL] Error loading existing user (continuing):', (e as Error).message);
+      }
+
+      const patchPayload = {
+        email: existingAttrs?.email ?? (user.email || profile.email),
+        username: (existingAttrs?.username ?? (profile.display_name || (user.email || '').split('@')[0]))
+          .toLowerCase()
+          .replace(/[^a-z0-9_\-]/g, ''),
+        first_name: existingAttrs?.first_name ?? (profile.display_name?.split(' ')[0] || (user.email || '').split('@')[0]),
+        last_name: existingAttrs?.last_name ?? (profile.display_name?.split(' ').slice(1).join(' ') || 'User'),
+        password,
+        password_confirmation: password
+      };
+
       const updateResponse = await fetch(`${pterodactylUrl}/api/application/users/${targetUserId}`, {
         method: 'PATCH',
         headers: {
@@ -117,7 +148,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'Accept': 'Application/vnd.pterodactyl.v1+json'
         },
-        body: JSON.stringify({ password, password_confirmation: password })
+        body: JSON.stringify(patchPayload)
       });
 
       if (!updateResponse.ok) {
