@@ -358,6 +358,27 @@ export type Database = {
         }
         Relationships: []
       }
+      external_accounts: {
+        Row: {
+          last_synced_at: string | null
+          panel_username: string | null
+          pterodactyl_user_id: number | null
+          user_id: string
+        }
+        Insert: {
+          last_synced_at?: string | null
+          panel_username?: string | null
+          pterodactyl_user_id?: number | null
+          user_id: string
+        }
+        Update: {
+          last_synced_at?: string | null
+          panel_username?: string | null
+          pterodactyl_user_id?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_audit: {
         Row: {
           id: string
