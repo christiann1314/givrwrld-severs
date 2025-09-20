@@ -39,12 +39,45 @@ serve(async (req) => {
     if (existingUserResponse.ok) {
       const existingData = await existingUserResponse.json();
       if (existingData.data && existingData.data.length > 0) {
-        // User already exists, update profile with Pterodactyl ID
+        // User already exists, generate and update password
         const pterodactylUserId = existingData.data[0].attributes.id;
         
+        // Generate a secure random password for existing user
+        const password = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+          .map(b => b.toString(36))
+          .join('')
+          .substring(0, 16);
+        
+        // Update the existing user's password in Pterodactyl
+        const updateResponse = await fetch(`${pterodactylUrl}/api/application/users/${pterodactylUserId}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${pterodactylKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'Application/vnd.pterodactyl.v1+json'
+          },
+          body: JSON.stringify({ password })
+        });
+
+        if (!updateResponse.ok) {
+          console.error('Failed to update Pterodactyl user password');
+        }
+        
+        // Encrypt the password before storing
+        const { data: encryptedPassword, error: encryptError } = await supabase
+          .rpc('encrypt_sensitive_data', { data: password })
+        
+        if (encryptError) {
+          console.error('Error encrypting password:', encryptError)
+        }
+        
+        // Update profile with encrypted password
         await supabase
           .from('profiles')
-          .update({ pterodactyl_user_id: pterodactylUserId })
+          .update({ 
+            pterodactyl_user_id: pterodactylUserId,
+            pterodactyl_password_encrypted: encryptedPassword || null
+          })
           .eq('user_id', userId)
         
         return new Response(JSON.stringify({ pterodactylUserId }), { 
