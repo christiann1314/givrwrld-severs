@@ -1,9 +1,9 @@
 import * as React from "react";
+import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster as SonnerToaster } from "sonner";
-import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { AppRoutes } from "@/routes";
 
 export default function App() {
@@ -18,15 +18,11 @@ export default function App() {
 
 function AppContent() {
   return (
-    <>
+    <BrowserRouter>
       <AppRoutes />
-      
       {/* Sonner toaster with theme support */}
       <SonnerThemeBridge />
-      
-      {/* Shadcn toaster for use-toast hook */}
-      <ShadToaster />
-    </>
+    </BrowserRouter>
   );
 }
 
