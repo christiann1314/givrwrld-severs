@@ -3,7 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { Toaster as SonnerToaster } from "sonner";
+import { Toaster as AppToaster } from "@/components/ui/sonner";
 import { AppRoutes } from "@/routes";
 import * as Tooltip from "@radix-ui/react-tooltip";
 export default function App() {
@@ -32,11 +32,10 @@ function AppContent() {
 function SonnerThemeBridge() {
   // For now, use system theme as default to avoid useTheme hook issues
   return (
-    <SonnerToaster 
-      position="top-right" 
-      richColors 
-      expand 
-      theme="system"
+    <AppToaster
+      position="top-right"
+      richColors
+      expand
     />
   );
 }
