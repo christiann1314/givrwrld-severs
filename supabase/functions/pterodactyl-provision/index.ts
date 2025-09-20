@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withRateLimit } from '../rate-limiter/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -203,9 +204,7 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  return await withRateLimit(req, 'sensitive', async (req) => {
 
   try {
     console.log('🚀 Pterodactyl provisioning started')

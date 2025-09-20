@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withRateLimit } from '../rate-limiter/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,9 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  return await withRateLimit(req, 'userData', async (req) => {
 
   try {
     console.log('🚀 Server start request received')
@@ -112,4 +111,5 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
+  })
 })
