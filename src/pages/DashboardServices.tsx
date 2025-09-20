@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import BundleBadge from '../components/BundleBadge';
 import LiveServerCard from '../components/LiveServerCard';
-import PanelAccessCard from '../components/PanelAccessCard';
+
 import ServerCardSkeleton from '../components/ServerCardSkeleton';
 
 const DashboardServices = () => {
@@ -177,10 +177,6 @@ const DashboardServices = () => {
             </div>
           )}
 
-          {/* Panel Access Card */}
-          <div className="mt-8">
-            <PanelAccessCard />
-          </div>
 
           {/* Quick Actions */}
           <div className="mt-8 bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
