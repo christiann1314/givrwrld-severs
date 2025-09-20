@@ -1,135 +1,93 @@
+// Deno Edge Function: GET /server-stats?order_id=...  OR  ?server_identifier=...
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+const PANEL_URL = Deno.env.get("PANEL_URL")!;
+const CLIENT_KEY = Deno.env.get("PTERO_CLIENT_KEY")!;
+
+function cors(req: Request) {
+  const allowList = (Deno.env.get("ALLOW_ORIGINS") ?? "").split(",").map(s=>s.trim());
+  const origin = req.headers.get("origin") ?? "";
+  const allow = allowList.includes(origin) ? origin : allowList[0] ?? "*";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET,OPTIONS",
+    "Vary": "Origin"
+  };
+}
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
+
+  // Require Supabase auth
+  const auth = req.headers.get("authorization") ?? "";
+  const apikey = req.headers.get("apikey") ?? "";
+  if (!auth.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors(req) });
   }
 
   try {
-    const { server_id } = await req.json();
-    
-    if (!server_id) {
-      return new Response(JSON.stringify({ error: 'Server ID is required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    const url = new URL(req.url);
+    const orderId = url.searchParams.get("order_id");
+    const serverIdentifier = url.searchParams.get("server_identifier");
+
+    if (!orderId && !serverIdentifier) {
+      return new Response(JSON.stringify({ error: "bad_request", detail: "order_id or server_identifier required" }),
+        { status: 400, headers: cors(req) });
     }
 
-    const pterodactylUrl = Deno.env.get('PTERODACTYL_URL');
-    const clientApiKey = Deno.env.get('PTERO_CLIENT_KEY');
+    let identifier = serverIdentifier;
 
-    if (!pterodactylUrl || !clientApiKey) {
-      console.error('Missing Pterodactyl configuration');
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // Verify ownership and resolve identifier from your user_servers table
+    if (orderId) {
+      const restBase = req.url.replace("/functions/v1/get-server-stats", "");
+      const r = await fetch(`${restBase}/rest/v1/user_servers?select=user_id,pterodactyl_server_id&id=eq.${orderId}`, {
+        headers: { "apikey": apikey, "Authorization": auth }
       });
+      const rows = await r.json() as Array<{user_id: string; pterodactyl_server_id: string | null;}>;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return new Response(JSON.stringify({ error: "not_found" }), { status: 404, headers: cors(req) });
+      }
+      const row = rows[0];
+      if (!row.pterodactyl_server_id) {
+        return new Response(JSON.stringify({ error: "not_provisioned" }), { status: 409, headers: cors(req) });
+      }
+      identifier = row.pterodactyl_server_id;
     }
 
-    console.log(`Fetching stats for server ${server_id}`);
+    // Fetch live resources from Pterodactyl Client API
+    const resp = await fetch(`${PANEL_URL}/api/client/servers/${identifier}/resources`, {
+      headers: {
+        "Authorization": `Bearer ${CLIENT_KEY}`,
+        "Accept": "application/json"
+      }
+    });
 
-    // Fetch server details and stats from Pterodactyl Client API
-    const [serverResponse, resourcesResponse] = await Promise.all([
-      fetch(`${pterodactylUrl}/api/client/servers/${server_id}`, {
-        headers: {
-          'Authorization': `Bearer ${clientApiKey}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      }),
-      fetch(`${pterodactylUrl}/api/client/servers/${server_id}/resources`, {
-        headers: {
-          'Authorization': `Bearer ${clientApiKey}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        }
-      })
-    ]);
-
-    if (!serverResponse.ok || !resourcesResponse.ok) {
-      console.error('Failed to fetch server data:', {
-        serverStatus: serverResponse.status,
-        resourcesStatus: resourcesResponse.status
-      });
-      return new Response(JSON.stringify({ 
-        error: 'Failed to fetch server data from Pterodactyl' 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      return new Response(JSON.stringify({ error: "panel_error", detail: txt }), { status: 502, headers: cors(req) });
     }
 
-    const serverData = await serverResponse.json();
-    const resourcesData = await resourcesResponse.json();
-
-    // Process the data into a consistent format
-    const stats = {
-      server_id: server_id,
-      status: serverData.attributes.status,
-      is_suspended: serverData.attributes.is_suspended,
-      
-      // Current resource usage
-      current_state: resourcesData.attributes.current_state,
-      resources: {
-        memory_bytes: resourcesData.attributes.resources.memory_bytes,
-        cpu_absolute: resourcesData.attributes.resources.cpu_absolute,
-        disk_bytes: resourcesData.attributes.resources.disk_bytes,
-        network_rx_bytes: resourcesData.attributes.resources.network_rx_bytes,
-        network_tx_bytes: resourcesData.attributes.resources.network_tx_bytes,
-        uptime: resourcesData.attributes.resources.uptime
-      },
-      
-      // Server limits
-      limits: {
-        memory: serverData.attributes.limits.memory,
-        swap: serverData.attributes.limits.swap,
-        disk: serverData.attributes.limits.disk,
-        io: serverData.attributes.limits.io,
-        cpu: serverData.attributes.limits.cpu
-      },
-      
-      // Feature limits
-      feature_limits: {
-        databases: serverData.attributes.feature_limits.databases,
-        allocations: serverData.attributes.feature_limits.allocations,
-        backups: serverData.attributes.feature_limits.backups
-      },
-
-      // Server details
-      name: serverData.attributes.name,
-      description: serverData.attributes.description,
-      uuid: serverData.attributes.uuid,
-      identifier: serverData.attributes.identifier,
-      
-      last_updated: new Date().toISOString()
+    const data = await resp.json();
+    // Normalize a minimal payload for your UI
+    const res = {
+      state: data?.attributes?.current_state ?? data?.attributes?.state,
+      is_suspended: data?.attributes?.is_suspended ?? false,
+      cpu_percent: data?.attributes?.resources?.cpu_absolute ?? null,
+      memory_bytes: data?.attributes?.resources?.memory_bytes ?? null,
+      disk_bytes: data?.attributes?.resources?.disk_bytes ?? null,
+      network: data?.attributes?.resources?.network ?? null,
+      uptime_ms: data?.attributes?.resources?.uptime ?? null,
+      fetched_at: new Date().toISOString(),
+      server_identifier: identifier
     };
 
-    console.log('Successfully fetched server stats:', {
-      server_id,
-      status: stats.status,
-      memory_usage: stats.resources.memory_bytes,
-      cpu_usage: stats.resources.cpu_absolute
+    return new Response(JSON.stringify(res), {
+      headers: { "Content-Type": "application/json", ...cors(req) }
     });
-
-    return new Response(JSON.stringify({ success: true, stats }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-
-  } catch (error) {
-    console.error('Error fetching server stats:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "internal", detail: String(e) }), {
+      status: 500, headers: cors(req)
     });
   }
 });

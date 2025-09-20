@@ -90,7 +90,7 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
   };
 
   const getStatusColor = (status: string) => {
-    if (stats?.current_state === 'running') {
+    if (stats?.state === 'running') {
       return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
     }
     switch (status) {
@@ -102,7 +102,7 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
   };
 
   const getStatusIcon = (status: string) => {
-    if (stats?.current_state === 'running') {
+    if (stats?.state === 'running') {
       return <CheckCircle size={16} />;
     }
     switch (status) {
@@ -114,14 +114,14 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
   };
 
   const getDisplayStatus = () => {
-    if (stats?.current_state) {
-      return stats.current_state;
+    if (stats?.state) {
+      return stats.state;
     }
     return server.status;
   };
 
-  const memoryUsage = getMemoryUsage();
-  const diskUsage = getDiskUsage();
+  const memoryUsage = getMemoryUsage(server.ram);
+  const diskUsage = getDiskUsage(server.disk);
   const cpuUsage = getCpuUsage();
 
   const handleRefreshStats = () => {
@@ -302,7 +302,7 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
                 Live data from Pterodactyl panel
               </span>
               <span className="text-gray-400">
-                Updated: {new Date(stats.last_updated).toLocaleTimeString()}
+                Updated: {new Date(stats.fetched_at).toLocaleTimeString()}
               </span>
             </div>
           </div>
