@@ -1,27 +1,71 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
-import { withRateLimit } from '../rate-limiter/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-Deno.serve(async (req) => {
-  return await withRateLimit(req, 'user_data', async (req) => {
-    try {
-      // Get authenticated user
-      const authHeader = req.headers.get('Authorization')!
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
-      )
+// Simple rate limiting for this function
+const rateLimitStore: { [key: string]: { count: number; resetTime: number } } = {}
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError || !user) {
-        return new Response('Unauthorized', { status: 401, headers: corsHeaders })
-      }
+function checkRateLimit(identifier: string, maxRequests: number = 30, windowMs: number = 5 * 60 * 1000): boolean {
+  const now = Date.now()
+  const key = `user_data:${identifier}`
+  
+  // Clean up expired entries
+  Object.keys(rateLimitStore).forEach(k => {
+    if (rateLimitStore[k].resetTime < now) {
+      delete rateLimitStore[k]
+    }
+  })
+  
+  if (!rateLimitStore[key]) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].resetTime < now) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].count >= maxRequests) {
+    return false
+  }
+  
+  rateLimitStore[key].count++
+  return true
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
+  try {
+    // Rate limiting check
+    const authHeader = req.headers.get('Authorization') || ''
+    const identifier = authHeader ? authHeader.slice(-10) : req.headers.get('x-forwarded-for') || 'unknown'
+    
+    if (!checkRateLimit(identifier)) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get authenticated user
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+    }
 
       // Parse request body
       const { email } = await req.json()
@@ -87,7 +131,6 @@ Deno.serve(async (req) => {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
-
     } catch (error) {
       console.error('Check subscription error:', error)
       return new Response(JSON.stringify({ 
@@ -97,5 +140,4 @@ Deno.serve(async (req) => {
         status: 500,
       })
     }
-  })
 })

@@ -1,8 +1,5 @@
 project_id = "mjhvkvnshnbnxojnandf"
 
-[functions.rate-limiter]
-verify_jwt = false
-
 [functions.check-subscription]
 verify_jwt = true
 
