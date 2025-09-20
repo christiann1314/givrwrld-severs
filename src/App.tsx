@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster as SonnerToaster } from "sonner";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppRoutes } from "@/routes";
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
 
 function AppContent() {
   return (
-    <>
+    <TooltipProvider>
       <AppRoutes />
       
       {/* Sonner toaster with theme support */}
@@ -26,7 +27,7 @@ function AppContent() {
       
       {/* Shadcn toaster for use-toast hook */}
       <ShadToaster />
-    </>
+    </TooltipProvider>
   );
 }
 
