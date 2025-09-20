@@ -58,7 +58,7 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
   const { stats, error } = useServerStats({
     serverIdentifier: server.pterodactyl_server_id,
     token,
-    fnBase: `${window.location.origin}/functions/v1`
+    fnBase: 'https://mjhvkvnshnbnxojnandf.supabase.co/functions/v1'
   });
 
   const GameIcon = ({ game }: { game: string }) => {
