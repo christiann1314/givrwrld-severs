@@ -4,7 +4,7 @@ import { Check, Server, MapPin, Zap, Package, Info } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useAuth } from '../hooks/useAuth';
 import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
@@ -343,76 +343,75 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
             
             <div className="grid md:grid-cols-3 gap-4">
               {serviceBundles.map((bundle) => (
-                <TooltipProvider key={bundle.id}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={selectedBundle === bundle.id}
-                    onClick={() => setSelectedBundle(bundle.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedBundle(bundle.id);
-                      }
-                    }}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:scale-105 ${
-                      selectedBundle === bundle.id
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
-                    } ${bundle.id === 'none' ? 'md:col-span-3' : ''}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xl">{bundle.icon}</span>
-                        <h4 className="font-semibold text-white text-sm">{bundle.name}</h4>
-                        {selectedBundle === bundle.id && (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        )}
-                      </div>
-                      {bundle.price > 0 && (
-                        <span className="font-bold text-emerald-400 text-sm">
-                          ${bundle.price.toFixed(2)}/mo
-                        </span>
+                <div
+                  key={bundle.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedBundle === bundle.id}
+                  onClick={() => setSelectedBundle(bundle.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedBundle(bundle.id);
+                    }
+                  }}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all hover:scale-105 ${
+                    selectedBundle === bundle.id
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-gray-600 bg-gray-700/30 hover:border-gray-500'
+                  } ${bundle.id === 'none' ? 'md:col-span-3' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xl">{bundle.icon}</span>
+                      <h4 className="font-semibold text-white text-sm">{bundle.name}</h4>
+                      {selectedBundle === bundle.id && (
+                        <Check className="w-4 h-4 text-emerald-400" />
                       )}
                     </div>
-                    
-                    {bundle.inclusions.length > 0 && (
-                      <>
-                        <div className="space-y-1 mb-3">
-                          {bundle.inclusions.slice(0, 3).map((inclusion, index) => (
-                            <div key={index} className="text-xs text-gray-300 flex items-start">
-                              <span className="text-emerald-400 mr-1">•</span>
-                              <span className="leading-tight">{inclusion}</span>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center text-xs text-emerald-400 hover:text-emerald-300 cursor-help">
-                              <Info size={12} className="mr-1" />
-                              What's included?
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-gray-700 border-gray-600 text-white max-w-xs">
-                            <div className="space-y-1">
-                              {bundle.inclusions.map((inclusion, index) => (
-                                <div key={index} className="text-xs flex items-start">
-                                  <span className="text-emerald-400 mr-1">•</span>
-                                  <span>{inclusion}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </>
-                    )}
-                    
-                    {bundle.id === 'none' && (
-                      <p className="text-gray-400 text-xs">{bundle.description}</p>
+                    {bundle.price > 0 && (
+                      <span className="font-bold text-emerald-400 text-sm">
+                        ${bundle.price.toFixed(2)}/mo
+                      </span>
                     )}
                   </div>
-                </TooltipProvider>
+                  
+                  {bundle.inclusions.length > 0 && (
+                    <>
+                      <div className="space-y-1 mb-3">
+                        {bundle.inclusions.slice(0, 3).map((inclusion, index) => (
+                          <div key={index} className="text-xs text-gray-300 flex items-start">
+                            <span className="text-emerald-400 mr-1">•</span>
+                            <span className="leading-tight">{inclusion}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center text-xs text-emerald-400 hover:text-emerald-300 cursor-help">
+                            <Info size={12} className="mr-1" />
+                            What's included?
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-gray-700 border-gray-600 text-white max-w-xs">
+                          <div className="space-y-1">
+                            {bundle.inclusions.map((inclusion, index) => (
+                              <div key={index} className="text-xs flex items-start">
+                                <span className="text-emerald-400 mr-1">•</span>
+                                <span>{inclusion}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </>
+                  )}
+                  
+                  {bundle.id === 'none' && (
+                    <p className="text-gray-400 text-xs">{bundle.description}</p>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -424,43 +423,41 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               Server Software Type
             </h3>
             <div className="space-y-4">
-              <TooltipProvider>
-                <Select value={selectedServerType.key} onValueChange={(value) => {
-                  const serverType = gameData.serverTypes.find(s => s.key === value);
-                  if (serverType) setSelectedServerType(serverType);
-                }}>
-                  <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
-                    <SelectValue placeholder="Select server type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                    {gameData.serverTypes.map((serverType) => (
-                      <SelectItem key={serverType.key} value={serverType.key} className="hover:bg-gray-700">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center space-x-2">
-                            <span>{serverType.name}</span>
-                            {serverType.recommended && (
-                              <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
-                                Recommended
-                              </span>
-                            )}
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info size={14} className="text-gray-400" />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-gray-700 border-gray-600 text-white">
-                                <p>{serverType.description}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                          <span className="text-emerald-400 font-medium">
-                            {serverType.surcharge > 0 ? `+$${serverType.surcharge.toFixed(2)}` : 'Free'}
-                          </span>
+              <Select value={selectedServerType.key} onValueChange={(value) => {
+                const serverType = gameData.serverTypes.find(s => s.key === value);
+                if (serverType) setSelectedServerType(serverType);
+              }}>
+                <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
+                  <SelectValue placeholder="Select server type" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                  {gameData.serverTypes.map((serverType) => (
+                    <SelectItem key={serverType.key} value={serverType.key} className="hover:bg-gray-700">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center space-x-2">
+                          <span>{serverType.name}</span>
+                          {serverType.recommended && (
+                            <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
+                              Recommended
+                            </span>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info size={14} className="text-gray-400" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-gray-700 border-gray-600 text-white">
+                              <p>{serverType.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TooltipProvider>
+                        <span className="text-emerald-400 font-medium">
+                          {serverType.surcharge > 0 ? `+$${serverType.surcharge.toFixed(2)}` : 'Free'}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
                 <h4 className="text-white font-medium mb-2">{selectedServerType.name}</h4>
@@ -498,43 +495,41 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               Modpack Selection
             </h3>
             <div className="space-y-4">
-              <TooltipProvider>
-                <Select value={selectedModpack.key} onValueChange={(value) => {
-                  const modpack = gameData.modpacks.find(m => m.key === value);
-                  if (modpack) setSelectedModpack(modpack);
-                }}>
-                  <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
-                    <SelectValue placeholder="Select a modpack" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-600 text-white">
-                    {gameData.modpacks.map((modpack) => (
-                      <SelectItem key={modpack.key} value={modpack.key} className="hover:bg-gray-700">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center space-x-2">
-                            <span>{modpack.name}</span>
-                            {modpack.recommended && (
-                              <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
-                                Recommended
-                              </span>
-                            )}
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info size={14} className="text-gray-400" />
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-gray-700 border-gray-600 text-white">
-                                <p>{modpack.description}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                          <span className="text-emerald-400 font-medium">
-                            {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}` : 'Free'}
-                          </span>
+              <Select value={selectedModpack.key} onValueChange={(value) => {
+                const modpack = gameData.modpacks.find(m => m.key === value);
+                if (modpack) setSelectedModpack(modpack);
+              }}>
+                <SelectTrigger className="w-full bg-gray-700/50 border-gray-600/50 text-white">
+                  <SelectValue placeholder="Select a modpack" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-600 text-white">
+                  {gameData.modpacks.map((modpack) => (
+                    <SelectItem key={modpack.key} value={modpack.key} className="hover:bg-gray-700">
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center space-x-2">
+                          <span>{modpack.name}</span>
+                          {modpack.recommended && (
+                            <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
+                              Recommended
+                            </span>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info size={14} className="text-gray-400" />
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-gray-700 border-gray-600 text-white">
+                              <p>{modpack.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TooltipProvider>
+                        <span className="text-emerald-400 font-medium">
+                          {modpack.surcharge > 0 ? `+$${modpack.surcharge.toFixed(2)}` : 'Free'}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
                 <h4 className="text-white font-medium mb-2">{selectedModpack.name}</h4>
