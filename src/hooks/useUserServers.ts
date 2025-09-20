@@ -18,7 +18,8 @@ interface ServerSpec {
   port?: string;
   pterodactylUrl: string;
   pterodactyl_url?: string;
-  pterodactyl_server_id?: string;
+  pterodactyl_server_id?: number | null;
+  pterodactyl_server_identifier?: string | null;
   bundle_id?: string;
   live_stats?: {
     cpu_percent?: number;
@@ -68,7 +69,11 @@ export const useUserServers = (userEmail?: string) => {
       
       const { data: sbServers, error } = await supabase
         .from('user_servers')
-        .select('*')
+        .select(`
+          *,
+          pterodactyl_server_id,
+          pterodactyl_server_identifier:pterodactyl_server_id
+        `)
         .eq('user_id', user.id)
         .neq('status', 'deleted');
 
@@ -96,6 +101,7 @@ export const useUserServers = (userEmail?: string) => {
         pterodactylUrl: server.pterodactyl_url || '',
         pterodactyl_url: server.pterodactyl_url || '',
         pterodactyl_server_id: server.pterodactyl_server_id,
+        pterodactyl_server_identifier: server.pterodactyl_server_id?.toString() || null,
         bundle_id: server.bundle_id || 'none',
         live_stats: server.live_stats || {}
       }));
