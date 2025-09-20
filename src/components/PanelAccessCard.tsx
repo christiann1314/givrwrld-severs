@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../hooks/useAuth';
@@ -19,9 +19,9 @@ interface ExternalAccount {
 }
 
 const PanelAccessCard: React.FC = () => {
-  const [externalAccount, setExternalAccount] = useState<ExternalAccount | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [externalAccount, setExternalAccount] = React.useState<ExternalAccount | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [creating, setCreating] = React.useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -53,7 +53,7 @@ const PanelAccessCard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchExternalAccount();
   }, [user?.id]);
 

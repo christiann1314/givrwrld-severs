@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ENV } from '@/config/env';
 import {
@@ -34,9 +34,9 @@ const ServerStatsWidget: React.FC<ServerStatsWidgetProps> = ({
   serverIdentifier,
   serverLimits = {}
 }) => {
-  const [stats, setStats] = useState<ServerStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = React.useState<ServerStats | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   
   const fetchStats = async () => {
     try {
@@ -72,7 +72,7 @@ const ServerStatsWidget: React.FC<ServerStatsWidgetProps> = ({
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchStats();
     
     // Poll every 5 seconds

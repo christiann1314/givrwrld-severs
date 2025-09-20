@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { UserPlus, ArrowLeft, LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -8,15 +8,15 @@ import { validatePassword } from '../utils/passwordValidation';
 import { PasswordStrengthIndicator } from '../components/PasswordStrengthIndicator';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isLogin, setIsLogin] = React.useState(true);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [formData, setFormData] = React.useState({
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [passwordValidation, setPasswordValidation] = useState(validatePassword(''));
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [passwordValidation, setPasswordValidation] = React.useState(validatePassword(''));
   
   const { signUp, signIn, isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -28,14 +28,14 @@ const Auth = () => {
   const message = location.state?.message;
 
   // Redirect if already authenticated
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated) {
       navigate(returnTo);
     }
   }, [isAuthenticated, navigate, returnTo]);
 
   // Update password validation when password changes
-  useEffect(() => {
+  React.useEffect(() => {
     setPasswordValidation(validatePassword(formData.password));
   }, [formData.password]);
 
