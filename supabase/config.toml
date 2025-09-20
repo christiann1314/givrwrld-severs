@@ -62,3 +62,27 @@ verify_jwt = false
 
 [functions.security-audit]
 verify_jwt = true
+
+[functions.fix-pterodactyl-credentials]
+verify_jwt = true
+
+[functions.health-check]
+verify_jwt = false
+
+[functions.rate-limiter]
+verify_jwt = false
+
+[functions.support-system]
+verify_jwt = true
+
+[functions.gdpr-compliance]
+verify_jwt = true
+
+[functions.notification-system]
+verify_jwt = true
+
+[functions.backup-monitor]
+verify_jwt = true
+
+[functions.error-handler]
+verify_jwt = false

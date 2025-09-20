@@ -36,7 +36,8 @@ const DashboardSettings = () => {
     loading: credentialsLoading, 
     error: credentialsError, 
     needsSetup,
-    setupPterodactylAccount 
+    setupPterodactylAccount,
+    fixPterodactylCredentials
   } = usePterodactylCredentials();
   const [formData, setFormData] = useState({
     firstName: 'John',
@@ -363,17 +364,33 @@ const DashboardSettings = () => {
                              </div>
                            </div>
                          </div>
-                       ) : credentialsError ? (
-                         <div className="space-y-4">
-                           <div className="text-red-400">Error: {credentialsError}</div>
-                           <button
-                             onClick={setupPterodactylAccount}
-                             disabled={credentialsLoading}
-                             className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                           >
-                             {credentialsLoading ? 'Retrying...' : 'Retry Setup'}
-                           </button>
-                         </div>
+                        ) : credentialsError ? (
+                          <div className="space-y-4">
+                            <div className="text-red-400">Error: {credentialsError}</div>
+                            <div className="flex space-x-3">
+                              <button
+                                onClick={setupPterodactylAccount}
+                                disabled={credentialsLoading}
+                                className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                              >
+                                {credentialsLoading ? 'Retrying...' : 'Retry Setup'}
+                              </button>
+                              {credentialsError.includes('Password not found') && (
+                                <button
+                                  onClick={fixPterodactylCredentials}
+                                  disabled={credentialsLoading}
+                                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                                >
+                                  {credentialsLoading ? 'Fixing...' : 'Fix Credentials'}
+                                </button>
+                              )}
+                            </div>
+                            <div className="p-3 bg-amber-900/30 border border-amber-700 rounded">
+                              <p className="text-amber-300 text-sm">
+                                🔧 If you have a Pterodactyl account but can't login, try "Fix Credentials" to reset your password.
+                              </p>
+                            </div>
+                          </div>
                        ) : pterodactylCredentials ? (
                          <div className="space-y-4">
                            <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">

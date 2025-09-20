@@ -104,12 +104,49 @@ export const usePterodactylCredentials = () => {
     }
   };
 
+  const fixPterodactylCredentials = async () => {
+    if (!isAuthenticated) {
+      toast.error('Authentication required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('fix-pterodactyl-credentials', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.success) {
+        toast.success('Pterodactyl credentials fixed! You can now login to the panel.');
+        setCredentials(data.credentials);
+        setNeedsSetup(false);
+        setError(null);
+      } else {
+        throw new Error(data?.message || 'Failed to fix credentials');
+      }
+
+    } catch (err) {
+      console.error('Error fixing Pterodactyl credentials:', err);
+      toast.error('Failed to fix credentials: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setError(err instanceof Error ? err.message : 'Fix failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     credentials,
     loading,
     error,
     needsSetup,
     refetch: fetchCredentials,
-    setupPterodactylAccount
+    setupPterodactylAccount,
+    fixPterodactylCredentials
   };
 };
