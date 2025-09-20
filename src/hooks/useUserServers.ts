@@ -44,7 +44,7 @@ export const useUserServers = (userEmail?: string) => {
   });
   const { toast } = useToast();
 
-  const fetchUserServers = async () => {
+  const fetchUserServers = async (skipSync = false) => {
     if (!userEmail) {
       console.log('No userEmail provided to fetchUserServers');
       return;
@@ -101,22 +101,14 @@ export const useUserServers = (userEmail?: string) => {
       console.log('🎮 Formatted servers for display:', formattedServers);
       setServersData({ servers: formattedServers, loading: false });
 
-      // Auto-sync with Pterodactyl after loading initial data
-      if (formattedServers.length > 0) {
+      // One-time sync on initial load only (prevent infinite loops)
+      if (!skipSync && formattedServers.length > 0) {
         try {
-          console.log('🔄 Auto-syncing with Pterodactyl...');
-          const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-server-status');
-          if (syncError) {
-            console.warn('Auto-sync warning:', syncError);
-          } else {
-            console.log('✅ Auto-sync completed:', syncData);
-            // Refetch after sync to get updated data
-            setTimeout(() => {
-              fetchUserServers();
-            }, 1000);
-          }
+          console.log('🔄 Initial sync with Pterodactyl...');
+          await supabase.functions.invoke('sync-server-status');
+          console.log('✅ Initial sync completed');
         } catch (syncError) {
-          console.warn('Auto-sync failed, using cached data:', syncError);
+          console.warn('Initial sync failed, using cached data:', syncError);
         }
       }
 
@@ -155,7 +147,8 @@ export const useUserServers = (userEmail?: string) => {
           (payload) => {
             console.log('🚨 Server data changed! Payload:', payload);
             console.log('📡 Refetching server data...');
-            fetchUserServers();
+            // Skip sync on realtime updates to prevent loops
+            fetchUserServers(true);
             
             // Auto-start servers that just finished installing
             if (payload.eventType === 'UPDATE' && 
@@ -184,16 +177,17 @@ export const useUserServers = (userEmail?: string) => {
           console.log('📻 Subscription status:', status);
         });
 
-      // Set up periodic live sync every 2 minutes
+      // Set up periodic live sync every 5 minutes (reduced frequency)
       const syncInterval = setInterval(async () => {
         try {
           console.log('🔄 Periodic live sync...');
           await supabase.functions.invoke('sync-server-status');
-          fetchUserServers(); // Refresh after sync
+          // Wait a bit then refresh data without triggering another sync
+          setTimeout(() => fetchUserServers(true), 2000);
         } catch (error) {
           console.log('Periodic sync failed:', error);
         }
-      }, 120000); // 2 minutes
+      }, 300000); // 5 minutes instead of 2
 
       return () => {
         supabase.removeChannel(channel);
