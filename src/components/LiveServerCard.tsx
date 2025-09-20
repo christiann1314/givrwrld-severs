@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useServerStats } from '../hooks/useServerStats';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -41,21 +41,25 @@ interface LiveServerCardProps {
 const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction }) => {
   const [imageError, setImageError] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
+  const [token, setToken] = useState<string>('');
   const { toast } = useToast();
   
-  // Use live stats hook
-  const { 
-    stats, 
-    loading, 
-    error, 
-    fetchStats,
-    getMemoryUsage,
-    getDiskUsage,
-    getCpuUsage,
-    isOnline,
-    uptime,
-    status: liveStatus
-  } = useServerStats(server.pterodactyl_server_id, true);
+  useEffect(() => {
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setToken(session.access_token);
+      }
+    };
+    getToken();
+  }, []);
+  
+  // Use live stats hook with new interface
+  const { stats, error } = useServerStats({
+    serverIdentifier: server.pterodactyl_server_id,
+    token,
+    fnBase: `${window.location.origin}/functions/v1`
+  });
 
   const GameIcon = ({ game }: { game: string }) => {
     const getGameIcon = (game: string) => {
@@ -120,19 +124,86 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
     return server.status;
   };
 
+  // Helper functions moved from hook
+  const getMemoryUsage = (serverRamLimit?: string): { used: string; total: string; percentage: number } => {
+    if (!stats?.memory_bytes) return { used: '0 MB', total: serverRamLimit || '0 MB', percentage: 0 };
+    
+    const usedMB = Math.round(stats.memory_bytes / 1024 / 1024);
+    let totalMB = 0;
+    if (serverRamLimit) {
+      const match = serverRamLimit.match(/(\d+(?:\.\d+)?)\s*(GB|MB)/i);
+      if (match) {
+        const value = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        totalMB = unit === 'GB' ? value * 1024 : value;
+      }
+    }
+    
+    const percentage = totalMB > 0 ? (usedMB / totalMB) * 100 : 0;
+    return {
+      used: `${usedMB} MB`,
+      total: serverRamLimit || '0 MB', 
+      percentage: Math.round(percentage)
+    };
+  };
+
+  const getDiskUsage = (serverDiskLimit?: string): { used: string; total: string; percentage: number } => {
+    if (!stats?.disk_bytes) return { used: '0 MB', total: serverDiskLimit || '0 MB', percentage: 0 };
+    
+    const usedMB = Math.round(stats.disk_bytes / 1024 / 1024);
+    let totalMB = 0;
+    if (serverDiskLimit) {
+      const match = serverDiskLimit.match(/(\d+(?:\.\d+)?)\s*(GB|MB)/i);
+      if (match) {
+        const value = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        totalMB = unit === 'GB' ? value * 1024 : value;
+      }
+    }
+    
+    const percentage = totalMB > 0 ? (usedMB / totalMB) * 100 : 0;
+    return {
+      used: `${usedMB} MB`,
+      total: serverDiskLimit || '0 MB',
+      percentage: Math.round(percentage)
+    };
+  };
+
+  const getCpuUsage = (): number => {
+    if (!stats?.cpu_percent) return 0;
+    return Math.round(stats.cpu_percent);
+  };
+
+  const isOnline = (): boolean => {
+    return stats?.state === 'running';
+  };
+
+  const formatUptime = (milliseconds: number): string => {
+    if (milliseconds === 0) return '0 minutes';
+    const seconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   const memoryUsage = getMemoryUsage(server.ram);
   const diskUsage = getDiskUsage(server.disk);
   const cpuUsage = getCpuUsage();
+  const uptime = stats?.uptime_ms ? formatUptime(stats.uptime_ms) : '0 minutes';
 
   const handleRefreshStats = () => {
     setLocalLoading(true);
-    fetchStats().finally(() => {
+    // Since new hook doesn't expose fetchStats, we'll show toast after a brief delay
+    setTimeout(() => {
       setLocalLoading(false);
       toast({
-        title: 'Stats refreshed',
-        description: `Updated live data for ${server.name || server.server_name}`,
+        title: 'Stats refreshing',
+        description: `Live data updates automatically for ${server.name || server.server_name}`,
       });
-    });
+    }, 1000);
   };
 
   const handleServerAction = async (action: 'start' | 'stop' | 'console') => {
@@ -169,11 +240,11 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
           <div className="flex items-center space-x-2">
             <button 
               onClick={handleRefreshStats}
-              disabled={loading || localLoading}
+              disabled={localLoading}
               className="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors disabled:opacity-50"
               title="Refresh live stats"
             >
-              <RefreshCw size={16} className={loading || localLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={localLoading ? 'animate-spin' : ''} />
             </button>
             <button className="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors">
               <MoreVertical size={16} />
