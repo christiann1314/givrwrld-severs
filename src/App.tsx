@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/theme-provider";
 import { supabase } from '@/integrations/supabase/client';
 
-import * as Tooltip from "@radix-ui/react-tooltip";
+// Removed global Tooltip provider import to avoid hook crash
 import { Toaster as SonnerToaster } from "sonner";
 
 import { AppRoutes } from "@/routes";
@@ -17,10 +17,8 @@ export default function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          {/* One global Tooltip provider only */}
-          <Tooltip.Provider delayDuration={150} skipDelayDuration={300}>
-            <AppRoutes />
-          </Tooltip.Provider>
+          {/* App routes */}
+          <AppRoutes />
 
           {/* One toast system only. No other toasters anywhere else. */}
           <SonnerToaster position="top-right" richColors expand theme="system" />
