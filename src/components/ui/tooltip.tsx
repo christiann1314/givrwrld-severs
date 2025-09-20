@@ -3,7 +3,8 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-const TooltipProvider = TooltipPrimitive.Provider
+// Make Provider a harmless no-op to avoid runtime hook issues if used without setup
+const TooltipProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
 const Tooltip = TooltipPrimitive.Root
 
