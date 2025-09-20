@@ -737,6 +737,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: string
       }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
+        Returns: string
+      }
       encrypt_sensitive_data: {
         Args: { data: string }
         Returns: string
@@ -748,6 +752,15 @@ export type Database = {
           last_purchase_date: string
           total_orders: number
           total_spent: number
+        }[]
+      }
+      get_my_pterodactyl_credentials: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          panel_url: string
+          password: string
+          pterodactyl_user_id: number
         }[]
       }
       get_safe_financial_summary: {

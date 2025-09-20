@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, 
   User, 
@@ -13,12 +16,17 @@ import {
   Key,
   Smartphone,
   Eye,
-  EyeOff
+  EyeOff,
+  Server,
+  Copy
 } from 'lucide-react';
+import { usePterodactylCredentials } from '../hooks/usePterodactylCredentials';
 
 const DashboardSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [showPterodactylPassword, setShowPterodactylPassword] = useState(false);
+  const { credentials: pterodactylCredentials, loading: credentialsLoading, error: credentialsError } = usePterodactylCredentials();
   const [formData, setFormData] = useState({
     firstName: 'John',
     lastName: 'Doe',
@@ -49,6 +57,11 @@ const DashboardSettings = () => {
       ...notifications,
       [key]: !notifications[key]
     });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
   };
 
   return (
@@ -134,6 +147,17 @@ const DashboardSettings = () => {
                   >
                     <Globe size={20} />
                     <span>Preferences</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('pterodactyl')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'pterodactyl'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Server size={20} />
+                    <span>Pterodactyl Access</span>
                   </button>
                 </nav>
               </div>
@@ -259,10 +283,106 @@ const DashboardSettings = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                   )}
 
-                {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
+                   {/* Pterodactyl Access Tab */}
+                   {activeTab === 'pterodactyl' && (
+                     <div>
+                       <h2 className="text-xl font-bold text-white mb-6">Pterodactyl Panel Access</h2>
+                       
+                       {credentialsLoading ? (
+                         <div className="text-gray-400">Loading credentials...</div>
+                       ) : credentialsError ? (
+                         <div className="text-red-400">Error: {credentialsError}</div>
+                       ) : pterodactylCredentials ? (
+                         <div className="space-y-4">
+                           <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">
+                             <p className="text-gray-300 mb-4">Use these credentials to access your Pterodactyl panel:</p>
+                             
+                             <div className="space-y-4">
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Panel URL:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type="text"
+                                     value={pterodactylCredentials.panel_url}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.panel_url, 'Panel URL')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                   <button
+                                     onClick={() => window.open(pterodactylCredentials.panel_url, '_blank')}
+                                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
+                                   >
+                                     Open Panel
+                                   </button>
+                                 </div>
+                               </div>
+                               
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Email:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type="text"
+                                     value={pterodactylCredentials.email}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.email, 'Email')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                 </div>
+                               </div>
+                               
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Password:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type={showPterodactylPassword ? "text" : "password"}
+                                     value={pterodactylCredentials.password}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => setShowPterodactylPassword(!showPterodactylPassword)}
+                                     className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     {showPterodactylPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                   </button>
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.password, 'Password')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                 </div>
+                               </div>
+                             </div>
+                             
+                             <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
+                               <p className="text-blue-300 text-sm">
+                                 💡 <strong>Note:</strong> These are your automatically generated Pterodactyl panel credentials. 
+                                 Keep them secure and use them to access your server management panel.
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                       ) : (
+                         <div className="text-gray-400">No Pterodactyl credentials found</div>
+                       )}
+                     </div>
+                   )}
+
+                  {/* Notifications Tab */}
+                  {activeTab === 'notifications' && (
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6">Notification Preferences</h2>
                     
