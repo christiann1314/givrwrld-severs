@@ -19,10 +19,13 @@ function cors(req: Request) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
 
+  console.log(`[server-stats] Request: ${req.method} ${req.url}`);
+
   // Require Supabase auth
   const auth = req.headers.get("authorization") ?? "";
   const apikey = req.headers.get("apikey") ?? "";
   if (!auth.startsWith("Bearer ")) {
+    console.log("[server-stats] ERROR: No Bearer token provided");
     return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: cors(req) });
   }
 
@@ -31,7 +34,10 @@ Deno.serve(async (req) => {
     const orderId = url.searchParams.get("order_id");
     const serverIdentifier = url.searchParams.get("server_identifier");
 
+    console.log(`[server-stats] Parameters: orderId=${orderId}, serverIdentifier=${serverIdentifier}`);
+
     if (!orderId && !serverIdentifier) {
+      console.log("[server-stats] ERROR: Missing required parameters");
       return new Response(JSON.stringify({ error: "bad_request", detail: "order_id or server_identifier required" }),
         { status: 400, headers: cors(req) });
     }
@@ -56,19 +62,28 @@ Deno.serve(async (req) => {
     }
 
     // Fetch live resources from Pterodactyl Client API
-    const resp = await fetch(`${PANEL_URL}/api/client/servers/${identifier}/resources`, {
+    const pterodactylUrl = `${PANEL_URL}/api/client/servers/${identifier}/resources`;
+    console.log(`[server-stats] Fetching from Pterodactyl: ${pterodactylUrl}`);
+    console.log(`[server-stats] Using identifier: ${identifier}`);
+    
+    const resp = await fetch(pterodactylUrl, {
       headers: {
         "Authorization": `Bearer ${CLIENT_KEY}`,
         "Accept": "application/json"
       }
     });
 
+    console.log(`[server-stats] Pterodactyl response status: ${resp.status}`);
+
     if (!resp.ok) {
       const txt = await resp.text();
+      console.log(`[server-stats] ERROR: Pterodactyl API error: ${txt}`);
       return new Response(JSON.stringify({ error: "panel_error", detail: txt }), { status: 502, headers: cors(req) });
     }
 
     const data = await resp.json();
+    console.log(`[server-stats] Pterodactyl data received:`, JSON.stringify(data, null, 2));
+    
     // Normalize a minimal payload for your UI
     const res = {
       state: data?.attributes?.current_state ?? data?.attributes?.state,
@@ -82,10 +97,13 @@ Deno.serve(async (req) => {
       server_identifier: identifier
     };
 
+    console.log(`[server-stats] Normalized response:`, JSON.stringify(res, null, 2));
+
     return new Response(JSON.stringify(res), {
       headers: { "Content-Type": "application/json", ...cors(req) }
     });
   } catch (e) {
+    console.log(`[server-stats] ERROR: Exception caught: ${String(e)}`);
     return new Response(JSON.stringify({ error: "internal", detail: String(e) }), {
       status: 500, headers: cors(req)
     });

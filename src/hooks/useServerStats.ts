@@ -23,27 +23,18 @@ export function useServerStats({ orderId, serverIdentifier, token, fnBase }: {
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
-    console.log('useServerStats - orderId:', orderId);
-    console.log('useServerStats - serverIdentifier:', serverIdentifier);
-    console.log('useServerStats - token:', token ? 'present' : 'missing');
-    console.log('useServerStats - fnBase:', fnBase);
-    
     if (!orderId && !serverIdentifier) {
-      console.log('useServerStats - no orderId or serverIdentifier, returning');
       return;
     }
     if (!token) {
-      console.log('useServerStats - no token, returning');
       return;
     }
     
     const params = orderId ? `order_id=${orderId}` : `server_identifier=${serverIdentifier}`;
-    console.log('useServerStats - params:', params);
     
     const fetchStats = async () => {
       try {
         const url = `${fnBase}/server-stats?${params}`;
-        console.log('useServerStats - fetching from URL:', url);
         
         const res = await fetch(url, {
           headers: {
@@ -52,20 +43,15 @@ export function useServerStats({ orderId, serverIdentifier, token, fnBase }: {
           }
         });
         
-        console.log('useServerStats - response status:', res.status);
-        
         if (!res.ok) {
           const errorText = await res.text();
-          console.log('useServerStats - error response:', errorText);
           throw new Error(`${res.status}: ${errorText}`);
         }
         
         const json = await res.json();
-        console.log('useServerStats - received stats:', json);
         setStats(json);
         setError(null);
       } catch (e:any) {
-        console.error('useServerStats - fetch error:', e);
         setError(e.message || "Failed to load stats");
       }
     };
