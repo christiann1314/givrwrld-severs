@@ -61,12 +61,6 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
     fnBase: 'https://mjhvkvnshnbnxojnandf.supabase.co/functions/v1'
   });
 
-  // Debug logging
-  console.log('LiveServerCard - server.pterodactyl_server_id:', server.pterodactyl_server_id);
-  console.log('LiveServerCard - token:', token ? 'present' : 'missing');
-  console.log('LiveServerCard - stats:', stats);
-  console.log('LiveServerCard - error:', error);
-
   const GameIcon = ({ game }: { game: string }) => {
     const getGameIcon = (game: string) => {
       const gameIcons: { [key: string]: string } = {
