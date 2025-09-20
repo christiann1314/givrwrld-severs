@@ -6,6 +6,8 @@ import Footer from '../components/Footer';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
+import { Admin2FAManager } from '../components/Admin2FAManager';
+import { InitialAdminSetup } from '../components/InitialAdminSetup';
 import { 
   ArrowLeft, 
   User, 
@@ -222,6 +224,9 @@ const DashboardSettings = () => {
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6">Security Settings</h2>
                     
+                    {/* Initial Admin Setup */}
+                    <InitialAdminSetup />
+                    
                     {/* Change Password */}
                     <div className="mb-8">
                       <h3 className="text-lg font-semibold text-white mb-4">Change Password</h3>
@@ -269,6 +274,11 @@ const DashboardSettings = () => {
                           Update Password
                         </button>
                       </form>
+                    </div>
+
+                    {/* Admin 2FA Management */}
+                    <div className="mb-8">
+                      <Admin2FAManager />
                     </div>
 
                     {/* Two-Factor Authentication */}

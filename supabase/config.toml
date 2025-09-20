@@ -1,5 +1,8 @@
 project_id = "mjhvkvnshnbnxojnandf"
 
+[functions.admin-management]
+verify_jwt = true
+
 [functions.check-subscription]
 verify_jwt = true
 
