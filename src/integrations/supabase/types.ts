@@ -110,6 +110,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_schedule: {
+        Row: {
+          audit_type: string
+          created_at: string
+          enabled: boolean | null
+          frequency: string
+          id: string
+          last_run: string | null
+          next_run: string | null
+          updated_at: string
+        }
+        Insert: {
+          audit_type: string
+          created_at?: string
+          enabled?: boolean | null
+          frequency?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audit_type?: string
+          created_at?: string
+          enabled?: boolean | null
+          frequency?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bundles: {
         Row: {
           created_at: string
@@ -160,6 +193,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      dependency_audits: {
+        Row: {
+          audit_id: string | null
+          created_at: string
+          current_version: string
+          has_vulnerabilities: boolean | null
+          id: string
+          latest_version: string | null
+          package_name: string
+          update_recommendation: string | null
+          vulnerability_count: number | null
+          vulnerability_details: Json | null
+        }
+        Insert: {
+          audit_id?: string | null
+          created_at?: string
+          current_version: string
+          has_vulnerabilities?: boolean | null
+          id?: string
+          latest_version?: string | null
+          package_name: string
+          update_recommendation?: string | null
+          vulnerability_count?: number | null
+          vulnerability_details?: Json | null
+        }
+        Update: {
+          audit_id?: string | null
+          created_at?: string
+          current_version?: string
+          has_vulnerabilities?: boolean | null
+          id?: string
+          latest_version?: string | null
+          package_name?: string
+          update_recommendation?: string | null
+          vulnerability_count?: number | null
+          vulnerability_details?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dependency_audits_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "security_audits"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_audit: {
         Row: {
@@ -512,6 +592,42 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audits: {
+        Row: {
+          audit_type: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          findings: Json | null
+          id: string
+          recommendations: Json | null
+          severity_counts: Json | null
+          status: string
+        }
+        Insert: {
+          audit_type: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: Json | null
+          id?: string
+          recommendations?: Json | null
+          severity_counts?: Json | null
+          status?: string
+        }
+        Update: {
+          audit_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: Json | null
+          id?: string
+          recommendations?: Json | null
+          severity_counts?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -768,6 +884,10 @@ export type Database = {
       admin_requires_2fa: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      calculate_next_audit_run: {
+        Args: { frequency_param: string }
+        Returns: string
       }
       check_my_rate_limit: {
         Args: { max_ops?: number; operation_name: string }
