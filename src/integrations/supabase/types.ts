@@ -725,6 +725,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      create_missing_profile_with_pterodactyl: {
+        Args: {
+          display_name_param?: string
+          email_param: string
+          pterodactyl_password_param?: string
+          pterodactyl_user_id_param?: number
+          user_id_param: string
+        }
+        Returns: Json
+      }
       create_user_profile: {
         Args: {
           new_display_name?: string

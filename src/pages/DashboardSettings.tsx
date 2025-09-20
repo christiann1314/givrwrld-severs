@@ -21,12 +21,19 @@ import {
   Copy
 } from 'lucide-react';
 import { usePterodactylCredentials } from '../hooks/usePterodactylCredentials';
+import { ServerIntegrationStatus } from '../components/ServerIntegrationStatus';
 
 const DashboardSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showPterodactylPassword, setShowPterodactylPassword] = useState(false);
-  const { credentials: pterodactylCredentials, loading: credentialsLoading, error: credentialsError } = usePterodactylCredentials();
+  const { 
+    credentials: pterodactylCredentials, 
+    loading: credentialsLoading, 
+    error: credentialsError, 
+    needsSetup,
+    setupPterodactylAccount 
+  } = usePterodactylCredentials();
   const [formData, setFormData] = useState({
     firstName: 'John',
     lastName: 'Doe',
@@ -287,13 +294,52 @@ const DashboardSettings = () => {
 
                    {/* Pterodactyl Access Tab */}
                    {activeTab === 'pterodactyl' && (
-                     <div>
+                     <div className="space-y-6">
                        <h2 className="text-xl font-bold text-white mb-6">Pterodactyl Panel Access</h2>
+                       
+                       {/* Integration Status */}
+                       <ServerIntegrationStatus />
+                       
+                       {/* Credentials Section */}
+                       <div>
+                         <h3 className="text-lg font-semibold text-white mb-4">Panel Credentials</h3>
                        
                        {credentialsLoading ? (
                          <div className="text-gray-400">Loading credentials...</div>
+                       ) : needsSetup ? (
+                         <div className="space-y-4">
+                           <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">
+                             <div className="text-center">
+                               <h4 className="text-lg font-semibold text-white mb-2">Pterodactyl Account Setup Required</h4>
+                               <p className="text-gray-300 mb-4">
+                                 You need to set up your Pterodactyl panel access to manage your game servers.
+                               </p>
+                               <button
+                                 onClick={setupPterodactylAccount}
+                                 disabled={credentialsLoading}
+                                 className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
+                               >
+                                 {credentialsLoading ? 'Setting up...' : 'Setup Pterodactyl Account'}
+                               </button>
+                               <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded">
+                                 <p className="text-blue-300 text-sm">
+                                   💡 This will create your Pterodactyl panel account and generate secure credentials for server management.
+                                 </p>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
                        ) : credentialsError ? (
-                         <div className="text-red-400">Error: {credentialsError}</div>
+                         <div className="space-y-4">
+                           <div className="text-red-400">Error: {credentialsError}</div>
+                           <button
+                             onClick={setupPterodactylAccount}
+                             disabled={credentialsLoading}
+                             className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                           >
+                             {credentialsLoading ? 'Retrying...' : 'Retry Setup'}
+                           </button>
+                         </div>
                        ) : pterodactylCredentials ? (
                          <div className="space-y-4">
                            <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">
@@ -375,11 +421,22 @@ const DashboardSettings = () => {
                              </div>
                            </div>
                          </div>
-                       ) : (
-                         <div className="text-gray-400">No Pterodactyl credentials found</div>
-                       )}
-                     </div>
-                   )}
+                         ) : (
+                           <div className="space-y-4">
+                             <div className="text-gray-400">No Pterodactyl credentials found</div>
+                             <button
+                               onClick={setupPterodactylAccount}
+                               disabled={credentialsLoading}
+                               className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                             >
+                               {credentialsLoading ? 'Setting up...' : 'Setup Pterodactyl Account'}
+                             </button>
+                            </div>
+                          )
+                        }
+                      </div>
+                    </div>
+                  )}
 
                   {/* Notifications Tab */}
                   {activeTab === 'notifications' && (
