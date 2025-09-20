@@ -18,6 +18,7 @@ interface ServerSpec {
   port?: string;
   pterodactylUrl: string;
   pterodactyl_url?: string;
+  pterodactyl_server_id?: string;
   bundle_id?: string;
   live_stats?: {
     cpu_percent?: number;
@@ -94,6 +95,7 @@ export const useUserServers = (userEmail?: string) => {
         port: server.port,
         pterodactylUrl: server.pterodactyl_url || '',
         pterodactyl_url: server.pterodactyl_url || '',
+        pterodactyl_server_id: server.pterodactyl_server_id,
         bundle_id: server.bundle_id || 'none',
         live_stats: server.live_stats || {}
       }));
