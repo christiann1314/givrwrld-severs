@@ -1134,86 +1134,12 @@ export type Database = {
       }
     }
     Views: {
-      my_financial_overview: {
+      user_financial_summary: {
         Row: {
           avg_order_value: number | null
           last_purchase_date: string | null
           total_orders: number | null
           total_spent: number | null
-        }
-        Relationships: []
-      }
-      orders_secure: {
-        Row: {
-          access_level: string | null
-          amount: number | null
-          created_at: string | null
-          currency: string | null
-          id: string | null
-          order_summary: Json | null
-          server_id: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          access_level?: never
-          amount?: never
-          created_at?: string | null
-          currency?: never
-          id?: string | null
-          order_summary?: never
-          server_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          access_level?: never
-          amount?: never
-          created_at?: string | null
-          currency?: never
-          id?: string | null
-          order_summary?: never
-          server_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "user_servers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      safe_user_profiles: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          email: string | null
-          id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          email?: never
-          id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          email?: never
-          id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
