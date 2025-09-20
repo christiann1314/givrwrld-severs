@@ -25,9 +25,8 @@ import {
   Monitor
 } from 'lucide-react';
 import BundleBadge from '../components/BundleBadge';
+import { getBundleName } from '../utils/bundleUtils';
 import LiveServerCard from '../components/LiveServerCard';
-
-import ServerCardSkeleton from '../components/ServerCardSkeleton';
 
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
@@ -147,10 +146,9 @@ const DashboardServices = () => {
 
           {/* Servers Grid */}
           {serversData.loading ? (
-            <div className="grid gap-6">
-              {[...Array(3)].map((_, index) => (
-                <ServerCardSkeleton key={index} />
-              ))}
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+              <p className="text-gray-400 mt-4">Loading your servers...</p>
             </div>
           ) : serversData.servers.length === 0 ? (
             <div className="text-center py-12">
@@ -162,7 +160,7 @@ const DashboardServices = () => {
                 className="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors"
               >
                 <Server size={20} />
-                <span>Create Your First Server</span>
+                <span>Deploy New Server</span>
               </Link>
             </div>
           ) : (
@@ -177,8 +175,7 @@ const DashboardServices = () => {
             </div>
           )}
 
-
-          {/* Quick Actions */}
+{/* Quick Actions */}
           <div className="mt-8 bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
             <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useServerStats } from '../hooks/useServerStats';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import {
@@ -15,7 +16,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import BundleBadge from './BundleBadge';
-import ServerStatsWidget from './ServerStatsWidget';
+import { getBundleName } from '../utils/bundleUtils';
 
 interface LiveServerCardProps {
   server: {
@@ -31,8 +32,7 @@ interface LiveServerCardProps {
     ip?: string;
     port?: string;
     pterodactyl_url?: string;
-    pterodactyl_server_id?: number | null;
-    pterodactyl_server_identifier?: string | null;
+    pterodactyl_server_id?: string;
     bundle_id?: string;
   };
   onServerAction?: (serverId: string, action: 'start' | 'stop' | 'console', serverName: string) => void;
@@ -41,7 +41,31 @@ interface LiveServerCardProps {
 const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction }) => {
   const [imageError, setImageError] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
+  const [token, setToken] = useState<string>('');
   const { toast } = useToast();
+  
+  useEffect(() => {
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        setToken(session.access_token);
+      }
+    };
+    getToken();
+  }, []);
+  
+  // Use live stats hook with new interface
+  const { stats, error } = useServerStats({
+    serverIdentifier: server.pterodactyl_server_id,
+    token,
+    fnBase: 'https://mjhvkvnshnbnxojnandf.supabase.co/functions/v1'
+  });
+
+  // Debug logging
+  console.log('LiveServerCard - server.pterodactyl_server_id:', server.pterodactyl_server_id);
+  console.log('LiveServerCard - token:', token ? 'present' : 'missing');
+  console.log('LiveServerCard - stats:', stats);
+  console.log('LiveServerCard - error:', error);
 
   const GameIcon = ({ game }: { game: string }) => {
     const getGameIcon = (game: string) => {
@@ -76,47 +100,109 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'online': 
-      case 'running': 
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'offline': 
-      case 'stopped': 
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'suspended': 
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'provisioning':
-      case 'installing':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      default: 
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    if (stats?.state === 'running') {
+      return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    }
+    switch (status) {
+      case 'online': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+      case 'offline': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'suspended': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'online':
-      case 'running': 
-        return <CheckCircle size={16} />;
-      case 'offline': 
-      case 'stopped':
-        return <AlertCircle size={16} />;
-      case 'suspended': 
-        return <Clock size={16} />;
-      case 'provisioning':
-      case 'installing':
-        return <RefreshCw className="animate-spin" size={16} />;
-      default: 
-        return <AlertCircle size={16} />;
+    if (stats?.state === 'running') {
+      return <CheckCircle size={16} />;
+    }
+    switch (status) {
+      case 'online': return <CheckCircle size={16} />;
+      case 'offline': return <AlertCircle size={16} />;
+      case 'suspended': return <Clock size={16} />;
+      default: return <AlertCircle size={16} />;
     }
   };
 
-  const isOnline = () => {
-    return ['online', 'running'].includes(server.status.toLowerCase());
+  const getDisplayStatus = () => {
+    if (stats?.state) {
+      return stats.state;
+    }
+    return server.status;
   };
+
+  // Helper functions moved from hook
+  const getMemoryUsage = (serverRamLimit?: string): { used: string; total: string; percentage: number } => {
+    if (!stats?.memory_bytes) return { used: '0 MB', total: serverRamLimit || '0 MB', percentage: 0 };
+    
+    const usedMB = Math.round(stats.memory_bytes / 1024 / 1024);
+    let totalMB = 0;
+    if (serverRamLimit) {
+      const match = serverRamLimit.match(/(\d+(?:\.\d+)?)\s*(GB|MB)/i);
+      if (match) {
+        const value = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        totalMB = unit === 'GB' ? value * 1024 : value;
+      }
+    }
+    
+    const percentage = totalMB > 0 ? (usedMB / totalMB) * 100 : 0;
+    return {
+      used: `${usedMB} MB`,
+      total: serverRamLimit || '0 MB', 
+      percentage: Math.round(percentage)
+    };
+  };
+
+  const getDiskUsage = (serverDiskLimit?: string): { used: string; total: string; percentage: number } => {
+    if (!stats?.disk_bytes) return { used: '0 MB', total: serverDiskLimit || '0 MB', percentage: 0 };
+    
+    const usedMB = Math.round(stats.disk_bytes / 1024 / 1024);
+    let totalMB = 0;
+    if (serverDiskLimit) {
+      const match = serverDiskLimit.match(/(\d+(?:\.\d+)?)\s*(GB|MB)/i);
+      if (match) {
+        const value = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        totalMB = unit === 'GB' ? value * 1024 : value;
+      }
+    }
+    
+    const percentage = totalMB > 0 ? (usedMB / totalMB) * 100 : 0;
+    return {
+      used: `${usedMB} MB`,
+      total: serverDiskLimit || '0 MB',
+      percentage: Math.round(percentage)
+    };
+  };
+
+  const getCpuUsage = (): number => {
+    if (!stats?.cpu_percent) return 0;
+    return Math.round(stats.cpu_percent);
+  };
+
+  const isOnline = (): boolean => {
+    return stats?.state === 'running';
+  };
+
+  const formatUptime = (milliseconds: number): string => {
+    if (milliseconds === 0) return '0 minutes';
+    const seconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const memoryUsage = getMemoryUsage(server.ram);
+  const diskUsage = getDiskUsage(server.disk);
+  const cpuUsage = getCpuUsage();
+  const uptime = stats?.uptime_ms ? formatUptime(stats.uptime_ms) : '0 minutes';
 
   const handleRefreshStats = () => {
     setLocalLoading(true);
+    // Since new hook doesn't expose fetchStats, we'll show toast after a brief delay
     setTimeout(() => {
       setLocalLoading(false);
       toast({
@@ -145,9 +231,12 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
               <h3 className="text-xl font-bold text-white mb-1">{server.name || server.server_name}</h3>
               <p className="text-gray-400">{server.game_type} • {server.ram} • {server.cpu}</p>
               <div className="flex items-center space-x-4 mt-2">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(server.status)}`}>
-                  {getStatusIcon(server.status)}
-                  <span className="ml-1 capitalize">{server.status}</span>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(getDisplayStatus())}`}>
+                  {getStatusIcon(getDisplayStatus())}
+                  <span className="ml-1 capitalize">{getDisplayStatus()}</span>
+                  {stats && (
+                    <span className="ml-1 text-emerald-400 animate-pulse">●</span>
+                  )}
                 </span>
                 <span className="text-sm text-gray-400">{server.location}</span>
                 <BundleBadge bundleId={server.bundle_id || 'none'} />
@@ -170,21 +259,33 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
         </div>
       </div>
 
-      {/* Server Stats Widget */}
-      <div className="p-6 border-b border-gray-600/30">
-        <h4 className="text-lg font-semibold text-white mb-4">Live Server Stats</h4>
-        <ServerStatsWidget 
-          serverId={server.id}
-          serverIdentifier={server.pterodactyl_server_identifier}
-          serverLimits={{
-            ram: server.ram,
-            disk: server.disk
-          }}
-        />
-      </div>
-
-      {/* Server Info & Actions */}
+      {/* Server Stats */}
       <div className="p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white mb-1">0/8</div>
+            <div className="text-sm text-gray-400">Players</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white mb-1">
+              {stats ? `${cpuUsage}%` : '0%'}
+            </div>
+            <div className="text-sm text-gray-400">CPU Usage</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white mb-1">
+              {stats ? `${memoryUsage.used}/${memoryUsage.total}` : `0MB/${server.ram}`}
+            </div>
+            <div className="text-sm text-gray-400">RAM Usage</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-white mb-1">
+              {stats ? uptime : '0 minutes'}
+            </div>
+            <div className="text-sm text-gray-400">Uptime</div>
+          </div>
+        </div>
+
         {/* Server Info */}
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <div className="space-y-2">
@@ -196,7 +297,9 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Storage:</span>
-              <span className="text-white">{server.disk}</span>
+              <span className="text-white">
+                {stats ? `${diskUsage.used}/${diskUsage.total}` : `0GB/${server.disk}`}
+              </span>
             </div>
           </div>
           <div className="space-y-2">
@@ -266,6 +369,30 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
             <span>Console</span>
           </button>
         </div>
+
+        {/* Live Stats Indicator */}
+        {stats && (
+          <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-emerald-400 flex items-center">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+                Live data from Pterodactyl panel
+              </span>
+              <span className="text-gray-400">
+                Updated: {new Date(stats.fetched_at).toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="text-red-400 text-sm">
+              Failed to load live stats: {error}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
