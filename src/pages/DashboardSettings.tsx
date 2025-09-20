@@ -8,6 +8,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Admin2FAManager } from '../components/Admin2FAManager';
 import { InitialAdminSetup } from '../components/InitialAdminSetup';
+import { SecurityAuditManager } from '../components/SecurityAuditManager';
 import { 
   ArrowLeft, 
   User, 
@@ -167,6 +168,17 @@ const DashboardSettings = () => {
                   >
                     <Server size={20} />
                     <span>Pterodactyl Access</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('security-audit')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'security-audit'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Shield size={20} />
+                    <span>Security Audits</span>
                   </button>
                 </nav>
               </div>
@@ -560,17 +572,24 @@ const DashboardSettings = () => {
                         Save Preferences
                       </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                   </div>
+                 )}
 
-        <Footer />
-      </div>
-    </div>
-  );
-};
+                 {/* Security Audit Tab */}
+                 {activeTab === 'security-audit' && (
+                   <div>
+                     <SecurityAuditManager />
+                   </div>
+                 )}
+               </div>
+             </div>
+           </div>
+         </div>
+
+         <Footer />
+       </div>
+     </div>
+   );
+ };
 
 export default DashboardSettings;
