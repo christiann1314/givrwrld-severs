@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster as SonnerToaster } from "sonner";
 import { AppRoutes } from "@/routes";
-
+import * as Tooltip from "@radix-ui/react-tooltip";
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -19,7 +19,9 @@ export default function App() {
 function AppContent() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <Tooltip.Provider delayDuration={150} skipDelayDuration={300}>
+        <AppRoutes />
+      </Tooltip.Provider>
       {/* Sonner toaster with theme support */}
       <SonnerThemeBridge />
     </BrowserRouter>
