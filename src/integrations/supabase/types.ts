@@ -59,6 +59,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_2fa_settings: {
+        Row: {
+          enforce_2fa: boolean | null
+          grace_period_hours: number | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          enforce_2fa?: boolean | null
+          grace_period_hours?: number | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          enforce_2fa?: boolean | null
+          grace_period_hours?: number | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           id: string
@@ -488,6 +512,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_servers: {
         Row: {
           addon_ids: string[] | null
@@ -717,6 +765,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_requires_2fa: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_my_rate_limit: {
         Args: { max_ops?: number; operation_name: string }
         Returns: boolean
@@ -782,6 +834,13 @@ export type Database = {
           user_total_spent: number
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       hash_data: {
         Args: { data: string }
         Returns: string
@@ -790,13 +849,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      is_admin: {
+        Args: { _user_id?: string }
+        Returns: boolean
+      }
       log_user_action: {
         Args: { action_name: string; details?: Json }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -923,6 +986,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
