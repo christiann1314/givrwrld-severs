@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 interface AffiliateStat {
   label: string;
@@ -51,7 +51,7 @@ export const useAffiliateData = (userEmail?: string) => {
     nextPayout: "$0.00",
     loading: false
   });
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const fetchAffiliateData = async () => {
     if (!userEmail) return;

@@ -6,6 +6,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Simple rate limiting for this function
+const rateLimitStore: { [key: string]: { count: number; resetTime: number } } = {}
+
+function checkRateLimit(identifier: string, maxRequests: number = 3, windowMs: number = 60 * 60 * 1000): boolean {
+  const now = Date.now()
+  const key = `sensitive:${identifier}`
+  
+  // Clean up expired entries
+  Object.keys(rateLimitStore).forEach(k => {
+    if (rateLimitStore[k].resetTime < now) {
+      delete rateLimitStore[k]
+    }
+  })
+  
+  if (!rateLimitStore[key]) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].resetTime < now) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].count >= maxRequests) {
+    return false
+  }
+  
+  rateLimitStore[key].count++
+  return true
+}
+
 // Helper functions for game-specific configurations
 function getEggId(gameType: string): number {
   switch (gameType.toLowerCase()) {
@@ -203,11 +235,22 @@ async function resolveMinecraftEgg(pterodactylUrl: string, apiKey: string) {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Rate limiting check
+    const identifier = req.headers.get('x-forwarded-for') || 'unknown'
+    
+    if (!checkRateLimit(identifier)) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     console.log('🚀 Pterodactyl provisioning started')
     
     const supabase = createClient(

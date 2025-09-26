@@ -59,6 +59,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_2fa_settings: {
+        Row: {
+          enforce_2fa: boolean | null
+          grace_period_hours: number | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          enforce_2fa?: boolean | null
+          grace_period_hours?: number | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          enforce_2fa?: boolean | null
+          grace_period_hours?: number | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           id: string
@@ -83,6 +107,111 @@ export type Database = {
           table_name?: string
           timestamp?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      audit_schedule: {
+        Row: {
+          audit_type: string
+          created_at: string
+          enabled: boolean | null
+          frequency: string
+          id: string
+          last_run: string | null
+          next_run: string | null
+          updated_at: string
+        }
+        Insert: {
+          audit_type: string
+          created_at?: string
+          enabled?: boolean | null
+          frequency?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audit_type?: string
+          created_at?: string
+          enabled?: boolean | null
+          frequency?: string
+          id?: string
+          last_run?: string | null
+          next_run?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      backup_jobs: {
+        Row: {
+          backup_type: string
+          created_at: string
+          id: string
+          priority: string
+          scheduled_for: string
+          status: string
+        }
+        Insert: {
+          backup_type: string
+          created_at?: string
+          id?: string
+          priority?: string
+          scheduled_for: string
+          status?: string
+        }
+        Update: {
+          backup_type?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          scheduled_for?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      backup_logs: {
+        Row: {
+          backup_size: number | null
+          backup_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          status: string
+        }
+        Insert: {
+          backup_size?: number | null
+          backup_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status: string
+        }
+        Update: {
+          backup_size?: number | null
+          backup_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      backup_test: {
+        Row: {
+          id: string
+          test: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          id?: string
+          test?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          id?: string
+          test?: string | null
+          timestamp?: string | null
         }
         Relationships: []
       }
@@ -134,6 +263,119 @@ export type Database = {
           stripe_price_id_monthly?: string | null
           stripe_price_id_quarterly?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      dependency_audits: {
+        Row: {
+          audit_id: string | null
+          created_at: string
+          current_version: string
+          has_vulnerabilities: boolean | null
+          id: string
+          latest_version: string | null
+          package_name: string
+          update_recommendation: string | null
+          vulnerability_count: number | null
+          vulnerability_details: Json | null
+        }
+        Insert: {
+          audit_id?: string | null
+          created_at?: string
+          current_version: string
+          has_vulnerabilities?: boolean | null
+          id?: string
+          latest_version?: string | null
+          package_name: string
+          update_recommendation?: string | null
+          vulnerability_count?: number | null
+          vulnerability_details?: Json | null
+        }
+        Update: {
+          audit_id?: string | null
+          created_at?: string
+          current_version?: string
+          has_vulnerabilities?: boolean | null
+          id?: string
+          latest_version?: string | null
+          package_name?: string
+          update_recommendation?: string | null
+          vulnerability_count?: number | null
+          vulnerability_details?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dependency_audits_audit_id_fkey"
+            columns: ["audit_id"]
+            isOneToOne: false
+            referencedRelation: "security_audits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          error_message: string
+          error_type: string
+          id: string
+          ip_address: string | null
+          request_id: string | null
+          severity: string
+          stack_trace: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          error_message: string
+          error_type: string
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+          severity?: string
+          stack_trace?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          error_message?: string
+          error_type?: string
+          id?: string
+          ip_address?: string | null
+          request_id?: string | null
+          severity?: string
+          stack_trace?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      external_accounts: {
+        Row: {
+          last_synced_at: string | null
+          panel_username: string | null
+          pterodactyl_user_id: number | null
+          user_id: string
+        }
+        Insert: {
+          last_synced_at?: string | null
+          panel_username?: string | null
+          pterodactyl_user_id?: number | null
+          user_id: string
+        }
+        Update: {
+          last_synced_at?: string | null
+          panel_username?: string | null
+          pterodactyl_user_id?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -242,6 +484,36 @@ export type Database = {
           slug?: string
           startup_command?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      gdpr_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          request_details: Json | null
+          request_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          request_details?: Json | null
+          request_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          request_details?: Json | null
+          request_type?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -488,6 +760,257 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_requests: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          ip_address: string | null
+          rate_limit_key: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          ip_address?: string | null
+          rate_limit_key: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          ip_address?: string | null
+          rate_limit_key?: string
+        }
+        Relationships: []
+      }
+      rate_limit_violations: {
+        Row: {
+          blocked_until: string
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          rate_limit_key: string
+          violation_count: number | null
+        }
+        Insert: {
+          blocked_until: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          rate_limit_key: string
+          violation_count?: number | null
+        }
+        Update: {
+          blocked_until?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          rate_limit_key?: string
+          violation_count?: number | null
+        }
+        Relationships: []
+      }
+      security_audits: {
+        Row: {
+          audit_type: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          findings: Json | null
+          id: string
+          recommendations: Json | null
+          severity_counts: Json | null
+          status: string
+        }
+        Insert: {
+          audit_type: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: Json | null
+          id?: string
+          recommendations?: Json | null
+          severity_counts?: Json | null
+          status?: string
+        }
+        Update: {
+          audit_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: Json | null
+          id?: string
+          recommendations?: Json | null
+          severity_counts?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_staff_reply: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_staff_reply?: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_staff_reply?: boolean
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          category: string
+          closed_at: string | null
+          created_at: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_consents: {
+        Row: {
+          analytics: boolean | null
+          cookies: boolean | null
+          created_at: string
+          id: string
+          marketing_emails: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analytics?: boolean | null
+          cookies?: boolean | null
+          created_at?: string
+          id?: string
+          marketing_emails?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analytics?: boolean | null
+          cookies?: boolean | null
+          created_at?: string
+          id?: string
+          marketing_emails?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_servers: {
         Row: {
           addon_ids: string[] | null
@@ -632,7 +1155,7 @@ export type Database = {
       }
     }
     Views: {
-      my_financial_overview: {
+      user_financial_summary: {
         Row: {
           avg_order_value: number | null
           last_purchase_date: string | null
@@ -641,88 +1164,32 @@ export type Database = {
         }
         Relationships: []
       }
-      orders_secure: {
-        Row: {
-          access_level: string | null
-          amount: number | null
-          created_at: string | null
-          currency: string | null
-          id: string | null
-          order_summary: Json | null
-          server_id: string | null
-          status: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          access_level?: never
-          amount?: never
-          created_at?: string | null
-          currency?: never
-          id?: string | null
-          order_summary?: never
-          server_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          access_level?: never
-          amount?: never
-          created_at?: string | null
-          currency?: never
-          id?: string | null
-          order_summary?: never
-          server_id?: string | null
-          status?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "user_servers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      safe_user_profiles: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          email: string | null
-          id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          email?: never
-          id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          email?: never
-          id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
+      admin_requires_2fa: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      calculate_next_audit_run: {
+        Args: { frequency_param: string }
+        Returns: string
+      }
       check_my_rate_limit: {
         Args: { max_ops?: number; operation_name: string }
         Returns: boolean
       }
       cleanup_user_data: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      create_missing_profile_with_pterodactyl: {
+        Args: {
+          display_name_param?: string
+          email_param: string
+          pterodactyl_password_param?: string
+          pterodactyl_user_id_param?: number
+          user_id_param: string
+        }
         Returns: Json
       }
       create_user_profile: {
@@ -735,6 +1202,10 @@ export type Database = {
       }
       create_user_stats: {
         Args: { user_id_param: string }
+        Returns: string
+      }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
         Returns: string
       }
       encrypt_sensitive_data: {
@@ -750,6 +1221,15 @@ export type Database = {
           total_spent: number
         }[]
       }
+      get_my_pterodactyl_credentials: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          email: string
+          panel_url: string
+          password: string
+          pterodactyl_user_id: number
+        }[]
+      }
       get_safe_financial_summary: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -759,6 +1239,13 @@ export type Database = {
           user_total_spent: number
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       hash_data: {
         Args: { data: string }
         Returns: string
@@ -767,13 +1254,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      is_admin: {
+        Args: { _user_id?: string }
+        Returns: boolean
+      }
       log_user_action: {
         Args: { action_name: string; details?: Json }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -900,6 +1391,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

@@ -7,9 +7,42 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+<<<<<<< HEAD
 interface CheckoutRequest {
   plan_id: string;
   region: string;
+=======
+// Simple rate limiting for this function
+const rateLimitStore: { [key: string]: { count: number; resetTime: number } } = {}
+
+function checkRateLimit(identifier: string, maxRequests: number = 5, windowMs: number = 15 * 60 * 1000): boolean {
+  const now = Date.now()
+  const key = `payment:${identifier}`
+  
+  // Clean up expired entries
+  Object.keys(rateLimitStore).forEach(k => {
+    if (rateLimitStore[k].resetTime < now) {
+      delete rateLimitStore[k]
+    }
+  })
+  
+  if (!rateLimitStore[key]) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].resetTime < now) {
+    rateLimitStore[key] = { count: 1, resetTime: now + windowMs }
+    return true
+  }
+  
+  if (rateLimitStore[key].count >= maxRequests) {
+    return false
+  }
+  
+  rateLimitStore[key].count++
+  return true
+>>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
 }
 
 serve(async (req) => {
@@ -19,7 +52,28 @@ serve(async (req) => {
   }
 
   try {
+<<<<<<< HEAD
     const { plan_id, region }: CheckoutRequest = await req.json()
+=======
+    // Rate limiting check
+    const authHeader = req.headers.get('Authorization') || ''
+    const identifier = authHeader ? authHeader.slice(-10) : req.headers.get('x-forwarded-for') || 'unknown'
+    
+    if (!checkRateLimit(identifier)) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get authenticated user
+    const authHeader = req.headers.get('Authorization')!
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+>>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
 
     if (!plan_id || !region) {
       return new Response(

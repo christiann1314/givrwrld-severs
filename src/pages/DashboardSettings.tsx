@@ -3,6 +3,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { toast } from 'sonner';
+import { Admin2FAManager } from '../components/Admin2FAManager';
+import { InitialAdminSetup } from '../components/InitialAdminSetup';
+import { SecurityAuditManager } from '../components/SecurityAuditManager';
+import { ErrorLogViewer } from '../components/ErrorLogViewer';
 import { 
   ArrowLeft, 
   User, 
@@ -13,12 +20,25 @@ import {
   Key,
   Smartphone,
   Eye,
-  EyeOff
+  EyeOff,
+  Server,
+  Copy
 } from 'lucide-react';
+import { usePterodactylCredentials } from '../hooks/usePterodactylCredentials';
+import { ServerIntegrationStatus } from '../components/ServerIntegrationStatus';
 
 const DashboardSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
+  const [showPterodactylPassword, setShowPterodactylPassword] = useState(false);
+  const { 
+    credentials: pterodactylCredentials, 
+    loading: credentialsLoading, 
+    error: credentialsError, 
+    needsSetup,
+    setupPterodactylAccount,
+    fixPterodactylCredentials
+  } = usePterodactylCredentials();
   const [formData, setFormData] = useState({
     firstName: 'John',
     lastName: 'Doe',
@@ -49,6 +69,11 @@ const DashboardSettings = () => {
       ...notifications,
       [key]: !notifications[key]
     });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
   };
 
   return (
@@ -135,6 +160,39 @@ const DashboardSettings = () => {
                     <Globe size={20} />
                     <span>Preferences</span>
                   </button>
+                  <button
+                    onClick={() => setActiveTab('pterodactyl')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'pterodactyl'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Server size={20} />
+                    <span>Pterodactyl Access</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('security-audit')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'security-audit'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Shield size={20} />
+                    <span>Security Audits</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('error-logs')}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'error-logs'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
+                    }`}
+                  >
+                    <Shield size={20} />
+                    <span>Error Logs</span>
+                  </button>
                 </nav>
               </div>
             </div>
@@ -191,6 +249,9 @@ const DashboardSettings = () => {
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6">Security Settings</h2>
                     
+                    {/* Initial Admin Setup */}
+                    <InitialAdminSetup />
+                    
                     {/* Change Password */}
                     <div className="mb-8">
                       <h3 className="text-lg font-semibold text-white mb-4">Change Password</h3>
@@ -240,6 +301,11 @@ const DashboardSettings = () => {
                       </form>
                     </div>
 
+                    {/* Admin 2FA Management */}
+                    <div className="mb-8">
+                      <Admin2FAManager />
+                    </div>
+
                     {/* Two-Factor Authentication */}
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-4">Two-Factor Authentication</h3>
@@ -259,10 +325,179 @@ const DashboardSettings = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                   )}
 
-                {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
+                   {/* Pterodactyl Access Tab */}
+                   {activeTab === 'pterodactyl' && (
+                     <div className="space-y-6">
+                       <h2 className="text-xl font-bold text-white mb-6">Pterodactyl Panel Access</h2>
+                       
+                       {/* Integration Status */}
+                       <ServerIntegrationStatus />
+                       
+                       {/* Credentials Section */}
+                       <div>
+                         <h3 className="text-lg font-semibold text-white mb-4">Panel Credentials</h3>
+                       
+                       {credentialsLoading ? (
+                         <div className="text-gray-400">Loading credentials...</div>
+                       ) : needsSetup ? (
+                         <div className="space-y-4">
+                           <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">
+                             <div className="text-center">
+                               <h4 className="text-lg font-semibold text-white mb-2">Pterodactyl Account Setup Required</h4>
+                               <p className="text-gray-300 mb-4">
+                                 You need to set up your Pterodactyl panel access to manage your game servers.
+                               </p>
+                               <button
+                                 onClick={setupPterodactylAccount}
+                                 disabled={credentialsLoading}
+                                 className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
+                               >
+                                 {credentialsLoading ? 'Setting up...' : 'Setup Pterodactyl Account'}
+                               </button>
+                               <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700 rounded">
+                                 <p className="text-blue-300 text-sm">
+                                   💡 This will create your Pterodactyl panel account and generate secure credentials for server management.
+                                 </p>
+                               </div>
+                             </div>
+                           </div>
+                         </div>
+                        ) : credentialsError ? (
+                          <div className="space-y-4">
+                            <div className="text-red-400">Error: {credentialsError}</div>
+                            <div className="flex space-x-3">
+                              <button
+                                onClick={setupPterodactylAccount}
+                                disabled={credentialsLoading}
+                                className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                              >
+                                {credentialsLoading ? 'Retrying...' : 'Retry Setup'}
+                              </button>
+                              {credentialsError.includes('Password not found') && (
+                                <button
+                                  onClick={fixPterodactylCredentials}
+                                  disabled={credentialsLoading}
+                                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                                >
+                                  {credentialsLoading ? 'Fixing...' : 'Fix Credentials'}
+                                </button>
+                              )}
+                            </div>
+                            <div className="p-3 bg-amber-900/30 border border-amber-700 rounded">
+                              <p className="text-amber-300 text-sm">
+                                🔧 If you have a Pterodactyl account but can't login, try "Fix Credentials" to reset your password.
+                              </p>
+                            </div>
+                          </div>
+                       ) : pterodactylCredentials ? (
+                         <div className="space-y-4">
+                           <div className="bg-gray-700/30 border border-gray-600/30 rounded-lg p-6">
+                             <p className="text-gray-300 mb-4">Use these credentials to access your Pterodactyl panel:</p>
+                             
+                             <div className="space-y-4">
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Panel URL:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type="text"
+                                     value={pterodactylCredentials.panel_url}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.panel_url, 'Panel URL')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                    <button
+                                      onClick={() => window.open(pterodactylCredentials.panel_url, '_blank')}
+                                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
+                                    >
+                                      Open Panel
+                                    </button>
+                                    <button
+                                      onClick={fixPterodactylCredentials}
+                                      disabled={credentialsLoading}
+                                      className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors"
+                                    >
+                                      {credentialsLoading ? 'Syncing…' : 'Sync/Fix Credentials'}
+                                    </button>
+                                 </div>
+                               </div>
+                               
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Email:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type="text"
+                                     value={pterodactylCredentials.email}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.email, 'Email')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                 </div>
+                               </div>
+                               
+                               <div>
+                                 <label className="block text-gray-300 mb-2">Password:</label>
+                                 <div className="flex items-center gap-2">
+                                   <input
+                                     type={showPterodactylPassword ? "text" : "password"}
+                                     value={pterodactylCredentials.password}
+                                     readOnly
+                                     className="flex-1 bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white"
+                                   />
+                                   <button
+                                     onClick={() => setShowPterodactylPassword(!showPterodactylPassword)}
+                                     className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     {showPterodactylPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                   </button>
+                                   <button
+                                     onClick={() => copyToClipboard(pterodactylCredentials.password, 'Password')}
+                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-3 rounded-lg transition-colors"
+                                   >
+                                     <Copy className="w-4 h-4" />
+                                   </button>
+                                 </div>
+                               </div>
+                             </div>
+                             
+                             <div className="mt-6 p-4 bg-blue-900/30 border border-blue-700 rounded-lg">
+                               <p className="text-blue-300 text-sm">
+                                 💡 <strong>Note:</strong> These are your automatically generated Pterodactyl panel credentials. 
+                                 Keep them secure and use them to access your server management panel.
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                         ) : (
+                           <div className="space-y-4">
+                             <div className="text-gray-400">No Pterodactyl credentials found</div>
+                             <button
+                               onClick={setupPterodactylAccount}
+                               disabled={credentialsLoading}
+                               className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                             >
+                               {credentialsLoading ? 'Setting up...' : 'Setup Pterodactyl Account'}
+                             </button>
+                            </div>
+                          )
+                        }
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notifications Tab */}
+                  {activeTab === 'notifications' && (
                   <div>
                     <h2 className="text-xl font-bold text-white mb-6">Notification Preferences</h2>
                     
@@ -373,17 +608,31 @@ const DashboardSettings = () => {
                         Save Preferences
                       </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                   </div>
+                 )}
 
-        <Footer />
-      </div>
-    </div>
-  );
-};
+                  {/* Security Audit Tab */}
+                  {activeTab === 'security-audit' && (
+                    <div>
+                      <SecurityAuditManager />
+                    </div>
+                  )}
+
+                  {/* Error Logs Tab */}
+                  {activeTab === 'error-logs' && (
+                    <div>
+                      <ErrorLogViewer />
+                    </div>
+                  )}
+               </div>
+             </div>
+           </div>
+         </div>
+
+         <Footer />
+       </div>
+     </div>
+   );
+ };
 
 export default DashboardSettings;

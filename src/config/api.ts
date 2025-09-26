@@ -1,5 +1,6 @@
-// Central API configuration
-export const API_BASE_URL = 'https://api.givrwrldservers.com/api';
+// Supabase Edge Functions configuration
+export const SUPABASE_URL = 'https://mjhvkvnshnbnxojnandf.supabase.co';
+export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
-// Replace YOUR_VPS_IP with your actual VPS IP address
-// Example: export const API_BASE_URL = 'http://123.456.789.012/api';
+// Legacy Laravel API - DEPRECATED (use Supabase functions instead)
+export const API_BASE_URL = 'https://api.givrwrldservers.com/api';

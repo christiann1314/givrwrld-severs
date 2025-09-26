@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { stripeService, CheckoutSessionData } from '../services/stripeService';
-import { useToast } from './use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 export const useStripeCheckout = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const createCheckoutSession = async (data: CheckoutSessionData) => {
     setIsLoading(true);

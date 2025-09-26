@@ -1,4 +1,5 @@
 import * as React from "react";
+<<<<<<< HEAD
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -95,5 +96,33 @@ const App = () => (
     </ThemeProvider>
   </QueryClientProvider>
 );
+=======
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/theme-provider";
+import { supabase } from '@/integrations/supabase/client';
 
-export default App;
+// Removed global Tooltip provider import to avoid hook crash
+import { Toaster as SonnerToaster } from "sonner";
+
+import { AppRoutes } from "@/routes";
+
+const queryClient = new QueryClient();
+
+export default function App() {
+  // ThemeProvider MUST wrap everything so any useTheme() calls are inside it.
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          {/* App routes */}
+          <AppRoutes />
+>>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
+
+          {/* One toast system only. No other toasters anywhere else. */}
+          <SonnerToaster position="top-right" richColors expand theme="system" />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+}

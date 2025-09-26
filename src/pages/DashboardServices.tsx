@@ -1,12 +1,14 @@
 
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useUserServers } from '../hooks/useUserServers';
 import { useAuth } from '../hooks/useAuth';
+import { useServerStats } from '../hooks/useServerStats';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '../hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import {
   ArrowLeft,
   Server,
@@ -21,15 +23,12 @@ import {
   Upload,
   Trash2,
   Edit3,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  MoreVertical,
-  Gamepad2,
   Monitor
 } from 'lucide-react';
 import BundleBadge from '../components/BundleBadge';
-import { getBundleName } from '../utils/bundleUtils';
+import LiveServerCard from '../components/LiveServerCard';
+
+import ServerCardSkeleton from '../components/ServerCardSkeleton';
 
 const DashboardServices = () => {
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
@@ -37,7 +36,7 @@ const DashboardServices = () => {
   const [serverOperations, setServerOperations] = useState<Record<string, boolean>>({});
   const { user } = useAuth();
   const { serversData, refetchServers } = useUserServers(user?.email);
-  const { toast } = useToast();
+  // toast is now imported directly from sonner
 
   const handleServerAction = async (serverId: string, action: 'start' | 'stop' | 'console', serverName: string) => {
     setServerOperations(prev => ({ ...prev, [serverId]: true }));
@@ -112,6 +111,7 @@ const DashboardServices = () => {
   console.log('DashboardServices - serversData:', serversData);
   console.log('DashboardServices - user:', user);
 
+<<<<<<< HEAD
   const GameIcon = ({ game }: { game: string }) => {
     const [imageError, setImageError] = useState(false);
     
@@ -201,6 +201,8 @@ const DashboardServices = () => {
     }
   };
 
+=======
+>>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Fantasy Forest Background */}
@@ -238,11 +240,12 @@ const DashboardServices = () => {
 
           {/* Servers Grid */}
           {serversData.loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
-              <p className="text-gray-400 mt-4">Loading your servers...</p>
+            <div className="grid gap-6">
+              {[...Array(3)].map((_, index) => (
+                <ServerCardSkeleton key={index} />
+              ))}
             </div>
-          ) : servers.length === 0 ? (
+          ) : serversData.servers.length === 0 ? (
             <div className="text-center py-12">
               <Server size={48} className="mx-auto text-gray-500 mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">No Servers Yet</h3>
@@ -252,154 +255,23 @@ const DashboardServices = () => {
                 className="inline-flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors"
               >
                 <Server size={20} />
-                <span>Deploy New Server</span>
+                <span>Create Your First Server</span>
               </Link>
             </div>
           ) : (
             <div className="grid gap-6">
-            {servers.map((server) => (
-              <div key={server.id} className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300">
-                {/* Server Header */}
-                <div className="p-6 border-b border-gray-600/30">
-                  <div className="flex items-center justify-between">
-                     <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-blue-500/20 rounded-xl flex items-center justify-center">
-                          <GameIcon game={server.game} />
-                        </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-1">{server.name}</h3>
-                        <p className="text-gray-400">{server.game} • {server.plan}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(server.status)}`}>
-                            {getStatusIcon(server.status)}
-                            <span className="ml-1 capitalize">{server.status}</span>
-                            {server.isLiveData && (
-                              <span className="ml-1 text-emerald-400">●</span>
-                            )}
-                          </span>
-                          <span className="text-sm text-gray-400">{server.location}</span>
-                          <BundleBadge bundleId={server.bundle} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors">
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Server Stats */}
-                <div className="p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-1">{server.players}</div>
-                      <div className="text-sm text-gray-400">Players</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-1">{server.cpu}</div>
-                      <div className="text-sm text-gray-400">CPU Usage</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-1">{server.ram}</div>
-                      <div className="text-sm text-gray-400">RAM Usage</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white mb-1">{server.uptime}</div>
-                      <div className="text-sm text-gray-400">Uptime</div>
-                    </div>
-                  </div>
-
-                  {/* Server Info */}
-                  <div className="grid md:grid-cols-2 gap-4 mb-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Server IP:</span>
-                        <span className="text-white font-mono">{server.ip}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Storage:</span>
-                        <span className="text-white">{server.storage}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Last Backup:</span>
-                        <span className="text-white">{server.lastBackup}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Location:</span>
-                        <span className="text-white">{server.location}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-3">
-                    {server.status === 'online' ? (
-                      <button 
-                        onClick={() => handleServerAction(server.id, 'stop', server.name)}
-                        disabled={serverOperations[server.id]}
-                        className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        <PowerOff size={16} />
-                        <span>{serverOperations[server.id] ? 'Stopping...' : 'Stop Server'}</span>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => handleServerAction(server.id, 'start', server.name)}
-                        disabled={serverOperations[server.id]}
-                        className="flex items-center space-x-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        <Power size={16} />
-                        <span>{serverOperations[server.id] ? 'Starting...' : 'Start Server'}</span>
-                      </button>
-                    )}
-                    
-                    {server.pterodactylUrl ? (
-                      <a 
-                        href={server.pterodactylUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg transition-colors"
-                      >
-                        <Settings size={16} />
-                        <span>Game Panel</span>
-                      </a>
-                    ) : (
-                      <button className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors">
-                        <Settings size={16} />
-                        <span>Configure</span>
-                      </button>
-                    )}
-                    
-                    <button className="flex items-center space-x-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/30 px-4 py-2 rounded-lg transition-colors">
-                      <Database size={16} />
-                      <span>Backup</span>
-                    </button>
-                    
-                    <button className="flex items-center space-x-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 px-4 py-2 rounded-lg transition-colors">
-                      <Users size={16} />
-                      <span>Players</span>
-                    </button>
-                    
-                    <button 
-                      onClick={() => handleServerAction(server.id, 'console', server.name)}
-                      disabled={serverOperations[server.id]}
-                      className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-600/50 text-gray-300 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <Activity size={16} />
-                      <span>Console</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+            {serversData.servers.map((server) => (
+              <LiveServerCard 
+                key={server.id}
+                server={server}
+                onServerAction={handleServerAction}
+              />
             ))}
             </div>
           )}
 
-{/* Quick Actions */}
+
+          {/* Quick Actions */}
           <div className="mt-8 bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
             <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
