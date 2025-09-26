@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://id-preview---604d4088-a6f4-486c-a20c-2b363ac81d55.lovable.app',
+        'https://givrwrld.com',
         'http://localhost:5173',
         'https://givrwrldservers.com',
     ],

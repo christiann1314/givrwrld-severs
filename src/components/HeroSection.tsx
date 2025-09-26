@@ -69,7 +69,7 @@ const HeroSection = () => {
         <div className="space-y-6">
           <ServerCard
             game="Minecraft"
-            icon={<img src="/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Minecraft" className="w-8 h-8 rounded" />}
+            icon={<img src="/images/efe9d97d-94d9-4596-b1d7-99f242301c96.png" alt="Minecraft" className="w-8 h-8 rounded" />}
             title="Minecraft Server"
             description="Unlimited creativity"
             price="$3.99"
@@ -78,7 +78,7 @@ const HeroSection = () => {
           
           <ServerCard
             game="Rust"
-            icon={<img src="/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />}
+            icon={<img src="/images/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />}
             title="Rust Server"
             description="Survival multiplayer"
             price="$8.99"
@@ -87,7 +87,7 @@ const HeroSection = () => {
           
           <ServerCard
             game="Palworld"
-            icon={<img src="/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Palworld" className="w-8 h-8 rounded" />}
+            icon={<img src="/images/814df140-2c65-4cb3-bf50-c135fd795979.png" alt="Palworld" className="w-8 h-8 rounded" />}
             title="Palworld Server"
             description="Creature survival"
             price="$11.99"

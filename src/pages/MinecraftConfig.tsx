@@ -9,7 +9,7 @@ import minecraftWallpaper from '../assets/minecraft-gameplay-wallpaper.jpg';
 const MinecraftConfig = () => {
   const minecraftData = {
     name: 'Minecraft',
-    icon: <img src="/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png" alt="Minecraft" className="w-8 h-8 rounded" />,
+    icon: <img src="/images/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png" alt="Minecraft" className="w-8 h-8 rounded" />,
     basePrice: 3.99,
     features: [
       '99.9% uptime SLA',

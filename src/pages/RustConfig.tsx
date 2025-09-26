@@ -9,7 +9,7 @@ import rustWallpaper from '../assets/rust-wallpaper-hd.jpg';
 const RustConfig = () => {
   const rustData = {
     name: 'Rust',
-    icon: <img src="/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />,
+    icon: <img src="/images/fb115f3f-774a-4094-a15a-b21b90860c1c.png" alt="Rust" className="w-8 h-8 rounded" />,
     basePrice: 8.99,
     features: [
       '99.9% uptime SLA',

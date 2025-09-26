@@ -1,8 +1,10 @@
 
-import React from 'react';
+import * as React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import PanelAccess from '../components/PanelAccess';
+import ServerStats from '../components/ServerStats';
 import { useUserServers } from '../hooks/useUserServers';
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 import { useUserStats } from '../hooks/useUserStats';
@@ -67,12 +69,12 @@ const Dashboard = () => {
   // Game icon mapping based on game type
   const getGameIcon = (gameType: string) => {
     const gameIcons: { [key: string]: string } = {
-      'minecraft': '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
-      'palworld': '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
-      'rust': '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+    'minecraft': '/images/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png',
+    'palworld': '/images/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+    'rust': '/images/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
       // Add more game icons as needed
     };
-    return gameIcons[gameType.toLowerCase()] || '/lovable-uploads/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png';
+    return gameIcons[gameType.toLowerCase()] || '/images/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png';
   };
 
   // Format servers data for display
@@ -226,6 +228,14 @@ const Dashboard = () => {
                   <div className="text-gray-400 text-xs lg:text-sm">{stat.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* Panel Access and Server Stats */}
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-6 lg:mb-8">
+              <PanelAccess />
+              {servers.length > 0 && servers[0] && (
+                <ServerStats order={servers[0]} />
+              )}
             </div>
 
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">

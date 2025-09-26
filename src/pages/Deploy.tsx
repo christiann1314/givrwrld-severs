@@ -10,7 +10,7 @@ const Deploy = () => {
       id: 'minecraft',
       name: 'Minecraft',
       subtitle: 'Build, explore, survive',
-      image: '/lovable-uploads/efe9d97d-94d9-4596-b1d7-99f242301c96.png',
+      image: '/images/efe9d97d-94d9-4596-b1d7-99f242301c96.png',
       features: [
         'Up to 10',
         'Ryzen 9 5950X CPU',
@@ -19,13 +19,13 @@ const Deploy = () => {
       price: '$3.99',
       buttonText: 'Deploy Minecraft Server',
       buttonColor: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500',
-      configPath: '/configure/minecraft'
+      configPath: '/checkout/minecraft'
     },
     {
       id: 'rust',
       name: 'Rust',
       subtitle: 'Survival multiplayer game',
-      image: '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+      image: '/images/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
       features: [
         'Small to large servers',
         'Plugin & mod support',
@@ -34,13 +34,13 @@ const Deploy = () => {
       price: '$8.99',
       buttonText: 'Deploy Rust Server',
       buttonColor: 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500',
-      configPath: '/configure/rust'
+      configPath: '/checkout/rust'
     },
     {
       id: 'palworld',
       name: 'Palworld',
       subtitle: 'Creature collection survival',
-      image: '/lovable-uploads/814df140-2c65-4cb3-bf50-c135fd795979.png',
+      image: '/images/814df140-2c65-4cb3-bf50-c135fd795979.png',
       features: [
         '4-6 players',
         'Ryzen 9 5950X CPU',
@@ -49,7 +49,7 @@ const Deploy = () => {
       price: '$11.99',
       buttonText: 'Deploy Palworld Server',
       buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500',
-      configPath: '/configure/palworld'
+      configPath: '/checkout/palworld'
     }
   ];
 

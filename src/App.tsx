@@ -1,8 +1,10 @@
+import * as React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Success from "./pages/Success";
@@ -36,17 +38,19 @@ import DashboardServices from "./pages/DashboardServices";
 import DashboardSettings from "./pages/DashboardSettings";
 import DashboardBilling from "./pages/DashboardBilling";
 import Migration from "./pages/Migration";
+import Checkout from "./pages/Checkout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/login" element={<Auth />} />
@@ -63,6 +67,7 @@ const App = () => (
           <Route path="/configure/minecraft" element={<MinecraftConfig />} />
           <Route path="/configure/rust" element={<RustConfig />} />
           <Route path="/configure/palworld" element={<PalworldConfig />} />
+          <Route path="/checkout/:game" element={<Checkout />} />
           <Route path="/status" element={<Status />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -73,7 +78,6 @@ const App = () => (
           <Route path="/upgrade/community-pack" element={<CommunityPack />} />
           <Route path="/purchase-confirmed" element={<PurchaseConfirmed />} />
           <Route path="/purchase-success" element={<PurchaseSuccess />} />
-          <Route path="/success" element={<PurchaseSuccess />} />
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/dashboard/support" element={<ProtectedRoute><DashboardSupport /></ProtectedRoute>} />
@@ -85,9 +89,10 @@ const App = () => (
           <Route path="/migration" element={<Migration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

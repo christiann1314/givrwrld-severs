@@ -136,7 +136,7 @@ const Auth = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png")',
+          backgroundImage: 'url("/images/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/70 to-gray-900/90"></div>
@@ -155,7 +155,7 @@ const Auth = () => {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <img 
-                src="/lovable-uploads/9dd7d65a-1866-4205-bcbb-df3788eea144.png"
+                src="/images/9dd7d65a-1866-4205-bcbb-df3788eea144.png"
                 alt="GIVRwrld"
                 className="w-10 h-10 object-contain"
               />

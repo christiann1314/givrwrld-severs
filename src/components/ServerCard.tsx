@@ -40,7 +40,7 @@ const ServerCard: React.FC<ServerCardProps> = ({
   // Updated icon logic to use the new Palworld icon
   const getGameIcon = () => {
     if (game.toLowerCase() === 'palworld') {
-      return <img src="/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded object-cover" />;
+      return <img src="/images/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded object-cover" />;
     }
     return typeof icon === 'string' ? icon : icon;
   };

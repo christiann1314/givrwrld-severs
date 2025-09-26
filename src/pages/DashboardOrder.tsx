@@ -41,7 +41,7 @@ const DashboardOrder = () => {
     {
       name: 'Minecraft',
       description: 'Build, explore, survive',
-      image: '/lovable-uploads/4dfe2f3f-d550-4d2c-a88c-6e072277df93.png',
+      image: '/images/4dfe2f3f-d550-4d2c-a88c-6e072277df93.png',
       banner: minecraftBanner,
       configPath: '/configure/minecraft',
       features: [
@@ -80,7 +80,7 @@ const DashboardOrder = () => {
     {
       name: 'Rust',
       description: 'Survival multiplayer game',
-      image: '/lovable-uploads/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
+      image: '/images/fb115f3f-774a-4094-a15a-b21b90860c1c.png',
       banner: rustBanner,
       configPath: '/configure/rust',
       features: [
@@ -119,7 +119,7 @@ const DashboardOrder = () => {
     {
       name: 'Palworld',
       description: 'Creature collection survival',
-      image: '/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
+      image: '/images/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png',
       banner: palworldBanner,
       configPath: '/configure/palworld',
       features: [
@@ -278,7 +278,7 @@ const DashboardOrder = () => {
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url("/lovable-uploads/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
+          backgroundImage: 'url("/images/6da1a729-a66c-4bed-bc67-af6d75baa23a.png")',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>

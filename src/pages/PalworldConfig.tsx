@@ -9,7 +9,7 @@ import palworldWallpaper from '../assets/palworld-wallpaper-hd.jpg';
 const PalworldConfig = () => {
   const palworldData = {
     name: 'Palworld',
-    icon: <img src="/lovable-uploads/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded" />,
+    icon: <img src="/images/a7264f37-06a0-45bc-8cd0-62289aa4eff8.png" alt="Palworld" className="w-8 h-8 rounded" />,
     basePrice: 11.99,
     features: [
       '99.9% uptime SLA',

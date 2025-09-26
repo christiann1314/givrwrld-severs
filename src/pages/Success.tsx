@@ -1,227 +1,221 @@
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Server, CreditCard, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-import React from 'react';
-import { CheckCircle, Cpu, HardDrive, MapPin, ArrowRight, Loader } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import { useServerStatus } from '../hooks/useServerStatus';
-import { useUserServers } from '../hooks/useUserServers';
-import { useAuth } from '../hooks/useAuth';
+interface OrderDetails {
+  id: string;
+  plan_name: string;
+  ram: string;
+  cpu: string;
+  disk: string;
+  location: string;
+  game_type: string;
+  status: string;
+  created_at: string;
+  total_amount: number;
+}
 
 const Success = () => {
-  // Get authenticated user
-  const { user, isAuthenticated } = useAuth();
-  const userEmail = user?.email || null;
-  const { serverStatus, checkServerStatus } = useServerStatus(userEmail);
-  const { serversData } = useUserServers(userEmail);
-  
-  // Get the latest server specs from the user's servers
-  const latestServer = serversData.servers[0];
-  const serverSpecs = latestServer ? {
-    ram: latestServer.ram,
-    cpu: latestServer.cpu,
-    game: latestServer.game,
-    location: latestServer.location
-  } : {
-    ram: "1GB",
-    cpu: "0.5 vCPU", 
-    game: "Minecraft",
-    location: "US East"
-  };
-  const upgradePackages = [
-    {
-      name: "GIVRwrld Essentials",
-      price: "$6.99",
-      features: ["Complete server management toolkit", "Daily automatic backups", "Discord bridge integration", "Analytics dashboard"],
-      color: "emerald",
-      route: "/upgrade/givrwrld-essentials"
-    },
-    {
-      name: "Game Expansion Pack", 
-      price: "$14.99",
-      features: ["Cross-deploy to multiple game types", "Shared resource allocation", "Cross-game player management"],
-      color: "blue",
-      route: "/upgrade/game-expansion-pack"
-    },
-    {
-      name: "Community Pack",
-      price: "$4.99", 
-      features: ["Connect with creators", "Creator spotlights, dev blog access", "Priority support"],
-      color: "purple",
-      route: "/upgrade/community-pack"
-    }
-  ];
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getColorStyles = (color: string) => {
-    const styles = {
-      emerald: "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500",
-      blue: "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500", 
-      purple: "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500"
+  const sessionId = searchParams.get('session_id');
+  const plan = searchParams.get('plan');
+  const ram = searchParams.get('ram');
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        if (sessionId) {
+          // Fetch order details from Supabase
+          const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('stripe_session_id', sessionId)
+            .single();
+
+          if (error) {
+            console.error('Error fetching order:', error);
+            setError('Failed to load order details');
+          } else {
+            setOrderDetails(data);
+          }
+        } else {
+          // Fallback to URL params if no session ID
+          setOrderDetails({
+            id: 'pending',
+            plan_name: plan || 'Game Server',
+            ram: ram || '1GB',
+            cpu: '1 vCPU',
+            disk: '20GB',
+            location: 'US-East',
+            game_type: 'minecraft',
+            status: 'processing',
+            created_at: new Date().toISOString(),
+            total_amount: 0
+          });
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        setError('An error occurred while loading your order');
+      } finally {
+        setLoading(false);
+      }
     };
-    return styles[color as keyof typeof styles] || styles.emerald;
-  };
+
+    fetchOrderDetails();
+  }, [sessionId, plan, ram]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading your order details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <CheckCircle className="h-6 w-6" />
+              Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => navigate('/dashboard')} className="w-full">
+              Go to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Fantasy Forest Background */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url("/lovable-uploads/d7519b8a-ef97-4e1a-a24e-a446d044f2ac.png")',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-gray-900/90"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/20 via-transparent to-blue-900/20"></div>
-      </div>
-      
-      <div className="relative z-10">
-        <Header />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Success Header */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              {serverStatus.loading ? (
-                <Loader size={80} className="text-emerald-400 animate-spin" />
-              ) : (
-                <CheckCircle size={80} className="text-emerald-400" />
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-400 bg-clip-text text-transparent">
-                {serverStatus.hasServer ? "Welcome to GIVRwrld" : "Setting Up Your Server..."}
-              </span>
-            </h1>
-            <p className="text-xl text-gray-300 mb-8">
-              {serverStatus.hasServer 
-                ? "🎮 ⚡ Your server is live and ready! ⚡ 🎮"
-                : "⏳ Your payment was successful! We're provisioning your server..."
-              }
+            <CardTitle className="text-3xl font-bold text-white">
+              Payment Successful! 🎉
+            </CardTitle>
+            <p className="text-gray-300 mt-2">
+              Your server is being provisioned and will be ready shortly.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/dashboard"
-                className="inline-block bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25"
-              >
-                Access Your Dashboard
-              </Link>
-              <a
-                href="https://panel.givrwrldservers.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25"
-              >
-                Open Game Panel
-              </a>
-            </div>
-            
-            {!serverStatus.hasServer && (
-              <div className="flex justify-center items-center space-x-4">
-                <button
-                  onClick={checkServerStatus}
-                  className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Check Status
-                </button>
-                <p className="text-gray-400 text-sm">Usually takes 1-3 minutes</p>
-              </div>
-            )}
-          </div>
-
-          {/* Server Specs */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 mb-12">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <HardDrive className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">{serverSpecs.ram}</div>
-                <div className="text-gray-400 text-sm">RAM</div>
-              </div>
-              <div className="text-center">
-                <Cpu className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">{serverSpecs.cpu}</div>
-                <div className="text-gray-400 text-sm">CPU</div>
-              </div>
-              <div className="text-center">
-                <div className="text-emerald-400 mb-2 mx-auto text-2xl">🎮</div>
-                <div className="text-2xl font-bold text-white">{serverSpecs.game}</div>
-                <div className="text-gray-400 text-sm">Game</div>
-              </div>
-              <div className="text-center">
-                <MapPin className="text-emerald-400 mb-2 mx-auto" size={24} />
-                <div className="text-2xl font-bold text-white">{serverSpecs.location}</div>
-                <div className="text-gray-400 text-sm">Location</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Upgrade Experience Section */}
-          <div className="mb-12">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">🛠️ Upgrade Your Experience</h2>
-              <p className="text-gray-300">Take your gaming server to the next level with our premium add-ons</p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              {upgradePackages.map((pkg, index) => (
-                <div key={index} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl p-6 hover:border-emerald-500/50 transition-all duration-300">
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{pkg.name}</h3>
-                    <div className="text-3xl font-bold text-emerald-400 mb-4">{pkg.price}</div>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {orderDetails && (
+              <>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <Server className="h-5 w-5" />
+                    Server Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Plan:</span>
+                      <p className="text-white font-medium">{orderDetails.plan_name}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">RAM:</span>
+                      <p className="text-white font-medium">{orderDetails.ram}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">CPU:</span>
+                      <p className="text-white font-medium">{orderDetails.cpu}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Storage:</span>
+                      <p className="text-white font-medium">{orderDetails.disk}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Location:</span>
+                      <p className="text-white font-medium">{orderDetails.location}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Game:</span>
+                      <p className="text-white font-medium capitalize">{orderDetails.game_type}</p>
+                    </div>
                   </div>
-                  
-                  <ul className="space-y-3 mb-6">
-                    {pkg.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start space-x-2 text-gray-300 text-sm">
-                        <CheckCircle size={16} className="text-emerald-400 mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Link 
-                    to={pkg.route}
-                    className={`block w-full ${getColorStyles(pkg.color)} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg text-center`}
-                  >
-                    Upgrade Now
-                  </Link>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Server Identity Footer */}
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/30 rounded-xl p-6">
-            <h3 className="text-xl font-bold text-emerald-400 mb-4">🧩 Your GIVR Identity</h3>
-            <div className="grid md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-gray-400">Server Name:</span>
-                <div className="text-white font-medium">GIVRwrld-Server-MVXZ</div>
-              </div>
-              <div>
-                <span className="text-gray-400">GIVR ID:</span>
-                <div className="text-emerald-400 font-mono">GIVR-FTDB785E</div>
-              </div>
-              <div>
-                <span className="text-gray-400">Subdomain:</span>
-                <div className="text-white font-medium">mvxz.givr.world</div>
-              </div>
+                <div className="bg-white/5 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Order Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Order ID:</span>
+                      <span className="text-white font-mono">{orderDetails.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Status:</span>
+                      <span className="text-green-400 font-medium capitalize">{orderDetails.status}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Date:</span>
+                      <span className="text-white">
+                        {new Date(orderDetails.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {orderDetails.total_amount > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total:</span>
+                        <span className="text-white font-semibold">
+                          ${orderDetails.total_amount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4">
+              <h4 className="text-blue-300 font-semibold mb-2">What's Next?</h4>
+              <ul className="text-sm text-blue-200 space-y-1">
+                <li>• Your server is being automatically provisioned</li>
+                <li>• You'll receive an email with server details once ready</li>
+                <li>• Access your server through the dashboard</li>
+                <li>• Support is available 24/7 if you need help</li>
+              </ul>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-600/30">
-              <p className="text-gray-400 text-xs">
-                💡 You're now part of 2,000+ active GIVR instances
-              </p>
-            </div>
-            
-            <div className="mt-4">
-              <Link
-                to="/dashboard"
-                className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => navigate('/dashboard')} 
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
               >
-                📊 Manage Your Servers
-              </Link>
+                Go to Dashboard
+              </Button>
+              <Button 
+                onClick={() => navigate('/deploy')} 
+                variant="outline" 
+                className="flex-1 border-white/30 text-white hover:bg-white/10"
+              >
+                Deploy Another Server
+              </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
