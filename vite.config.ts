@@ -10,23 +10,11 @@ export default defineConfig({
   },
   plugins: [
     react(),
-<<<<<<< HEAD
   ],
-=======
-    mode === 'development' && componentTagger(),
-  ].filter(Boolean),
->>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-<<<<<<< HEAD
     dedupe: ['react', 'react-dom'],
-=======
-    dedupe: ["react", "react-dom", "react-router", "react-router-dom"],
-  },
-  optimizeDeps: {
-    include: ["react", "react-dom", "react-router", "react-router-dom"],
->>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
   },
 });
