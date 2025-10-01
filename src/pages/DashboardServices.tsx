@@ -110,8 +110,6 @@ const DashboardServices = () => {
   // Get servers from Supabase data
   console.log('DashboardServices - serversData:', serversData);
   console.log('DashboardServices - user:', user);
-
-<<<<<<< HEAD
   const GameIcon = ({ game }: { game: string }) => {
     const [imageError, setImageError] = useState(false);
     
@@ -201,8 +199,6 @@ const DashboardServices = () => {
     }
   };
 
-=======
->>>>>>> fbe4cec62cfebef6a387d2395acb20ca3aa5d0d0
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Fantasy Forest Background */}
@@ -217,8 +213,6 @@ const DashboardServices = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
-        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
           <div className="mb-6">

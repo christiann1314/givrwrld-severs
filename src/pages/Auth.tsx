@@ -13,7 +13,9 @@ const Auth = () => {
   const [formData, setFormData] = React.useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    firstName: '',
+    lastName: ''
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [passwordValidation, setPasswordValidation] = React.useState(validatePassword(''));
@@ -98,7 +100,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(formData.email, formData.password);
+        const { error } = await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
         if (error) {
           // Security: Record failed attempt
           recordAttempt(true);
@@ -236,6 +238,42 @@ const Auth = () => {
                 />
               </div>
             </div>
+
+            {/* First Name and Last Name fields - only show for signup */}
+            {!isLogin && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all"
+                      placeholder="John"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-2">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      className="w-full bg-gray-700/50 backdrop-blur-sm border border-gray-600/50 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-all"
+                      placeholder="Doe"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">

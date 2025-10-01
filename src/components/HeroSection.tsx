@@ -30,14 +30,6 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link to="/deploy" className="group bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25">
-              <div className="flex items-center justify-center space-x-2">
-                <Play size={20} />
-                <span>Start Your Server</span>
-                <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-              </div>
-            </Link>
-            
             <Link to="/about" className="bg-gray-800/60 backdrop-blur-sm hover:bg-gray-700/60 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 border border-gray-600/50 hover:border-emerald-500/50 text-center">
               Learn More
             </Link>

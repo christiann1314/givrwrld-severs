@@ -8,15 +8,12 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { Admin2FAManager } from '../components/Admin2FAManager';
 import { InitialAdminSetup } from '../components/InitialAdminSetup';
-import { SecurityAuditManager } from '../components/SecurityAuditManager';
-import { ErrorLogViewer } from '../components/ErrorLogViewer';
 import { 
   ArrowLeft, 
   User, 
   Mail, 
   Shield, 
   Bell, 
-  Globe,
   Key,
   Smartphone,
   Eye,
@@ -90,7 +87,6 @@ const DashboardSettings = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
@@ -150,17 +146,6 @@ const DashboardSettings = () => {
                     <span>Notifications</span>
                   </button>
                   <button
-                    onClick={() => setActiveTab('preferences')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === 'preferences'
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
-                    }`}
-                  >
-                    <Globe size={20} />
-                    <span>Preferences</span>
-                  </button>
-                  <button
                     onClick={() => setActiveTab('pterodactyl')}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       activeTab === 'pterodactyl'
@@ -170,28 +155,6 @@ const DashboardSettings = () => {
                   >
                     <Server size={20} />
                     <span>Pterodactyl Access</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('security-audit')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === 'security-audit'
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
-                    }`}
-                  >
-                    <Shield size={20} />
-                    <span>Security Audits</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('error-logs')}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === 'error-logs'
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700/30'
-                    }`}
-                  >
-                    <Shield size={20} />
-                    <span>Error Logs</span>
                   </button>
                 </nav>
               </div>
@@ -568,62 +531,6 @@ const DashboardSettings = () => {
                   </div>
                 )}
 
-                {/* Preferences Tab */}
-                {activeTab === 'preferences' && (
-                  <div>
-                    <h2 className="text-xl font-bold text-white mb-6">Account Preferences</h2>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-gray-300 mb-2">Timezone</label>
-                        <select className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
-                          <option value="UTC">UTC</option>
-                          <option value="EST">Eastern Standard Time</option>
-                          <option value="PST">Pacific Standard Time</option>
-                          <option value="GMT">Greenwich Mean Time</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-gray-300 mb-2">Language</label>
-                        <select className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
-                          <option value="en">English</option>
-                          <option value="es">Spanish</option>
-                          <option value="fr">French</option>
-                          <option value="de">German</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-gray-300 mb-2">Currency</label>
-                        <select className="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white focus:border-emerald-500 focus:outline-none">
-                          <option value="USD">USD - US Dollar</option>
-                          <option value="EUR">EUR - Euro</option>
-                          <option value="GBP">GBP - British Pound</option>
-                          <option value="CAD">CAD - Canadian Dollar</option>
-                        </select>
-                      </div>
-
-                      <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors">
-                        Save Preferences
-                      </button>
-                    </div>
-                   </div>
-                 )}
-
-                  {/* Security Audit Tab */}
-                  {activeTab === 'security-audit' && (
-                    <div>
-                      <SecurityAuditManager />
-                    </div>
-                  )}
-
-                  {/* Error Logs Tab */}
-                  {activeTab === 'error-logs' && (
-                    <div>
-                      <ErrorLogViewer />
-                    </div>
-                  )}
                </div>
              </div>
            </div>

@@ -1,23 +1,20 @@
 
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
-import PanelAccess from '../components/PanelAccess';
-import ServerStats from '../components/ServerStats';
 import { useUserServers } from '../hooks/useUserServers';
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 import { useUserStats } from '../hooks/useUserStats';
 import { useAuth } from '../hooks/useAuth';
+import { analytics } from '../services/analytics';
+import { useLiveServerData } from '../hooks/useLiveServerData';
+import { useLiveBillingData } from '../hooks/useLiveBillingData';
 import { 
   Server, 
   CreditCard, 
   Settings, 
   LifeBuoy, 
-  TrendingUp, 
-  Users,
   Activity,
-  Clock,
   Plus,
   ChevronRight,
   BarChart3,
@@ -56,6 +53,8 @@ const Dashboard = () => {
   const userEmail = user?.email || null;
   const { serversData } = useUserServers(userEmail);
   const { userStats } = useUserStats(userEmail);
+  const { data: liveServerData, refresh: refreshServers } = useLiveServerData(30000);
+  const { data: liveBillingData, refresh: refreshBilling } = useLiveBillingData(60000);
 
   // Show loading state when no user email
   if (!userEmail) {
@@ -77,58 +76,34 @@ const Dashboard = () => {
     return gameIcons[gameType.toLowerCase()] || '/images/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png';
   };
 
-  // Format servers data for display
-  const servers = serversData.servers.map(server => ({
-    ...server,
-    specs: `${server.ram} RAM • ${server.cpu} • ${server.location}`,
-    icon: "🎮",
-    gameIcon: getGameIcon(server.game_type || server.game) // Use game_type preferentially
-  }));
-
-  const stats = [
-    { label: "Active Servers", value: userStats.activeServers.toString(), icon: Server },
-    { label: "Total Spent", value: userStats.totalSpent, icon: CreditCard },
-    { label: "Support Tickets", value: userStats.supportTickets.toString(), icon: LifeBuoy },
-    { label: "Referrals", value: userStats.referrals.toString(), icon: Users }
-  ];
+  // Format servers data for display with live status
+  const servers = serversData.servers.map(server => {
+    // Get live status from live data if available
+    const liveServer = liveServerData?.servers?.find(s => s.id === server.id);
+    const liveStatus = liveServer?.status || server.status;
+    const livePlayers = liveServer?.players || 0;
+    const liveMaxPlayers = liveServer?.maxPlayers || 20;
+    
+    return {
+      ...server,
+      status: liveStatus, // Use live status
+      players: livePlayers, // Use live player count
+      maxPlayers: liveMaxPlayers, // Use live max players
+      specs: `${server.ram} RAM • ${server.cpu} • ${server.location}`,
+      icon: "🎮",
+      gameIcon: getGameIcon(server.game_type || server.game) // Use game_type preferentially
+    };
+  });
 
   const quickActions = [
     { title: "Order New Server", icon: Plus, color: "emerald", link: "/dashboard/order" },
-    { title: "View Last Purchase", icon: CreditCard, color: "blue", link: "/success" },
+    { title: "View Billing", icon: CreditCard, color: "blue", link: "/dashboard/billing" },
     { title: "Create Support Ticket", icon: LifeBuoy, color: "gray", link: "/dashboard/support" },
     { title: "View Affiliate Program", icon: UserPlus, color: "purple", link: "/dashboard/affiliate" }
   ];
 
-  const recentActivity = [
-    { 
-      title: "Server Started", 
-      description: "Palworld HQ server was started", 
-      time: "2 hours ago",
-      type: "success"
-    },
-    { 
-      title: "Payment Processed", 
-      description: "Monthly billing for $24.99", 
-      time: "1 day ago",
-      type: "info"
-    },
-    { 
-      title: "Backup Created", 
-      description: "Automatic backup completed", 
-      time: "2 days ago",
-      type: "success"
-    },
-    { 
-      title: "Server Upgraded", 
-      description: "RAM upgraded to 8GB", 
-      time: "1 week ago",
-      type: "info"
-    }
-  ];
-
   const sidebarItems = [
     { name: "Overview", icon: BarChart3, link: "/dashboard", active: true },
-    { name: "My Services", icon: Server, link: "/dashboard/services" },
     { name: "Billing", icon: CreditCard, link: "/dashboard/billing" },
     { name: "Support", icon: HeadphonesIcon, link: "/dashboard/support" },
     { name: "Affiliate", icon: Users, link: "/dashboard/affiliate" },
@@ -150,8 +125,6 @@ const Dashboard = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
-        
         <div className="flex relative">
           {/* Mobile Sidebar Overlay */}
           {sidebarOpen && (
@@ -219,39 +192,108 @@ const Dashboard = () => {
               <Menu size={20} />
             </button>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="glass-panel rounded-xl p-4 lg:p-6 text-center">
-                  <stat.icon className="mx-auto mb-2 lg:mb-3 text-emerald-400" size={24} />
-                  <div className="text-lg lg:text-2xl font-bold text-white mb-1">{stat.value}</div>
-                  <div className="text-gray-400 text-xs lg:text-sm">{stat.label}</div>
+            {/* Welcome Section */}
+            <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                    Welcome back, {user?.username || 'User'}!
+                  </h1>
+                  <p className="text-gray-300 text-lg">
+                    Manage your servers, billing, and account settings
+                  </p>
+                  <div className="mt-2 text-sm text-emerald-400">
+                    🚀 Live Data Active - Last Updated: {new Date().toLocaleTimeString()}
+                  </div>
                 </div>
-              ))}
+                <div className="hidden lg:flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-emerald-400">{liveServerData?.onlineServers || servers.length}</div>
+                    <div className="text-gray-400 text-sm">Online Servers</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-400">${liveBillingData?.totalRevenue?.toFixed(2) || userStats?.totalSpent || '0.00'}</div>
+                    <div className="text-gray-400 text-sm">Total Spent</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Panel Access and Server Stats */}
-            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-6 lg:mb-8">
-              <PanelAccess />
-              {servers.length > 0 && servers[0] && (
-                <ServerStats order={servers[0]} />
-              )}
-            </div>
+            {/* Server Status */}
+            {servers.length > 0 ? (
+              <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white flex items-center">
+                    <Server className="mr-3 text-emerald-400" size={24} />
+                    Your Servers
+                  </h2>
+                  <button
+                    onClick={() => refreshServers()}
+                    className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg transition-colors text-sm"
+                  >
+                    Refresh Status
+                  </button>
+                </div>
+                <div className="grid gap-4">
+                  {servers.map((server) => (
+                    <div key={server.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <ServerIcon server={server} />
+                        <div>
+                          <h3 className="text-white font-medium text-lg">{server.name}</h3>
+                          <p className="text-gray-400 text-sm">{server.game} • {server.players}/{server.maxPlayers} players</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          server.status === 'online' 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {server.status.toUpperCase()}
+                        </span>
+                        <button 
+                          onClick={() => {
+                            analytics.trackGamePanelAccess(user?.id || '', server.id);
+                            window.open(server.pterodactylUrl || `https://panel.givrwrldservers.com/server/${server.pterodactyl_server_id}`, '_blank');
+                          }}
+                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          Game Panel
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8 text-center">
+                <Server className="mx-auto mb-4 text-gray-400" size={48} />
+                <h2 className="text-xl font-bold text-white mb-2">No Servers Yet</h2>
+                <p className="text-gray-400 mb-6">Get started by ordering your first game server</p>
+                <Link 
+                  to="/dashboard/order"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center"
+                >
+                  <ShoppingCart className="mr-2" size={20} />
+                  Order Services
+                </Link>
+              </div>
+            )}
 
+            {/* Quick Actions */}
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-              {/* Quick Actions */}
-              <div className="glass-panel-strong rounded-xl p-4 lg:p-6">
-                <div className="flex items-center mb-4 lg:mb-6">
-                  <Activity className="text-emerald-400 mr-3" size={20} />
-                  <h2 className="text-lg lg:text-xl font-bold text-white">Quick Actions</h2>
-                </div>
-                
+              <div className="glass-panel-strong rounded-xl p-6 lg:p-8">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <Activity className="mr-3 text-emerald-400" size={24} />
+                  Quick Actions
+                </h2>
                 <div className="space-y-3">
                   {quickActions.map((action, index) => (
                     <Link
                       key={index}
                       to={action.link}
-                      className="flex items-center justify-between p-3 lg:p-4 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
+                      className="flex items-center justify-between p-4 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
                     >
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded-lg ${
@@ -260,36 +302,39 @@ const Dashboard = () => {
                           action.color === 'blue' ? 'bg-blue-500/20 text-blue-400' :
                           'bg-gray-500/20 text-gray-400'
                         }`}>
-                          <action.icon size={16} />
+                          <action.icon size={20} />
                         </div>
-                        <span className="text-white font-medium text-sm lg:text-base">{action.title}</span>
+                        <span className="text-white font-medium">{action.title}</span>
                       </div>
-                      <ChevronRight className="text-gray-400 group-hover:text-white transition-colors" size={16} />
+                      <ChevronRight className="text-gray-400 group-hover:text-white transition-colors" size={20} />
                     </Link>
                   ))}
                 </div>
               </div>
 
-              {/* Recent Activity */}
-              <div className="glass-panel-strong rounded-xl p-4 lg:p-6">
-                <div className="flex items-center mb-4 lg:mb-6">
-                  <Clock className="text-emerald-400 mr-3" size={20} />
-                  <h2 className="text-lg lg:text-xl font-bold text-white">Recent Activity</h2>
-                </div>
-                
+              {/* Account Summary */}
+              <div className="glass-panel-strong rounded-xl p-6 lg:p-8">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center">
+                  <BarChart3 className="mr-3 text-emerald-400" size={24} />
+                  Account Summary
+                </h2>
                 <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                        activity.type === 'success' ? 'bg-emerald-400' : 'bg-blue-400'
-                      }`}></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white font-medium text-sm">{activity.title}</div>
-                        <div className="text-gray-400 text-xs truncate">{activity.description}</div>
-                        <div className="text-gray-500 text-xs mt-1">{activity.time}</div>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
+                    <span className="text-gray-300">Total Spent</span>
+                    <span className="text-white font-bold">${liveBillingData?.totalRevenue?.toFixed(2) || userStats?.totalSpent || '0.00'}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
+                    <span className="text-gray-300">Online Servers</span>
+                    <span className="text-white font-bold">{liveServerData?.onlineServers || servers.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
+                    <span className="text-gray-300">Support Tickets</span>
+                    <span className="text-white font-bold">{userStats?.supportTickets || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
+                    <span className="text-gray-300">Referrals</span>
+                    <span className="text-white font-bold">{userStats?.referrals || 0}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -332,16 +377,13 @@ const Dashboard = () => {
                           href={server.pterodactylUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            analytics.trackGamePanelAccess(user?.id || '', server.id);
+                          }}
                           className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 hover:text-emerald-300 px-3 py-1 rounded-lg text-sm font-medium transition-colors border border-emerald-500/30"
                         >
                           Game Panel
                         </a>
-                        <Link 
-                          to="/dashboard/services"
-                          className="text-emerald-400 hover:text-emerald-300 text-sm font-medium"
-                        >
-                          Manage
-                        </Link>
                       </div>
                     </div>
                   </div>

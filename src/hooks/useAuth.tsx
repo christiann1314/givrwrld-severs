@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { analytics } from '@/services/analytics';
 
 export const useAuth = () => {
   console.log('useAuth hook called...');
@@ -32,7 +33,7 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
     // Security: Validate input parameters
     if (!email || !password) {
       return { error: { message: 'Email and password are required' } };
@@ -42,12 +43,19 @@ export const useAuth = () => {
     const sanitizedEmail = email.trim().toLowerCase();
     
     const redirectUrl = `${window.location.origin}/`;
+    const fullName = firstName && lastName ? `${firstName} ${lastName}`.trim() : '';
     
     const { data, error } = await supabase.auth.signUp({
       email: sanitizedEmail,
       password,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: redirectUrl,
+        data: {
+          first_name: firstName || '',
+          last_name: lastName || '',
+          full_name: fullName,
+          display_name: fullName || email.split('@')[0]
+        }
       }
     });
 
@@ -58,8 +66,15 @@ export const useAuth = () => {
           body: {
             userId: data.user.id,
             email: data.user.email,
-            displayName: email.split('@')[0] // Default display name
+            displayName: fullName || email.split('@')[0] // Use full name if available
           }
+        });
+        
+        // Track user registration
+        await analytics.trackUserRegistration({
+          email: data.user.email,
+          first_name: firstName,
+          last_name: lastName
         });
       } catch (pterodactylError) {
         console.error('Failed to create Pterodactyl user:', pterodactylError);
@@ -90,6 +105,8 @@ export const useAuth = () => {
         const { data: userData } = await supabase.auth.getUser();
         const uid = userData?.user?.id;
         if (uid) {
+          // Track user login
+          await analytics.trackUserLogin(uid);
           await supabase.functions.invoke('create-pterodactyl-user', {
             body: {
               userId: uid,

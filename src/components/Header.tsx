@@ -125,7 +125,12 @@ const Header = () => {
                   {user ? (
                     <>
                       <div className="px-4 py-2 text-gray-300 border-b border-gray-600/50">
-                        <div className="text-sm font-medium text-white">{user.email}</div>
+                        <div className="text-sm font-medium text-white">
+                          {user.user_metadata?.full_name || user.user_metadata?.first_name && user.user_metadata?.last_name 
+                            ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`.trim()
+                            : user.email?.split('@')[0] || 'User'
+                          }
+                        </div>
                         <div className="text-xs text-gray-400">Signed in</div>
                       </div>
                       <Link to="/dashboard" className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-emerald-500/10 transition-colors">
