@@ -86,13 +86,6 @@ const HeroSection = () => {
             buttonColor="emerald"
           />
 
-          {/* Configure Server Bar */}
-          <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 rounded-lg p-4 mt-6">
-            <Link to="/deploy" className="w-full flex items-center justify-between text-white hover:text-emerald-400 transition-colors group">
-              <span className="font-medium">Configure Your Server</span>
-              <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
         </div>
       </div>
     </div>
