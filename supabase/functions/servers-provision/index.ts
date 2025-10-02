@@ -1,6 +1,62 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { getGameConfig } from '../../src/config/gameConfigs.ts'
+// Game configuration inline for now
+const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number; ssd_gb: number }) => {
+  const configs = {
+    minecraft: {
+      eggId: 1, // Update with your actual Minecraft egg ID
+      dockerImage: 'ghcr.io/pterodactyl/yolks:java_17',
+      startup: 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}',
+      environment: {
+        SERVER_JARFILE: 'server.jar',
+        VERSION: 'latest'
+      },
+      limits: {
+        memory: resources.ram_gb * 1024,
+        swap: 0,
+        disk: resources.ssd_gb * 1024,
+        io: 500,
+        cpu: resources.vcores * 100
+      }
+    },
+    rust: {
+      eggId: 2, // Update with your actual Rust egg ID
+      dockerImage: 'ghcr.io/pterodactyl/games:rust',
+      startup: './RustDedicated -batchmode +server.port {{SERVER_PORT}} +server.identity "rust" +rcon.port {{RCON_PORT}} +rcon.web true +server.hostname "{{HOSTNAME}}" +server.level "{{LEVEL}}" +server.description "{{DESCRIPTION}}" +server.url "{{SERVER_URL}}" +server.headerimage "{{SERVER_IMG}}" +server.maxplayers {{MAX_PLAYERS}} +rcon.password "{{RCON_PASS}}" +server.saveinterval {{SAVEINTERVAL}} {{ADDITIONAL_ARGS}}',
+      environment: {
+        HOSTNAME: 'GIVRwrld Rust Server',
+        LEVEL: 'Procedural Map',
+        DESCRIPTION: 'Powered by GIVRwrld',
+        MAX_PLAYERS: '100'
+      },
+      limits: {
+        memory: resources.ram_gb * 1024,
+        swap: 0,
+        disk: resources.ssd_gb * 1024,
+        io: 500,
+        cpu: resources.vcores * 100
+      }
+    },
+    palworld: {
+      eggId: 3, // Update with your actual Palworld egg ID
+      dockerImage: 'ghcr.io/pterodactyl/games:palworld',
+      startup: './PalServer.sh',
+      environment: {
+        SERVER_NAME: 'GIVRwrld Palworld Server',
+        MAX_PLAYERS: '32'
+      },
+      limits: {
+        memory: resources.ram_gb * 1024,
+        swap: 0,
+        disk: resources.ssd_gb * 1024,
+        io: 500,
+        cpu: resources.vcores * 100
+      }
+    }
+  }
+  
+  return configs[game as keyof typeof configs] || configs.minecraft
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,9 +64,7 @@ const corsHeaders = {
 }
 
 interface ProvisionRequest {
-  user_id: string;
-  plan_id: string;
-  region: string;
+  order_id: string;
 }
 
 serve(async (req) => {
@@ -20,36 +74,48 @@ serve(async (req) => {
   }
 
   try {
-    const { user_id, plan_id, region }: ProvisionRequest = await req.json()
+    const { order_id }: ProvisionRequest = await req.json()
 
-    if (!user_id || !plan_id || !region) {
+    if (!order_id) {
       return new Response(
-        JSON.stringify({ error: 'user_id, plan_id, and region are required' }),
+        JSON.stringify({ error: 'order_id is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get plan details
-    const { data: plan, error: planError } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('id', plan_id)
+    // Get order details with plan and user info
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        plans (*)
+      `)
+      .eq('id', order_id)
+      .eq('status', 'paid')
       .single()
 
-    if (planError || !plan) {
-      throw new Error(`Plan not found: ${plan_id}`)
+    if (orderError || !order) {
+      throw new Error(`Order not found or not paid: ${order_id}`)
     }
+
+    const plan = order.plans
+
+    // Update order status to provisioning
+    await supabase
+      .from('orders')
+      .update({ status: 'provisioning' })
+      .eq('id', order_id)
 
     // Get user's external account
     const { data: externalAccount, error: accountError } = await supabase
       .from('external_accounts')
       .select('*')
-      .eq('user_id', user_id)
+      .eq('user_id', order.user_id)
       .single()
 
     if (accountError || !externalAccount) {
@@ -60,11 +126,11 @@ serve(async (req) => {
     const { data: nodes, error: nodesError } = await supabase
       .from('ptero_nodes')
       .select('*')
-      .eq('region', region)
+      .eq('region', order.region)
       .eq('enabled', true)
 
     if (nodesError || !nodes || nodes.length === 0) {
-      throw new Error(`No available nodes in region: ${region}`)
+      throw new Error(`No available nodes in region: ${order.region}`)
     }
 
     // Calculate available capacity for each node
@@ -130,8 +196,8 @@ serve(async (req) => {
 
     // Create server in Pterodactyl
     const serverData = {
-      name: `${plan.game}-${user_id.slice(0, 8)}`,
-      description: `GIVRwrld ${plan.game} server`,
+      name: order.server_name,
+      description: `GIVRwrld ${plan.game} server for ${order.server_name}`,
       user: externalAccount.pterodactyl_user_id,
       egg: gameConfig.eggId,
       docker_image: gameConfig.dockerImage,
@@ -175,9 +241,7 @@ serve(async (req) => {
         pterodactyl_server_identifier: serverIdentifier,
         node_id: bestNode.id
       })
-      .eq('user_id', user_id)
-      .eq('plan_id', plan_id)
-      .eq('status', 'paid')
+      .eq('id', order_id)
 
     if (updateError) {
       console.error('Error updating order:', updateError)

@@ -59,16 +59,23 @@ serve(async (req) => {
           // Get subscription details
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
           
-          // Create order record
-          const { error: orderError } = await supabase
+          // Create order record with new schema
+          const { data: order, error: orderError } = await supabase
             .from('orders')
             .insert({
               user_id: session.metadata.user_id,
+              item_type: session.metadata.item_type,
               plan_id: session.metadata.plan_id,
-              stripe_sub_id: subscription.id,
-              status: 'paid',
+              term: session.metadata.term,
               region: session.metadata.region,
+              server_name: session.metadata.server_name,
+              modpack_id: session.metadata.modpack_id || null,
+              addons: JSON.parse(session.metadata.addons || '[]'),
+              stripe_sub_id: subscription.id,
+              status: 'paid'
             })
+            .select()
+            .single()
 
           if (orderError) {
             console.error('Error creating order:', orderError)
@@ -83,7 +90,7 @@ serve(async (req) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  content: `✅ New order: plan=${session.metadata.plan_id} user=${session.metadata.user_id} region=${session.metadata.region}`
+                  content: `✅ New order: ${session.metadata.item_type} ${session.metadata.plan_id} for ${session.metadata.server_name} in ${session.metadata.region}`
                 })
               })
             } catch (alertError) {
@@ -91,23 +98,23 @@ serve(async (req) => {
             }
           }
 
-          // Trigger server provisioning
-          try {
-            const functionsUrl = Deno.env.get('SUPABASE_URL')!.replace('https://', 'https://').replace('.supabase.co', '.functions.supabase.co')
-            await fetch(`${functionsUrl}/servers-provision`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${supabaseServiceKey}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                user_id: session.metadata.user_id,
-                plan_id: session.metadata.plan_id,
-                region: session.metadata.region
+          // Trigger server provisioning for game servers
+          if (session.metadata.item_type === 'game') {
+            try {
+              const functionsUrl = Deno.env.get('SUPABASE_URL')!.replace('https://', 'https://').replace('.supabase.co', '.functions.supabase.co')
+              await fetch(`${functionsUrl}/servers-provision`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  order_id: order.id
+                })
               })
-            })
-          } catch (provisionError) {
-            console.error('Failed to trigger server provisioning:', provisionError)
+            } catch (provisionError) {
+              console.error('Failed to trigger server provisioning:', provisionError)
+            }
           }
         }
         break
