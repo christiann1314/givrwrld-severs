@@ -90,6 +90,19 @@ const FeaturesSection = () => {
         })}
       </div>
 
+      {/* Call to Action */}
+      <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8 text-center">
+        <h3 className="text-2xl font-bold text-white mb-4">
+          Ready to start your gaming server?
+        </h3>
+        <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
+          Launch your custom game server in minutes with our simple setup process. 
+          High performance, low latency, and 24/7 support included.
+        </p>
+        <Link to="/deploy" className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 inline-block">
+          Start Your Server
+        </Link>
+      </div>
     </section>
   );
 };
