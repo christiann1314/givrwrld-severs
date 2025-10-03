@@ -18,7 +18,7 @@ const Deploy = () => {
       price: '$3.99',
       buttonText: 'Deploy Minecraft Server',
       buttonColor: 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500',
-      configPath: '/checkout/minecraft'
+      configPath: '/configure/minecraft'
     },
     {
       id: 'rust',
@@ -33,7 +33,7 @@ const Deploy = () => {
       price: '$8.99',
       buttonText: 'Deploy Rust Server',
       buttonColor: 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500',
-      configPath: '/checkout/rust'
+      configPath: '/configure/rust'
     },
     {
       id: 'palworld',
@@ -48,7 +48,7 @@ const Deploy = () => {
       price: '$11.99',
       buttonText: 'Deploy Palworld Server',
       buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500',
-      configPath: '/checkout/palworld'
+      configPath: '/configure/palworld'
     }
   ];
 

@@ -52,7 +52,7 @@ const App = () => (
                 <Route path="/deploy" element={<Deploy />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/checkout/:game" element={<Checkout />} />
+                {/* Checkout routes removed - using configure pages instead */}
                 <Route path="/success" element={<Success />} />
                 <Route path="/status" element={<Status />} />
                 <Route path="/support" element={<Support />} />
