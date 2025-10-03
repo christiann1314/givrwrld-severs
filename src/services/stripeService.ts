@@ -15,7 +15,6 @@ export interface CheckoutSessionData {
 
 export interface CheckoutSessionResponse {
   checkout_url: string;
-  session_id: string;
 }
 
 export const stripeService = {
@@ -35,10 +34,12 @@ export const stripeService = {
       throw new Error(error.message || 'Failed to create checkout session');
     }
 
-    if (!response?.checkout_url) {
+    // Function returns { url }. Normalize to { checkout_url }
+    const checkoutUrl = (response as any)?.url || (response as any)?.checkout_url;
+    if (!checkoutUrl) {
       throw new Error('No checkout URL received from server');
     }
 
-    return response;
+    return { checkout_url: checkoutUrl };
   }
 };

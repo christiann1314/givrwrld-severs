@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Sensitive files with API keys
+create-stripe-products.js
+get-price-ids.js
+*.ps1
