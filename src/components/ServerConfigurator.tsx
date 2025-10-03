@@ -204,22 +204,13 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
         .map(([key, _]) => key);
       
       await createCheckoutSession({
-        plan_name: `${gameData.name} - ${selectedPlan.ram}`,
-        amount: calculateTotal(),
-        ram: selectedPlan.ram,
-        cpu: selectedPlan.cpu,
-        disk: selectedPlan.disk,
-        location: location,
+        item_type: 'game',
+        plan_id: selectedPlan.id,
+        region: location,
         server_name: serverName,
-        game_type: gameType,
-        bundle_id: selectedBundle,
-        bundle_env: bundleEnv,
-        addon_ids: enabledAddons,
-        modpack_id: selectedModpack.key === 'vanilla' ? null : selectedModpack.key,
-        billing_term: billingPeriod,
-        ...(selectedBundle === 'essentials' && {
-          bundle_limits_patch: { "feature_limits": { "backups": 7 } }
-        }),
+        modpack_id: selectedModpack.key === 'vanilla' ? undefined : selectedModpack.key,
+        term: billingPeriod,
+        addons: enabledAddons,
         success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
         cancel_url: `${window.location.origin}/dashboard`,
       });

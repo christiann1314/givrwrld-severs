@@ -33,10 +33,10 @@ const MinecraftConfig = () => {
       { key: 'custom', name: 'Custom Modpack', description: 'Upload your own modpack', surcharge: 2.99 }
     ],
     planOptions: [
-      { ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, description: 'Perfect for small groups and testing' },
-      { ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 6.99, description: 'Great for friends and small communities' },
-      { ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 13.99, description: 'Ideal for medium-sized servers with mods', recommended: true },
-      { ram: '8GB', cpu: '4 vCPU', disk: '80GB SSD', price: 27.99, description: 'Perfect for large communities and heavy modpacks' },
+      { id: 'minecraft-1gb', ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, description: 'Perfect for small groups and testing' },
+      { id: 'minecraft-2gb', ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 6.99, description: 'Great for friends and small communities' },
+      { id: 'minecraft-4gb', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 13.99, description: 'Ideal for medium-sized servers with mods', recommended: true },
+      { id: 'minecraft-8gb', ram: '8GB', cpu: '4 vCPU', disk: '80GB SSD', price: 27.99, description: 'Perfect for large communities and heavy modpacks' },
     ]
   };
 

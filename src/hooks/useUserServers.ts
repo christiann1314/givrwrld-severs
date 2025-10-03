@@ -68,14 +68,15 @@ export const useUserServers = (userEmail?: string) => {
       console.log('🔍 Fetching servers from Supabase for user:', user.id);
       
       const { data: sbServers, error } = await supabase
-        .from('user_servers')
+        .from('orders')
         .select(`
           *,
           pterodactyl_server_id,
-          pterodactyl_server_identifier:pterodactyl_server_id
+          pterodactyl_server_identifier
         `)
         .eq('user_id', user.id)
-        .neq('status', 'deleted');
+        .eq('item_type', 'game')
+        .in('status', ['paid', 'provisioned', 'active']);
 
       if (error) {
         console.error('Error fetching user servers from Supabase:', error);
@@ -85,25 +86,30 @@ export const useUserServers = (userEmail?: string) => {
 
       console.log('📊 Raw server data from Supabase:', sbServers);
 
-      const formattedServers = (sbServers || []).map((server: any) => ({
-        id: server.id,
-        name: server.server_name,
-        server_name: server.server_name,
-        game: server.game_type,
-        game_type: server.game_type,
-        status: server.status,
-        ram: server.ram,
-        cpu: server.cpu,
-        disk: server.disk,
-        location: server.location,
-        ip: server.ip,
-        port: server.port,
-        pterodactylUrl: server.pterodactyl_url || '',
-        pterodactyl_url: server.pterodactyl_url || '',
-        pterodactyl_server_id: server.pterodactyl_server_id,
-        pterodactyl_server_identifier: server.pterodactyl_server_id?.toString() || null,
-        bundle_id: server.bundle_id || 'none',
-        live_stats: server.live_stats || {}
+      const formattedServers = (sbServers || []).map((order: any) => ({
+        id: order.id,
+        name: order.server_name,
+        server_name: order.server_name,
+        game: order.plan_id?.split('-')[0] || 'unknown', // Extract game from plan_id like 'minecraft-4gb'
+        game_type: order.plan_id?.split('-')[0] || 'unknown',
+        status: order.status,
+        ram: order.plan_id?.includes('1gb') ? '1GB' : 
+             order.plan_id?.includes('2gb') ? '2GB' :
+             order.plan_id?.includes('4gb') ? '4GB' :
+             order.plan_id?.includes('8gb') ? '8GB' :
+             order.plan_id?.includes('12gb') ? '12GB' :
+             order.plan_id?.includes('16gb') ? '16GB' : 'Unknown',
+        cpu: '2 vCPU', // Default CPU
+        disk: '40GB SSD', // Default disk
+        location: order.region,
+        ip: order.pterodactyl_server_identifier ? `server-${order.pterodactyl_server_identifier}.givrwrldservers.com` : '',
+        port: order.pterodactyl_server_identifier ? '25565' : '',
+        pterodactylUrl: order.pterodactyl_server_identifier ? `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : '',
+        pterodactyl_url: order.pterodactyl_server_identifier ? `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : '',
+        pterodactyl_server_id: order.pterodactyl_server_id,
+        pterodactyl_server_identifier: order.pterodactyl_server_identifier,
+        bundle_id: 'none',
+        live_stats: {}
       }));
 
       console.log('🎮 Formatted servers for display:', formattedServers);
@@ -149,7 +155,7 @@ export const useUserServers = (userEmail?: string) => {
           {
             event: '*',
             schema: 'public',
-            table: 'user_servers',
+            table: 'orders',
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {

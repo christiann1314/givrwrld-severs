@@ -2,23 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CheckoutSessionData {
-  price_id?: string;
-  plan_name?: string;
-  amount?: number;
-  ram?: string;
-  cpu?: string;
-  disk?: string;
-  location?: string;
+  item_type: 'game' | 'vps';
+  plan_id: string;
+  region: string;
+  server_name: string;
+  modpack_id?: string;
+  term: 'monthly' | 'quarterly' | 'yearly';
+  addons?: string[];
   success_url?: string;
   cancel_url?: string;
-  bundle_id?: string;
-  bundle_env?: Record<string, string>;
-  bundle_limits_patch?: Record<string, any>;
-  server_name?: string;
-  game_type?: string;
-  addon_ids?: string[];
-  modpack_id?: string;
-  billing_term?: string;
 }
 
 export interface CheckoutSessionResponse {

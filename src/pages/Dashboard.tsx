@@ -6,6 +6,7 @@ import { useUserServers } from '../hooks/useUserServers';
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 import { useUserStats } from '../hooks/useUserStats';
 import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
 import { analytics } from '../services/analytics';
 import { useLiveServerData } from '../hooks/useLiveServerData';
 import { useLiveBillingData } from '../hooks/useLiveBillingData';
@@ -51,6 +52,7 @@ const Dashboard = () => {
   
   // Import useAuth to get authenticated user
   const { user } = useAuth();
+  const { profile } = useProfile();
   const userEmail = user?.email || null;
   const { serversData } = useUserServers(userEmail);
   const { userStats } = useUserStats(userEmail);
@@ -157,7 +159,7 @@ const Dashboard = () => {
               <div className="mb-6 lg:mb-8">
                 <h1 className="text-xl lg:text-2xl font-bold mb-2">
                   <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                    Welcome back, Christian
+                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || 'User'}
                   </span>
                 </h1>
                 <p className="text-gray-400 text-sm">Manage your servers, billing, and account settings</p>
@@ -198,7 +200,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                    Welcome back, {user?.username || 'User'}!
+                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || 'User'}!
                   </h1>
                   <p className="text-gray-300 text-lg">
                     Manage your servers, billing, and account settings
