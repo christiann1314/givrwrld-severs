@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { pterodactylService } from '@/services/pterodactylService';
 
 interface ServerData {
   id: string;
@@ -99,32 +100,8 @@ export const useLiveServerData = (refreshInterval: number = 30000) => {
           averageUptime
         });
       } else {
-        // Process real server data from orders table
-        const servers: ServerData[] = (userServers || []).map((order: any) => {
-          const game = order.plan_id?.split('-')[0] || 'unknown';
-          const ram = order.plan_id?.includes('1gb') ? '1GB' : 
-                     order.plan_id?.includes('2gb') ? '2GB' :
-                     order.plan_id?.includes('4gb') ? '4GB' :
-                     order.plan_id?.includes('8gb') ? '8GB' :
-                     order.plan_id?.includes('12gb') ? '12GB' :
-                     order.plan_id?.includes('16gb') ? '16GB' : '4GB';
-          
-          return {
-            id: order.id,
-            name: order.server_name,
-            game: game,
-            status: order.status === 'active' ? 'online' : 
-                   order.status === 'provisioned' ? 'starting' : 'offline',
-            players: 0, // Will be updated by live stats
-            maxPlayers: 20, // Default, will be updated by live stats
-            uptime: '99.9%', // Default, will be updated by live stats
-            pterodactylUrl: order.pterodactyl_server_identifier ? 
-              `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : 
-              `https://panel.givrwrldservers.com/server/${order.id}`,
-            specs: `${ram} RAM • 2 CPU Cores`,
-            lastSeen: order.updated_at || new Date().toISOString()
-          };
-        });
+        // Process real server data from orders table with Pterodactyl integration
+        const servers: ServerData[] = await pterodactylService.getEnhancedServerData(userServers || []);
 
         const totalServers = servers.length;
         const onlineServers = servers.filter(s => s.status === 'online').length;

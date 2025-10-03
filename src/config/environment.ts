@@ -21,6 +21,12 @@ export const config = {
   app: {
     name: import.meta.env.VITE_APP_NAME || 'GIVRWRLD Servers',
     url: import.meta.env.VITE_APP_URL || 'https://givrwrldservers.com'
+  },
+  
+  // Pterodactyl Configuration
+  pterodactyl: {
+    panelUrl: import.meta.env.VITE_PANEL_URL || 'https://panel.givrwrldservers.com',
+    clientKey: import.meta.env.VITE_PTERO_CLIENT_KEY || ''
   }
 };
 

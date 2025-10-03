@@ -42,11 +42,12 @@ export const useLiveBillingData = (refreshInterval: number = 60000) => {
     try {
       setError(null);
 
-      // Fetch user's billing data from Supabase
-      const { data: userBilling, error: billingError } = await supabase
-        .from('user_billing')
+      // Fetch user's billing data from Supabase (orders table)
+      const { data: userOrders, error: billingError } = await supabase
+        .from('orders')
         .select('*')
         .eq('user_id', user.id)
+        .eq('status', 'paid')
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -115,29 +116,27 @@ export const useLiveBillingData = (refreshInterval: number = 60000) => {
           upcomingInvoices: mockInvoices
         });
       } else {
-        // Process real billing data
-        const payments: Payment[] = (userBilling || []).map(bill => ({
-          id: bill.id,
-          amount: bill.amount,
-          currency: bill.currency || 'USD',
-          status: bill.status as Payment['status'],
-          description: bill.description,
-          date: bill.created_at,
-          paymentMethod: bill.payment_method || 'card'
+        // Process real billing data from orders table
+        const payments: Payment[] = (userOrders || []).map((order: any) => ({
+          id: order.id,
+          amount: order.total_amount || 0,
+          currency: 'USD',
+          status: 'succeeded' as Payment['status'],
+          description: `${order.server_name} - ${order.plan_id} - ${order.term}`,
+          date: order.created_at,
+          paymentMethod: 'card'
         }));
 
-        const totalRevenue = payments
-          .filter(p => p.status === 'succeeded')
-          .reduce((sum, p) => sum + p.amount, 0);
+        const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
         
         const monthlyRevenue = payments
-          .filter(p => p.status === 'succeeded' && new Date(p.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+          .filter(p => new Date(p.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
           .reduce((sum, p) => sum + p.amount, 0);
 
         setData({
           totalRevenue,
           monthlyRevenue,
-          activeSubscriptions: payments.filter(p => p.status === 'succeeded').length,
+          activeSubscriptions: payments.length,
           recentPayments: payments,
           upcomingInvoices: [] // TODO: Implement invoice fetching
         });
