@@ -67,7 +67,7 @@ const ServerCard: React.FC<ServerCardProps> = ({
         to={getConfigPath(game)}
         className={`block w-full ${buttonStyles[buttonColor]} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center`}
       >
-        Configure
+        Deploy {game} Server
       </Link>
     </div>
   );
