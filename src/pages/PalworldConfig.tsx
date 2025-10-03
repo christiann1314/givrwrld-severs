@@ -29,9 +29,8 @@ const PalworldConfig = () => {
       { key: 'custom', name: 'Custom Mods', description: 'Upload your own mod collection', surcharge: 2.99 }
     ],
     planOptions: [
-      { id: 'palworld-4gb', ram: '4GB', cpu: '2 vCPU', disk: '25GB SSD', price: 11.99, description: 'Small co-op sessions (2-4 players)' },
-      { id: 'palworld-8gb', ram: '8GB', cpu: '4 vCPU', disk: '50GB SSD', price: 23.99, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
-      { id: 'palworld-16gb', ram: '16GB', cpu: '8 vCPU', disk: '100GB SSD', price: 47.99, description: 'Large dedicated servers (32+ players)' },
+      { id: 'palworld-8gb', ram: '8GB', cpu: '4 vCPU', disk: '40GB SSD', price: 23.99, description: 'Medium multiplayer servers (8-16 players)', recommended: true },
+      { id: 'palworld-16gb', ram: '16GB', cpu: '8 vCPU', disk: '80GB SSD', price: 47.99, description: 'Large dedicated servers (32+ players)' },
     ]
   };
 

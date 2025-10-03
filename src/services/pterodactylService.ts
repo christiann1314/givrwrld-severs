@@ -110,13 +110,29 @@ export class PterodactylService {
     for (const order of orders) {
       if (!order.pterodactyl_server_identifier) {
         // If no Pterodactyl server ID, create basic server data
-        const game = order.plan_id?.split('-')[0] || 'unknown';
-        const ram = order.plan_id?.includes('1gb') ? '1GB' : 
-                   order.plan_id?.includes('2gb') ? '2GB' :
-                   order.plan_id?.includes('4gb') ? '4GB' :
-                   order.plan_id?.includes('8gb') ? '8GB' :
-                   order.plan_id?.includes('12gb') ? '12GB' :
-                   order.plan_id?.includes('16gb') ? '16GB' : '4GB';
+        const planId = order.plan_id || '';
+        let game = 'unknown';
+        let ram = '4GB';
+        
+        if (planId.startsWith('mc-')) {
+          game = 'minecraft';
+          ram = planId.includes('4gb') ? '4GB' : planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '4GB';
+        } else if (planId.startsWith('rust-')) {
+          game = 'rust';
+          ram = planId.includes('6gb') ? '6GB' : planId.includes('12gb') ? '12GB' : '6GB';
+        } else if (planId.startsWith('palworld-')) {
+          game = 'palworld';
+          ram = planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '8GB';
+        } else {
+          // Fallback for old format
+          game = planId.split('-')[0] || 'unknown';
+          ram = planId.includes('1gb') ? '1GB' : 
+                planId.includes('2gb') ? '2GB' :
+                planId.includes('4gb') ? '4GB' :
+                planId.includes('8gb') ? '8GB' :
+                planId.includes('12gb') ? '12GB' :
+                planId.includes('16gb') ? '16GB' : '4GB';
+        }
         
         enhancedServers.push({
           id: order.id,
@@ -137,13 +153,30 @@ export class PterodactylService {
       // Fetch real stats from Pterodactyl
       const stats = await this.getServerStats(order.pterodactyl_server_identifier);
       
-      const game = order.plan_id?.split('-')[0] || 'unknown';
-      const ram = order.plan_id?.includes('1gb') ? '1GB' : 
-                 order.plan_id?.includes('2gb') ? '2GB' :
-                 order.plan_id?.includes('4gb') ? '4GB' :
-                 order.plan_id?.includes('8gb') ? '8GB' :
-                 order.plan_id?.includes('12gb') ? '12GB' :
-                 order.plan_id?.includes('16gb') ? '16GB' : '4GB';
+      // Handle both old format (minecraft-4gb) and new format (mc-4gb)
+      const planId = order.plan_id || '';
+      let game = 'unknown';
+      let ram = '4GB';
+      
+      if (planId.startsWith('mc-')) {
+        game = 'minecraft';
+        ram = planId.includes('4gb') ? '4GB' : planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '4GB';
+      } else if (planId.startsWith('rust-')) {
+        game = 'rust';
+        ram = planId.includes('6gb') ? '6GB' : planId.includes('12gb') ? '12GB' : '6GB';
+      } else if (planId.startsWith('palworld-')) {
+        game = 'palworld';
+        ram = planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '8GB';
+      } else {
+        // Fallback for old format
+        game = planId.split('-')[0] || 'unknown';
+        ram = planId.includes('1gb') ? '1GB' : 
+              planId.includes('2gb') ? '2GB' :
+              planId.includes('4gb') ? '4GB' :
+              planId.includes('8gb') ? '8GB' :
+              planId.includes('12gb') ? '12GB' :
+              planId.includes('16gb') ? '16GB' : '4GB';
+      }
 
       const status = stats ? 
         (stats.state === 'running' ? 'online' : 
