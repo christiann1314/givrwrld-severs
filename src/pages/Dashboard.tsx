@@ -52,12 +52,23 @@ const Dashboard = () => {
   
   // Import useAuth to get authenticated user
   const { user } = useAuth();
-  const { profile } = useProfile();
+  const { profile, loading: profileLoading } = useProfile();
   const userEmail = user?.email || null;
+  
+  // Debug profile data
+  console.log('🔍 Profile data:', { profile, profileLoading, user: user?.user_metadata });
   const { serversData } = useUserServers(userEmail);
   const { userStats } = useUserStats(userEmail);
   const { data: liveServerData, refresh: refreshServers } = useLiveServerData(30000);
   const { data: liveBillingData, refresh: refreshBilling } = useLiveBillingData(60000);
+  
+  // Debug server data
+  console.log('🔍 Server data:', { 
+    serversData, 
+    liveServerData, 
+    servers: serversData.servers,
+    liveServers: liveServerData?.servers 
+  });
 
   // Show loading state when no user email
   if (!userEmail) {
@@ -79,8 +90,8 @@ const Dashboard = () => {
     return gameIcons[gameType.toLowerCase()] || '/images/be7a6e57-bd8a-4d13-9a0e-55f7ae367b09.png';
   };
 
-  // Format servers data for display with live status
-  const servers = serversData.servers.map(server => {
+  // Use live server data if available, otherwise fall back to serversData
+  const servers = liveServerData?.servers || serversData.servers.map(server => {
     // Get live status from live data if available
     const liveServer = liveServerData?.servers?.find(s => s.id === server.id);
     const liveStatus = liveServer?.status || server.status;
@@ -159,7 +170,7 @@ const Dashboard = () => {
               <div className="mb-6 lg:mb-8">
                 <h1 className="text-xl lg:text-2xl font-bold mb-2">
                   <span className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || 'User'}
+                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'User'}
                   </span>
                 </h1>
                 <p className="text-gray-400 text-sm">Manage your servers, billing, and account settings</p>
@@ -200,7 +211,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || 'User'}!
+                    Welcome back, {profile?.first_name || user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'User'}!
                   </h1>
                   <p className="text-gray-300 text-lg">
                     Manage your servers, billing, and account settings

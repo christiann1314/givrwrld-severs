@@ -36,11 +36,13 @@ export const useLiveServerData = (refreshInterval: number = 30000) => {
     try {
       setError(null);
 
-      // Fetch user's servers from Supabase
+      // Fetch user's servers from Supabase (orders table)
       const { data: userServers, error: serversError } = await supabase
-        .from('user_servers')
+        .from('orders')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('item_type', 'game')
+        .in('status', ['paid', 'provisioned', 'active']);
 
       if (serversError) {
         console.error('Error fetching user servers:', serversError);
@@ -97,19 +99,32 @@ export const useLiveServerData = (refreshInterval: number = 30000) => {
           averageUptime
         });
       } else {
-        // Process real server data
-        const servers: ServerData[] = (userServers || []).map(server => ({
-          id: server.id,
-          name: server.name,
-          game: server.game_type,
-          status: server.status as ServerData['status'],
-          players: server.current_players || 0,
-          maxPlayers: server.max_players || 20,
-          uptime: server.uptime || '99.9%',
-          pterodactylUrl: server.pterodactyl_url || `https://panel.givrwrldservers.com/server/${server.id}`,
-          specs: `${server.ram || 4}GB RAM • ${server.cpu_cores || 2} CPU Cores`,
-          lastSeen: server.last_seen || new Date().toISOString()
-        }));
+        // Process real server data from orders table
+        const servers: ServerData[] = (userServers || []).map((order: any) => {
+          const game = order.plan_id?.split('-')[0] || 'unknown';
+          const ram = order.plan_id?.includes('1gb') ? '1GB' : 
+                     order.plan_id?.includes('2gb') ? '2GB' :
+                     order.plan_id?.includes('4gb') ? '4GB' :
+                     order.plan_id?.includes('8gb') ? '8GB' :
+                     order.plan_id?.includes('12gb') ? '12GB' :
+                     order.plan_id?.includes('16gb') ? '16GB' : '4GB';
+          
+          return {
+            id: order.id,
+            name: order.server_name,
+            game: game,
+            status: order.status === 'active' ? 'online' : 
+                   order.status === 'provisioned' ? 'starting' : 'offline',
+            players: 0, // Will be updated by live stats
+            maxPlayers: 20, // Default, will be updated by live stats
+            uptime: '99.9%', // Default, will be updated by live stats
+            pterodactylUrl: order.pterodactyl_server_identifier ? 
+              `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : 
+              `https://panel.givrwrldservers.com/server/${order.id}`,
+            specs: `${ram} RAM • 2 CPU Cores`,
+            lastSeen: order.updated_at || new Date().toISOString()
+          };
+        });
 
         const totalServers = servers.length;
         const onlineServers = servers.filter(s => s.status === 'online').length;
