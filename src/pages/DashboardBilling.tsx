@@ -250,7 +250,7 @@ const DashboardBilling = () => {
           </div>
         </div>
 
-        <Footer />
+        
       </div>
     </div>
   );

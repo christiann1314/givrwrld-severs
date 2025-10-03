@@ -1,7 +1,6 @@
 
 import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+// Header and Footer are included in App.tsx
 import ServerConfigurator from '../components/ServerConfigurator';
 import { Link } from 'react-router-dom';
 import palworldWallpaper from '../assets/palworld-wallpaper-hd.jpg';
@@ -56,7 +55,7 @@ const PalworldConfig = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
+        {/* Header is included in App.tsx */}
         
         {/* Hero Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -80,7 +79,7 @@ const PalworldConfig = () => {
           <ServerConfigurator gameType="palworld" gameData={palworldData} />
         </section>
 
-        <Footer />
+        {/* Footer is included in App.tsx */}
       </div>
     </div>
   );

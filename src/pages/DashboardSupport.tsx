@@ -295,7 +295,7 @@ const DashboardSupport = () => {
           )}
         </div>
 
-        <Footer />
+        
       </div>
     </div>
   );

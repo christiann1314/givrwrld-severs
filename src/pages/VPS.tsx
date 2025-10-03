@@ -105,7 +105,7 @@ const VPS = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
+        
         
         {/* Hero Section */}
         <section className="container mx-auto px-6 py-20">
@@ -317,7 +317,7 @@ const VPS = () => {
           </div>
         </section>
 
-        <Footer />
+        
       </div>
     </div>
   );

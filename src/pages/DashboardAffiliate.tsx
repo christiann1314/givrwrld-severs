@@ -196,7 +196,7 @@ const DashboardAffiliate = () => {
           </div>
         </div>
 
-        <Footer />
+        
       </div>
     </div>
   );

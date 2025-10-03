@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+// Header and Footer are included in App.tsx
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
@@ -536,7 +535,7 @@ const DashboardSettings = () => {
            </div>
          </div>
 
-         <Footer />
+         {/* Footer is included in App.tsx */}
        </div>
      </div>
    );

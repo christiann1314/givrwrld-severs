@@ -286,7 +286,7 @@ const DashboardOrder = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
+        
         
         <div className="flex">
           {/* Sidebar */}
@@ -518,7 +518,7 @@ const DashboardOrder = () => {
           </div>
         </div>
 
-        <Footer />
+        
       </div>
 
       {/* Payment Modal */}

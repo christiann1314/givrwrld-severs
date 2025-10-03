@@ -46,7 +46,7 @@ const Status = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
+        
         
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           {/* Hero Section */}
@@ -129,7 +129,7 @@ const Status = () => {
           </div>
         </div>
         
-        <Footer />
+        
       </div>
     </div>
   );

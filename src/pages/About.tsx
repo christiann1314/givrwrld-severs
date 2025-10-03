@@ -1,6 +1,5 @@
 import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+// Header and Footer are included in App.tsx
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 
 const About = () => {
@@ -46,7 +45,7 @@ const About = () => {
       </div>
       
       <div className="relative z-10">
-        <Header />
+        {/* Header is included in App.tsx */}
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           {/* Main Header */}
@@ -129,7 +128,7 @@ const About = () => {
           </div>
         </div>
         
-        <Footer />
+        {/* Footer is included in App.tsx */}
       </div>
     </div>
   );
