@@ -29,8 +29,10 @@ const RustConfig = () => {
       { key: 'custom', name: 'Custom Plugins', description: 'Specify your own plugin collection', surcharge: 2.99 }
     ],
     planOptions: [
-      { id: 'rust-6gb', ram: '6GB', cpu: '3 vCPU', disk: '30GB SSD', price: 16.99, description: 'Medium servers with plugins, 100-200 players', recommended: true },
-      { id: 'rust-12gb', ram: '12GB', cpu: '6 vCPU', disk: '60GB SSD', price: 36.99, description: 'High-pop servers with extensive mods, 300+ players' },
+      { id: 'rust-3gb', ram: '3GB', cpu: '2 vCPU', disk: '20GB SSD', price: 8.99, description: 'Small survival servers, 50-100 players' },
+      { id: 'rust-6gb', ram: '6GB', cpu: '3 vCPU', disk: '40GB SSD', price: 16.99, description: 'Medium servers with plugins, 100-200 players' },
+      { id: 'rust-8gb', ram: '8GB', cpu: '4 vCPU', disk: '60GB SSD', price: 24.99, description: 'Large servers with mods, 200-300 players', recommended: true },
+      { id: 'rust-12gb', ram: '12GB', cpu: '6 vCPU', disk: '80GB SSD', price: 36.99, description: 'High-pop servers with extensive mods, 300+ players' },
     ]
   };
 

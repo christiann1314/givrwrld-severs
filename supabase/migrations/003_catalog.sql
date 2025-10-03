@@ -152,13 +152,21 @@ CREATE TRIGGER handle_orders_updated_at BEFORE UPDATE ON public.orders
 
 -- Seed data for plans (replace with your actual Stripe price IDs)
 INSERT INTO public.plans (id, item_type, game, ram_gb, vcores, ssd_gb, stripe_price_id, display_name) VALUES
-  ('mc-4gb', 'game', 'minecraft', 4, 2, 20, 'price_minecraft_4gb_monthly', 'Minecraft 4GB'),
-  ('mc-8gb', 'game', 'minecraft', 8, 4, 40, 'price_minecraft_8gb_monthly', 'Minecraft 8GB'),
-  ('mc-16gb', 'game', 'minecraft', 16, 8, 80, 'price_minecraft_16gb_monthly', 'Minecraft 16GB'),
-  ('rust-6gb', 'game', 'rust', 6, 3, 30, 'price_rust_6gb_monthly', 'Rust 6GB'),
-  ('rust-12gb', 'game', 'rust', 12, 6, 60, 'price_rust_12gb_monthly', 'Rust 12GB'),
-  ('palworld-8gb', 'game', 'palworld', 8, 4, 40, 'price_palworld_8gb_monthly', 'Palworld 8GB'),
-  ('palworld-16gb', 'game', 'palworld', 16, 8, 80, 'price_palworld_16gb_monthly', 'Palworld 16GB'),
+  -- Minecraft Plans
+  ('mc-1gb', 'game', 'minecraft', 1, 1, 10, 'price_minecraft_1gb_monthly', 'Minecraft 1GB'),
+  ('mc-2gb', 'game', 'minecraft', 2, 1, 20, 'price_minecraft_2gb_monthly', 'Minecraft 2GB'),
+  ('mc-4gb', 'game', 'minecraft', 4, 2, 40, 'price_minecraft_4gb_monthly', 'Minecraft 4GB'),
+  ('mc-8gb', 'game', 'minecraft', 8, 4, 80, 'price_minecraft_8gb_monthly', 'Minecraft 8GB'),
+  -- Rust Plans
+  ('rust-3gb', 'game', 'rust', 3, 2, 20, 'price_rust_3gb_monthly', 'Rust 3GB'),
+  ('rust-6gb', 'game', 'rust', 6, 3, 40, 'price_rust_6gb_monthly', 'Rust 6GB'),
+  ('rust-8gb', 'game', 'rust', 8, 4, 60, 'price_rust_8gb_monthly', 'Rust 8GB'),
+  ('rust-12gb', 'game', 'rust', 12, 6, 80, 'price_rust_12gb_monthly', 'Rust 12GB'),
+  -- Palworld Plans
+  ('palworld-4gb', 'game', 'palworld', 4, 2, 25, 'price_palworld_4gb_monthly', 'Palworld 4GB'),
+  ('palworld-8gb', 'game', 'palworld', 8, 4, 50, 'price_palworld_8gb_monthly', 'Palworld 8GB'),
+  ('palworld-16gb', 'game', 'palworld', 16, 8, 100, 'price_palworld_16gb_monthly', 'Palworld 16GB'),
+  -- VPS Plans
   ('vps-basic', 'vps', null, 4, 2, 40, 'price_vps_basic_monthly', 'Basic VPS'),
   ('vps-standard', 'vps', null, 8, 4, 80, 'price_vps_standard_monthly', 'Standard VPS'),
   ('vps-premium', 'vps', null, 16, 8, 160, 'price_vps_premium_monthly', 'Premium VPS')

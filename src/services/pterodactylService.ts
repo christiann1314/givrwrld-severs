@@ -116,13 +116,21 @@ export class PterodactylService {
         
         if (planId.startsWith('mc-')) {
           game = 'minecraft';
-          ram = planId.includes('4gb') ? '4GB' : planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '4GB';
+          ram = planId.includes('1gb') ? '1GB' : 
+                planId.includes('2gb') ? '2GB' :
+                planId.includes('4gb') ? '4GB' : 
+                planId.includes('8gb') ? '8GB' : '4GB';
         } else if (planId.startsWith('rust-')) {
           game = 'rust';
-          ram = planId.includes('6gb') ? '6GB' : planId.includes('12gb') ? '12GB' : '6GB';
+          ram = planId.includes('3gb') ? '3GB' :
+                planId.includes('6gb') ? '6GB' : 
+                planId.includes('8gb') ? '8GB' :
+                planId.includes('12gb') ? '12GB' : '6GB';
         } else if (planId.startsWith('palworld-')) {
           game = 'palworld';
-          ram = planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '8GB';
+          ram = planId.includes('4gb') ? '4GB' :
+                planId.includes('8gb') ? '8GB' : 
+                planId.includes('16gb') ? '16GB' : '8GB';
         } else {
           // Fallback for old format
           game = planId.split('-')[0] || 'unknown';
@@ -160,13 +168,21 @@ export class PterodactylService {
       
       if (planId.startsWith('mc-')) {
         game = 'minecraft';
-        ram = planId.includes('4gb') ? '4GB' : planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '4GB';
+        ram = planId.includes('1gb') ? '1GB' : 
+              planId.includes('2gb') ? '2GB' :
+              planId.includes('4gb') ? '4GB' : 
+              planId.includes('8gb') ? '8GB' : '4GB';
       } else if (planId.startsWith('rust-')) {
         game = 'rust';
-        ram = planId.includes('6gb') ? '6GB' : planId.includes('12gb') ? '12GB' : '6GB';
+        ram = planId.includes('3gb') ? '3GB' :
+              planId.includes('6gb') ? '6GB' : 
+              planId.includes('8gb') ? '8GB' :
+              planId.includes('12gb') ? '12GB' : '6GB';
       } else if (planId.startsWith('palworld-')) {
         game = 'palworld';
-        ram = planId.includes('8gb') ? '8GB' : planId.includes('16gb') ? '16GB' : '8GB';
+        ram = planId.includes('4gb') ? '4GB' :
+              planId.includes('8gb') ? '8GB' : 
+              planId.includes('16gb') ? '16GB' : '8GB';
       } else {
         // Fallback for old format
         game = planId.split('-')[0] || 'unknown';
