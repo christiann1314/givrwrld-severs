@@ -223,61 +223,24 @@ const Dashboard = () => {
             </div>
 
 
-            {/* Quick Actions */}
-            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
-              <div className="glass-panel-strong rounded-xl p-6 lg:p-8">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <Activity className="mr-3 text-emerald-400" size={24} />
-                  Quick Actions
+            {/* Game Panel Access */}
+            <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center justify-center">
+                  <Server className="mr-3 text-emerald-400" size={28} />
+                  Game Panel Access
                 </h2>
-                <div className="space-y-3">
-                  {quickActions.map((action, index) => (
-                    <Link
-                      key={index}
-                      to={action.link}
-                      className="flex items-center justify-between p-4 bg-gray-700/30 hover:bg-gray-600/30 rounded-lg transition-colors group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${
-                          action.color === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' :
-                          action.color === 'purple' ? 'bg-purple-500/20 text-purple-400' :
-                          action.color === 'blue' ? 'bg-blue-500/20 text-blue-400' :
-                          'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          <action.icon size={20} />
-                        </div>
-                        <span className="text-white font-medium">{action.title}</span>
-                      </div>
-                      <ChevronRight className="text-gray-400 group-hover:text-white transition-colors" size={20} />
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* Account Summary */}
-              <div className="glass-panel-strong rounded-xl p-6 lg:p-8">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <BarChart3 className="mr-3 text-emerald-400" size={24} />
-                  Account Summary
-                </h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
-                    <span className="text-gray-300">Total Spent</span>
-                    <span className="text-white font-bold">${liveBillingData?.totalRevenue?.toFixed(2) || userStats?.totalSpent || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
-                    <span className="text-gray-300">Online Servers</span>
-                    <span className="text-white font-bold">{liveServerData?.onlineServers || servers.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
-                    <span className="text-gray-300">Support Tickets</span>
-                    <span className="text-white font-bold">{userStats?.supportTickets || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-700/30 rounded-lg">
-                    <span className="text-gray-300">Referrals</span>
-                    <span className="text-white font-bold">{userStats?.referrals || 0}</span>
-                  </div>
-                </div>
+                <p className="text-gray-300 mb-6">Access your game servers and manage them directly</p>
+                <button
+                  onClick={() => {
+                    analytics.trackGamePanelAccess(user?.id || '', 'main-panel');
+                    window.open('https://panel.givrwrldservers.com', '_blank');
+                  }}
+                  className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-emerald-500/25 inline-flex items-center"
+                >
+                  <Server className="mr-3" size={24} />
+                  Open Game Panel
+                </button>
               </div>
             </div>
 
