@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 import Home from "@/pages/Index";
 import Deploy from "@/pages/Deploy";
 import Dashboard from "@/pages/Dashboard";
@@ -44,6 +45,7 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <TooltipProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <GlobalErrorBoundary>
             <div className="min-h-screen bg-gray-900 text-white">
               <Header />
