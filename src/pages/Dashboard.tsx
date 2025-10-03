@@ -222,59 +222,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Server Status */}
-            <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white flex items-center">
-                  <Server className="mr-3 text-emerald-400" size={24} />
-                  Your Servers
-                </h2>
-                <button
-                  onClick={() => refreshServers()}
-                  className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg transition-colors text-sm"
-                >
-                  Refresh Status
-                </button>
-              </div>
-              <div className="grid gap-4">
-                {servers.length > 0 ? (
-                  servers.map((server) => (
-                    <div key={server.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <ServerIcon server={server} />
-                        <div>
-                          <h3 className="text-white font-medium text-lg">{server.name}</h3>
-                          <p className="text-gray-400 text-sm">{server.game} • {server.players}/{server.maxPlayers} players</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          server.status === 'online' 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          {server.status.toUpperCase()}
-                        </span>
-                        <button 
-                          onClick={() => {
-                            analytics.trackGamePanelAccess(user?.id || '', server.id);
-                            window.open(server.pterodactylUrl || `https://panel.givrwrldservers.com/server/${server.pterodactyl_server_id}`, '_blank');
-                          }}
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                          Game Panel
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400 text-lg">No servers found</p>
-                    <p className="text-gray-500 text-sm mt-2">Your servers will appear here once you order them</p>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Quick Actions */}
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
