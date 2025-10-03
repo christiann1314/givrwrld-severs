@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+// Header and Footer are included in App.tsx
 import { useUserServers } from '../hooks/useUserServers';
 import { useAuth } from '../hooks/useAuth';
 import { useServerStats } from '../hooks/useServerStats';
@@ -314,7 +313,7 @@ const DashboardServices = () => {
           </div>
         </div>
 
-        <Footer />
+        {/* Footer is included in App.tsx */}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import Footer from '../components/Footer';
+// Footer is included in App.tsx
 import { useUserServers } from '../hooks/useUserServers';
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 import { useUserStats } from '../hooks/useUserStats';
@@ -20,6 +20,7 @@ import {
   BarChart3,
   ShoppingCart,
   UserPlus,
+  Users,
   HeadphonesIcon,
   Menu,
   X
@@ -393,7 +394,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Footer />
+        {/* Footer is included in App.tsx */}
       </div>
     </div>
   );

@@ -27,6 +27,7 @@ import DashboardOrder from "@/pages/DashboardOrder";
 import DashboardSettings from "@/pages/DashboardSettings";
 import DashboardSupport from "@/pages/DashboardSupport";
 import DashboardAffiliate from "@/pages/DashboardAffiliate";
+import DashboardServices from "@/pages/DashboardServices";
 import MinecraftConfig from "@/pages/MinecraftConfig";
 import RustConfig from "@/pages/RustConfig";
 import PalworldConfig from "@/pages/PalworldConfig";
@@ -64,6 +65,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/dashboard/billing" element={<DashboardBilling />} />
                 <Route path="/dashboard/order" element={<DashboardOrder />} />
+                <Route path="/dashboard/services" element={<DashboardServices />} />
                 <Route path="/dashboard/settings" element={<DashboardSettings />} />
                 <Route path="/dashboard/support" element={<DashboardSupport />} />
                 <Route path="/dashboard/affiliate" element={<DashboardAffiliate />} />

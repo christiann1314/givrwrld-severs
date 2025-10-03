@@ -2,7 +2,7 @@
 import React from 'react';
 import HeroSection from '../components/HeroSection';
 import FeaturesSection from '../components/FeaturesSection';
-import Footer from '../components/Footer';
+// Footer is included in App.tsx
 import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 
 const Index = () => {
@@ -22,7 +22,7 @@ const Index = () => {
       <div className="relative z-10">
         <HeroSection />
         <FeaturesSection />
-        <Footer />
+        {/* Footer is included in App.tsx */}
       </div>
     </div>
   );
