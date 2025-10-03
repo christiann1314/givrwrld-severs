@@ -223,22 +223,22 @@ const Dashboard = () => {
             </div>
 
             {/* Server Status */}
-            {servers.length > 0 ? (
-              <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white flex items-center">
-                    <Server className="mr-3 text-emerald-400" size={24} />
-                    Your Servers
-                  </h2>
-                  <button
-                    onClick={() => refreshServers()}
-                    className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg transition-colors text-sm"
-                  >
-                    Refresh Status
-                  </button>
-                </div>
-                <div className="grid gap-4">
-                  {servers.map((server) => (
+            <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center">
+                  <Server className="mr-3 text-emerald-400" size={24} />
+                  Your Servers
+                </h2>
+                <button
+                  onClick={() => refreshServers()}
+                  className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg transition-colors text-sm"
+                >
+                  Refresh Status
+                </button>
+              </div>
+              <div className="grid gap-4">
+                {servers.length > 0 ? (
+                  servers.map((server) => (
                     <div key={server.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <ServerIcon server={server} />
@@ -266,23 +266,15 @@ const Dashboard = () => {
                         </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 text-lg">No servers found</p>
+                    <p className="text-gray-500 text-sm mt-2">Your servers will appear here once you order them</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="glass-panel-strong rounded-xl p-6 lg:p-8 mb-6 lg:mb-8 text-center">
-                <Server className="mx-auto mb-4 text-gray-400" size={48} />
-                <h2 className="text-xl font-bold text-white mb-2">No Servers Yet</h2>
-                <p className="text-gray-400 mb-6">Get started by ordering your first game server</p>
-                <Link 
-                  to="/dashboard/order"
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center"
-                >
-                  <ShoppingCart className="mr-2" size={20} />
-                  Order Services
-                </Link>
-              </div>
-            )}
+            </div>
 
             {/* Quick Actions */}
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
