@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAction } from '../hooks/useAction';
 import { stripeService } from '../services/stripeService';
-import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
+const factorioBackdrop = 'https://cdn.akamai.steamstatic.com/steam/apps/427520/header.jpg';
 
 const FactorioConfig = () => {
   const { user } = useAuth();
   const [serverName, setServerName] = useState('');
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('factorio-4gb');
+  const [gameType, setGameType] = useState('factorio');
   const [billingTerm, setBillingTerm] = useState('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
@@ -21,6 +22,7 @@ const FactorioConfig = () => {
       plan_id: planId,
       region,
       server_name: serverName.trim(),
+      modpack_id: gameType,
       term: billingTerm,
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/factorio`
@@ -33,6 +35,12 @@ const FactorioConfig = () => {
     { id: 'factorio-2gb', name: '2GB', ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 4.99, players: '2-4', description: 'Small factory servers, 2-4 players' },
     { id: 'factorio-4gb', name: '4GB', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 6.99, players: '4-8', description: 'Medium factory servers, 4-8 players', recommended: true },
     { id: 'factorio-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 12.99, players: '8-16', description: 'Large factory servers, 8-16 players' }
+  ];
+
+  const gameTypes = [
+    { id: 'factorio', name: 'Factorio', description: 'Classic Factorio experience' },
+    { id: 'clusterio', name: 'Clusterio', description: 'Multi-server Factorio cluster' },
+    { id: 'factorio-modupdate', name: 'Factorio-ModUpdate', description: 'Factorio with mod update support' }
   ];
 
   const billingTerms = [
@@ -53,7 +61,7 @@ const FactorioConfig = () => {
       {/* Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${medievalBackdrop})` }}
+        style={{ backgroundImage: `url(${factorioBackdrop})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
@@ -136,6 +144,35 @@ const FactorioConfig = () => {
                 </div>
               </div>
 
+              {/* Game Type Selection */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-6 h-6 bg-yellow-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">Game Type</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gameTypes.map((type) => (
+                    <button
+                      key={type.id}
+                      onClick={() => setGameType(type.id)}
+                      className={`p-4 rounded-lg border-2 transition-all text-left ${
+                        gameType === type.id
+                          ? 'border-yellow-500 bg-yellow-500/20'
+                          : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="font-semibold text-white mb-1">{type.name}</div>
+                      <div className="text-sm text-gray-300">{type.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Choose Your Plan */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Choose Your Plan</h2>
@@ -201,6 +238,11 @@ const FactorioConfig = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
                     <span className="text-white">${selectedPlan?.price}/mo</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Game Type</span>
+                    <span className="text-white">{gameTypes.find(t => t.id === gameType)?.name}</span>
                   </div>
                   
                   <div className="flex justify-between">

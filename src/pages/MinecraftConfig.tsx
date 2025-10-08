@@ -39,12 +39,16 @@ const MinecraftConfig = () => {
   ];
 
   const gameTypes = [
-    { id: 'minecraft-paper', name: 'Paper', description: 'High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies' },
-    { id: 'minecraft-spigot', name: 'Spigot', description: 'The most widely-used modded Minecraft server software in the world' },
+    { id: 'minecraft-vanilla-bedrock', name: 'Vanilla Bedrock', description: 'Multi-platform family of Minecraft editions (Pocket Edition/MCPE)' },
+    { id: 'minecraft-quilt', name: 'Quilt', description: 'Open-source, community-driven modding toolchain for Minecraft' },
     { id: 'minecraft-fabric', name: 'Fabric', description: 'A modular modding toolchain targeting Minecraft 1.14 and above' },
-    { id: 'minecraft-quilt', name: 'Quilt', description: 'An open-source, community-driven modding toolchain designed primarily for Minecraft' },
-    { id: 'minecraft-folia', name: 'Folia', description: 'Fork of Paper which adds regionised multithreading to the dedicated server' },
-    { id: 'minecraft-vanilla', name: 'Vanilla', description: 'Official Minecraft server software' }
+    { id: 'minecraft-spigot', name: 'Spigot', description: 'The most widely-used modded Minecraft server software, known for reducing lag' },
+    { id: 'minecraft-spongeforge', name: 'SpongeForge', description: 'Community-driven open-source Minecraft: Java Edition modding platform' },
+    { id: 'minecraft-spongevanilla', name: 'SpongeVanilla', description: 'Implementation of the Sponge API on top of Vanilla Minecraft' },
+    { id: 'minecraft-vanillacord', name: 'VanillaCord', description: 'Minecraft itself with added support for BungeeCord ip_forward setting' },
+    { id: 'minecraft-folia', name: 'Folia', description: 'Fork of Paper that adds regionized multithreading to the dedicated server' },
+    { id: 'minecraft-purpur-geyser-floodgate', name: 'Purpur-Geyser-Floodgate', description: 'Drop-in replacement for Paper with GeyserMC and Floodgate support' },
+    { id: 'minecraft-paper', name: 'Paper', description: 'High performance Spigot fork that aims to fix gameplay and mechanics inconsistencies' }
   ];
 
   const billingTerms = [

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAction } from '../hooks/useAction';
 import { stripeService } from '../services/stripeService';
-import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
+const teeworldsBackdrop = 'https://cdn.akamai.steamstatic.com/steam/apps/380840/header.jpg';
 
 const TeeworldsConfig = () => {
   const { user } = useAuth();
@@ -59,7 +59,7 @@ const TeeworldsConfig = () => {
       {/* Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${medievalBackdrop})` }}
+        style={{ backgroundImage: `url(${teeworldsBackdrop})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
