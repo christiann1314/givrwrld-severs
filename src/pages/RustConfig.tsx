@@ -8,7 +8,7 @@ import rustWallpaper from '../assets/rust-wallpaper-hd.jpg';
 const RustConfig = () => {
   const { user } = useAuth();
   const [serverName, setServerName] = useState('');
-  const [region, setRegion] = useState('us-east-1');
+  const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('rust-6gb');
   const [serverType, setServerType] = useState('vanilla');
   const [modpack, setModpack] = useState('vanilla');
@@ -38,25 +38,25 @@ const RustConfig = () => {
   });
 
   const plans = [
-    { id: 'rust-3gb', name: '3GB', ram: '3GB', cpu: '1 vCPU', disk: '30GB SSD', price: 8.99, players: '50-100' },
-    { id: 'rust-6gb', name: '6GB', ram: '6GB', cpu: '2 vCPU', disk: '60GB SSD', price: 16.99, players: '100-200', recommended: true },
-    { id: 'rust-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 24.99, players: '200-300' },
-    { id: 'rust-12gb', name: '12GB', ram: '12GB', cpu: '4 vCPU', disk: '120GB SSD', price: 36.99, players: '300+' }
+    { id: 'rust-3gb', name: '3GB', ram: '3GB', cpu: '1 vCPU', disk: '30GB SSD', price: 8.99, players: '50-100', description: 'Small survival servers, 50-100 players' },
+    { id: 'rust-6gb', name: '6GB', ram: '6GB', cpu: '2 vCPU', disk: '60GB SSD', price: 16.99, players: '100-200', description: 'Medium servers with plugins, 100-200 players', recommended: true },
+    { id: 'rust-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 24.99, players: '200-300', description: 'Large servers with mods, 200-300 players' },
+    { id: 'rust-12gb', name: '12GB', ram: '12GB', cpu: '4 vCPU', disk: '120GB SSD', price: 36.99, players: '300+', description: 'High-pop servers with custom mods, 300+ players' }
   ];
 
   const serverTypes = [
-    { id: 'vanilla', name: 'Vanilla Rust', description: 'Official Rust server without modifications' },
-    { id: 'oxide', name: 'Oxide', description: 'Plugin support with Oxide framework' },
-    { id: 'umod', name: 'uMod', description: 'Advanced plugin and mod support' },
-    { id: 'custom', name: 'Custom', description: 'Custom server configuration' }
+    { id: 'vanilla', name: 'Vanilla Rust', description: 'Official Rust server without modifications', price: 'Free' },
+    { id: 'oxide', name: 'Oxide', description: 'Plugin support with Oxide framework', price: 'Free' },
+    { id: 'umod', name: 'uMod', description: 'Advanced plugin and mod support', price: 'Free' },
+    { id: 'custom', name: 'Custom', description: 'Custom server configuration', price: 'Free' }
   ];
 
   const modpacks = [
-    { id: 'vanilla', name: 'Vanilla', description: 'Pure Rust experience' },
-    { id: 'battlefield', name: 'Battlefield', description: 'Large-scale warfare modpack' },
-    { id: 'pve', name: 'PvE Focused', description: 'Player vs Environment focused' },
-    { id: 'roleplay', name: 'Roleplay', description: 'Roleplay and RP modpack' },
-    { id: 'zombie', name: 'Zombie Survival', description: 'Zombie apocalypse modpack' }
+    { id: 'vanilla', name: 'Vanilla', description: 'Pure Rust experience', price: 'Free' },
+    { id: 'battlefield', name: 'Battlefield', description: 'Large-scale warfare modpack', price: 'Free' },
+    { id: 'pve', name: 'PvE Focused', description: 'Player vs Environment focused', price: 'Free' },
+    { id: 'roleplay', name: 'Roleplay', description: 'Roleplay and RP modpack', price: 'Free' },
+    { id: 'zombie', name: 'Zombie Survival', description: 'Zombie apocalypse modpack', price: 'Free' }
   ];
 
   const billingTerms = [
@@ -67,15 +67,15 @@ const RustConfig = () => {
   ];
 
   const addonOptions = [
-    { id: 'backups', name: 'Automatic Backups', description: 'Daily backups with 7 day retention', price: 2.00 },
-    { id: 'discord', name: 'Discord Integration', description: 'Sync server status with Discord', price: 2.00 },
-    { id: 'analytics', name: 'Advanced Analytics', description: 'Real-time player and performance stats', price: 2.00 },
-    { id: 'storage', name: 'Additional SSD Storage (+10GB)', description: 'Expand your storage capacity', price: 2.00 }
+    { id: 'backups', name: 'Automatic Backups', description: 'Daily backups with 7 day retention', price: 2.99 },
+    { id: 'discord', name: 'Discord Integration', description: 'Sync server status with Discord', price: 2.99 },
+    { id: 'analytics', name: 'Advanced Analytics', description: 'Real-time player and performance stats', price: 2.99 },
+    { id: 'storage', name: 'Additional SSD Storage (+10GB)', description: 'Expand your storage capacity', price: 2.99 }
   ];
 
   const selectedPlan = plans.find(p => p.id === planId);
   const selectedTerm = billingTerms.find(t => t.id === billingTerm);
-  const totalAddons = Object.values(addons).filter(Boolean).length * 2.00;
+  const totalAddons = Object.values(addons).filter(Boolean).length * 2.99;
   const basePrice = selectedPlan?.price || 0;
   const discount = (basePrice * selectedTerm?.discount || 0) / 100;
   const finalPrice = (basePrice - discount + totalAddons) * (selectedTerm?.id === 'quarterly' ? 3 : selectedTerm?.id === 'semiannual' ? 6 : selectedTerm?.id === 'yearly' ? 12 : 1);
@@ -91,40 +91,126 @@ const RustConfig = () => {
       </div>
       
       <div className="relative z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="mb-8">
-            <Link to="/deploy" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
-              ← Back to Games
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6">
+            <Link to="/deploy" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-4">
+              ← Back to Servers
             </Link>
           </div>
           
-          <h1 className="text-5xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+            <span className="text-gray-300">Configure Your</span>{' '}
             <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-400 bg-clip-text text-transparent">
-              Configure Your Rust Server
+              Rust Server
             </span>
           </h1>
           
-          <p className="text-xl text-gray-300 max-w-3xl mb-8">
-            High-performance, moddable server with 100+ players
+          <p className="text-lg text-gray-300 max-w-3xl mb-8">
+            Customize your server settings to match your gaming needs
           </p>
 
-          {/* Current Selection Bar */}
+          {/* Current Selection Banner */}
           <div className="bg-orange-500 text-white px-6 py-3 rounded-lg mb-8 inline-block">
-            {selectedPlan?.ram} + {serverTypes.find(s => s.id === serverType)?.name} + Optimal Performance
+            High-performance, moddable server, 100+ players
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Configuration */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Service Bundles */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Server Configuration */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                  <h2 className="text-xl font-bold text-white">Service Bundles</h2>
+                  <div className="w-6 h-6 bg-orange-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">Server Configuration</h2>
                 </div>
-                <p className="text-gray-400 mb-6">Bundles are optional. You can add or change them later.</p>
                 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-white font-semibold mb-2">Server Name</label>
+                    <input
+                      type="text"
+                      value={serverName}
+                      onChange={(e) => setServerName(e.target.value)}
+                      placeholder="Enter your server name"
+                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-white font-semibold mb-2">Server Location</label>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setRegion('us-west')}
+                        className={`px-4 py-3 rounded-lg transition-colors ${
+                          region === 'us-west'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        US West (California)
+                      </button>
+                      <button
+                        onClick={() => setRegion('us-east')}
+                        className={`px-4 py-3 rounded-lg transition-colors ${
+                          region === 'us-east'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        US East (New York)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Choose Your Plan */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Choose Your Plan</h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      onClick={() => setPlanId(plan.id)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        planId === plan.id
+                          ? 'border-orange-500 bg-orange-500/10'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-bold text-white">{plan.name}</h3>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-white">${plan.price}</div>
+                          <div className="text-gray-400 text-sm">per month</div>
+                        </div>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-2">{plan.description}</p>
+                      <div className="text-orange-400 text-sm font-semibold">
+                        {plan.ram} RAM • {plan.cpu} • {plan.disk} SSD
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-4">
+                  <div className="bg-orange-500 text-white px-4 py-2 rounded-lg inline-block">
+                    {selectedPlan?.ram} + Vanilla Rust = Optimal Performance
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Bundles */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-2">Service Bundles</h2>
+                <p className="text-gray-400 mb-4">Bundles are optional. You can add or change them later.</p>
+                
+                <div className="grid md:grid-cols-4 gap-4">
                   <div className="border-2 border-orange-500 bg-orange-500/10 rounded-lg p-4 cursor-pointer">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-white">None</span>
@@ -137,13 +223,14 @@ const RustConfig = () => {
                   
                   <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-white">GIVWorld Basic</span>
+                      <span className="font-semibold text-white">GIVWorld Essentials</span>
                       <span className="text-orange-400 font-bold">$4.99/mo</span>
                     </div>
                     <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Basic server with 100+ players</li>
-                      <li>• Automatic backups</li>
-                      <li>• 24/7 support</li>
+                      <li>• Daily server backups</li>
+                      <li>• Automatic modpack integration</li>
+                      <li>• Priority support queue</li>
+                      <li>• Custom server dashboard</li>
                     </ul>
                     <button className="text-orange-400 text-sm mt-2">What's included?</button>
                   </div>
@@ -154,9 +241,23 @@ const RustConfig = () => {
                       <span className="text-orange-400 font-bold">$10.99/mo</span>
                     </div>
                     <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Access to all supported game types</li>
-                      <li>• Unlimited modpack support</li>
-                      <li>• Custom game plugins</li>
+                      <li>• Direct access to supporter game types</li>
+                      <li>• Community server boosts</li>
+                      <li>• Exclusive server giveaways</li>
+                    </ul>
+                    <button className="text-orange-400 text-sm mt-2">What's included?</button>
+                  </div>
+                  
+                  <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-white">Community Pack</span>
+                      <span className="text-orange-400 font-bold">$5.99/mo</span>
+                    </div>
+                    <ul className="text-sm text-gray-400 space-y-1">
+                      <li>• Priority support queue</li>
+                      <li>• Discord spotlight eligibility</li>
+                      <li>• Hosting server events</li>
+                      <li>• Custom Discord channel roles</li>
                     </ul>
                     <button className="text-orange-400 text-sm mt-2">What's included?</button>
                   </div>
@@ -166,19 +267,13 @@ const RustConfig = () => {
               {/* Server Software Type */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
+                  <div className="w-6 h-6 bg-orange-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                   <h2 className="text-xl font-bold text-white">Server Software Type</h2>
                 </div>
-                
-                <select
-                  value={serverType}
-                  onChange={(e) => setServerType(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
-                >
-                  {serverTypes.map((type) => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
-                  ))}
-                </select>
                 
                 <div className="flex space-x-4 mb-4">
                   <button
@@ -203,39 +298,79 @@ const RustConfig = () => {
                   </button>
                 </div>
                 
-                <p className="text-gray-400 text-sm">
-                  {serverTypes.find(s => s.id === serverType)?.description}
-                </p>
+                <select
+                  value={serverType}
+                  onChange={(e) => setServerType(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2"
+                >
+                  {serverTypes.map((type) => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
+                
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-400 text-sm">
+                    {serverTypes.find(s => s.id === serverType)?.description}
+                  </p>
+                  <span className="text-orange-400 font-semibold">Free</span>
+                </div>
               </div>
 
               {/* Modpack Selection */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
+                  <div className="w-6 h-6 bg-orange-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                   <h2 className="text-xl font-bold text-white">Modpack Selection</h2>
+                </div>
+                
+                <div className="flex space-x-4 mb-4">
+                  <button
+                    onClick={() => setModpack('vanilla')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      modpack === 'vanilla' 
+                        ? 'bg-orange-500 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Vanilla
+                  </button>
+                  <button
+                    onClick={() => setModpack('battlefield')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      modpack === 'battlefield' 
+                        ? 'bg-orange-500 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    Battlefield
+                  </button>
                 </div>
                 
                 <select
                   value={modpack}
                   onChange={(e) => setModpack(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4"
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 mb-2"
                 >
                   {modpacks.map((pack) => (
                     <option key={pack.id} value={pack.id}>{pack.name}</option>
                   ))}
                 </select>
                 
-                <p className="text-gray-400 text-sm">
-                  {modpacks.find(p => p.id === modpack)?.description}
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-400 text-sm">
+                    {modpacks.find(p => p.id === modpack)?.description}
+                  </p>
+                  <span className="text-orange-400 font-semibold">Free</span>
+                </div>
               </div>
 
               {/* Billing Period */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
-                  <h2 className="text-xl font-bold text-white">Billing Period</h2>
-                </div>
+                <h2 className="text-xl font-bold text-white mb-4">Billing Period</h2>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {billingTerms.map((term) => (
@@ -260,7 +395,11 @@ const RustConfig = () => {
               {/* Optional Add-ons */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full mr-3"></div>
+                  <div className="w-6 h-6 bg-orange-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                   <h2 className="text-xl font-bold text-white">Optional Add-ons</h2>
                 </div>
                 
@@ -299,19 +438,8 @@ const RustConfig = () => {
                 
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Server Name</span>
-                    <input
-                      type="text"
-                      value={serverName}
-                      onChange={(e) => setServerName(e.target.value)}
-                      placeholder="My Rust Server"
-                      className="bg-gray-700/50 border border-gray-600 rounded px-3 py-1 text-white text-sm w-32"
-                    />
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Plan</span>
-                    <span className="text-white">{selectedPlan?.name}</span>
+                    <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
+                    <span className="text-white">${selectedPlan?.price}/mo</span>
                   </div>
                   
                   <div className="flex justify-between">
@@ -330,7 +458,7 @@ const RustConfig = () => {
                   </div>
                 </div>
 
-                <div className="border-t border-gray-600 pt-4">
+                <div className="border-t border-gray-600 pt-4 mb-6">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span className="text-orange-400">${finalPrice.toFixed(2)}</span>
@@ -342,12 +470,34 @@ const RustConfig = () => {
                   )}
                 </div>
 
+                <div className="mb-6">
+                  <h4 className="text-white font-semibold mb-3">Included Features</h4>
+                  <div className="space-y-2">
+                    {[
+                      '99.9% uptime SLA',
+                      'Anti-DDoS Game protection',
+                      'Instant setup & SSD',
+                      'Ryzen 9 5950X CPU',
+                      '24/7 support and Discord community access'
+                    ].map((feature, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className="w-4 h-4 bg-orange-500 rounded-full mr-3 flex items-center justify-center">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-white text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <button
                   onClick={createCheckout}
                   disabled={loading || !serverName.trim()}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed mt-6"
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating Server...' : 'Deploy Rust Server'}
+                  {loading ? 'Creating Server...' : 'Sign Up to Deploy Server'}
                 </button>
               </div>
             </div>
