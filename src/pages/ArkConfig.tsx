@@ -10,15 +10,7 @@ const ArkConfig = () => {
   const [serverName, setServerName] = useState('');
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('ark-8gb');
-  const [serverType, setServerType] = useState('vanilla');
-  const [modpack, setModpack] = useState('vanilla');
   const [billingTerm, setBillingTerm] = useState('monthly');
-  const [addons, setAddons] = useState({
-    backups: false,
-    discord: false,
-    analytics: false,
-    storage: false
-  });
 
   const { run: createCheckout, loading } = useAction(async () => {
     if (!user) throw new Error('Please sign in to continue');
@@ -43,19 +35,6 @@ const ArkConfig = () => {
     { id: 'ark-16gb', name: '16GB', ram: '16GB', cpu: '4 vCPU', disk: '160GB SSD', price: 24.99, players: '50-100', description: 'Large servers with mods, 50-100 players' }
   ];
 
-  const serverTypes = [
-    { id: 'vanilla', name: 'Vanilla Ark', description: 'Official Ark server without modifications', price: 'Free' },
-    { id: 'modded', name: 'Modded', description: 'Server with mod support enabled', price: 'Free' },
-    { id: 'custom', name: 'Custom', description: 'Custom server configuration', price: 'Free' }
-  ];
-
-  const modpacks = [
-    { id: 'vanilla', name: 'Vanilla', description: 'Pure Ark experience', price: 'Free' },
-    { id: 'primal', name: 'Primal Fear', description: 'Enhanced difficulty with new creatures', price: 'Free' },
-    { id: 'extinction', name: 'Extinction Core', description: 'Post-apocalyptic survival experience', price: 'Free' },
-    { id: 'annunaki', name: 'Annunaki Genesis', description: 'Mythology-based creature mod', price: 'Free' }
-  ];
-
   const billingTerms = [
     { id: 'monthly', name: 'Monthly', discount: 0 },
     { id: 'quarterly', name: '3 Months', discount: 5 },
@@ -63,19 +42,11 @@ const ArkConfig = () => {
     { id: 'yearly', name: '12 Months', discount: 20 }
   ];
 
-  const addonOptions = [
-    { id: 'backups', name: 'Automatic Backups', description: 'Daily backups with 7 day retention', price: 2.99 },
-    { id: 'discord', name: 'Discord Integration', description: 'Sync server status with Discord', price: 2.99 },
-    { id: 'analytics', name: 'Advanced Analytics', description: 'Real-time player and performance stats', price: 2.99 },
-    { id: 'storage', name: 'Additional SSD Storage (+10GB)', description: 'Expand your storage capacity', price: 2.99 }
-  ];
-
   const selectedPlan = plans.find(p => p.id === planId);
   const selectedTerm = billingTerms.find(t => t.id === billingTerm);
-  const totalAddons = Object.values(addons).filter(Boolean).length * 2.99;
   const basePrice = selectedPlan?.price || 0;
   const discount = (basePrice * selectedTerm?.discount || 0) / 100;
-  const finalPrice = (basePrice - discount + totalAddons) * (selectedTerm?.id === 'quarterly' ? 3 : selectedTerm?.id === 'semiannual' ? 6 : selectedTerm?.id === 'yearly' ? 12 : 1);
+  const finalPrice = (basePrice - discount) * (selectedTerm?.id === 'quarterly' ? 3 : selectedTerm?.id === 'semiannual' ? 6 : selectedTerm?.id === 'yearly' ? 12 : 1);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
@@ -195,174 +166,6 @@ const ArkConfig = () => {
                   ))}
                 </div>
                 
-                <div className="mt-4">
-                  <div className="bg-sky-500 text-white px-4 py-2 rounded-lg inline-block">
-                    {selectedPlan?.ram} + Vanilla Ark = Optimal Performance
-                  </div>
-                </div>
-              </div>
-
-              {/* Service Bundles */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <h2 className="text-xl font-bold text-white mb-2">Service Bundles</h2>
-                <p className="text-gray-400 mb-4">Bundles are optional. You can add or change them later.</p>
-                
-                <div className="grid md:grid-cols-4 gap-4">
-                  <div className="border-2 border-sky-500 bg-sky-500/10 rounded-lg p-4 cursor-pointer">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-white">None</span>
-                      <div className="w-5 h-5 bg-sky-500 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-300">Start custom only</p>
-                  </div>
-                  
-                  <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-white">GIVWorld Essentials</span>
-                      <span className="text-sky-400 font-bold">$4.99/mo</span>
-                    </div>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Daily server backups</li>
-                      <li>• Automatic modpack integration</li>
-                      <li>• Priority support queue</li>
-                      <li>• Custom server dashboard</li>
-                    </ul>
-                    <button className="text-sky-400 text-sm mt-2">What's included?</button>
-                  </div>
-                  
-                  <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-white">Game Expansion</span>
-                      <span className="text-sky-400 font-bold">$10.99/mo</span>
-                    </div>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Direct access to supporter game types</li>
-                      <li>• Community server boosts</li>
-                      <li>• Exclusive server giveaways</li>
-                    </ul>
-                    <button className="text-sky-400 text-sm mt-2">What's included?</button>
-                  </div>
-                  
-                  <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-white">Community Pack</span>
-                      <span className="text-sky-400 font-bold">$5.99/mo</span>
-                    </div>
-                    <ul className="text-sm text-gray-400 space-y-1">
-                      <li>• Priority support queue</li>
-                      <li>• Discord spotlight eligibility</li>
-                      <li>• Hosting server events</li>
-                      <li>• Custom Discord channel roles</li>
-                    </ul>
-                    <button className="text-sky-400 text-sm mt-2">What's included?</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Server Software Type */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-6 h-6 bg-sky-500 rounded mr-3 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-white">Server Software Type</h2>
-                </div>
-                
-                <div className="flex space-x-4 mb-4">
-                  <button
-                    onClick={() => setServerType('vanilla')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      serverType === 'vanilla' 
-                        ? 'bg-sky-500 text-white' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    Vanilla Ark
-                  </button>
-                  <button
-                    onClick={() => setServerType('modded')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      serverType === 'modded' 
-                        ? 'bg-sky-500 text-white' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    Modded
-                  </button>
-                </div>
-                
-                <select
-                  value={serverType}
-                  onChange={(e) => setServerType(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-500 mb-2"
-                >
-                  {serverTypes.map((type) => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
-                  ))}
-                </select>
-                
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400 text-sm">
-                    {serverTypes.find(s => s.id === serverType)?.description}
-                  </p>
-                  <span className="text-sky-400 font-semibold">Free</span>
-                </div>
-              </div>
-
-              {/* Modpack Selection */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-6 h-6 bg-sky-500 rounded mr-3 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-white">Modpack Selection</h2>
-                </div>
-                
-                <div className="flex space-x-4 mb-4">
-                  <button
-                    onClick={() => setModpack('vanilla')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      modpack === 'vanilla' 
-                        ? 'bg-sky-500 text-white' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    Vanilla
-                  </button>
-                  <button
-                    onClick={() => setModpack('primal')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      modpack === 'primal' 
-                        ? 'bg-sky-500 text-white' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    Primal Fear
-                  </button>
-                </div>
-                
-                <select
-                  value={modpack}
-                  onChange={(e) => setModpack(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-500 mb-2"
-                >
-                  {modpacks.map((pack) => (
-                    <option key={pack.id} value={pack.id}>{pack.name}</option>
-                  ))}
-                </select>
-                
-                <div className="flex justify-between items-center">
-                  <p className="text-gray-400 text-sm">
-                    {modpacks.find(p => p.id === modpack)?.description}
-                  </p>
-                  <span className="text-sky-400 font-semibold">Free</span>
-                </div>
               </div>
 
               {/* Billing Period */}
@@ -388,44 +191,6 @@ const ArkConfig = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Optional Add-ons */}
-              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-6 h-6 bg-sky-500 rounded mr-3 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-white">Optional Add-ons</h2>
-                </div>
-                
-                <div className="space-y-4">
-                  {addonOptions.map((addon) => (
-                    <div key={addon.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => setAddons(prev => ({ ...prev, [addon.id]: !prev[addon.id] }))}
-                          className={`w-6 h-6 rounded-full border-2 mr-4 transition-colors ${
-                            addons[addon.id as keyof typeof addons]
-                              ? 'bg-sky-500 border-sky-500'
-                              : 'border-gray-500 hover:border-gray-400'
-                          }`}
-                        >
-                          {addons[addon.id as keyof typeof addons] && (
-                            <div className="w-2 h-2 bg-white rounded-full mx-auto mt-1"></div>
-                          )}
-                        </button>
-                        <div>
-                          <div className="font-semibold text-white">{addon.name}</div>
-                          <div className="text-sm text-gray-400">{addon.description}</div>
-                        </div>
-                      </div>
-                      <div className="text-sky-400 font-bold">+${addon.price.toFixed(2)}/month</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Order Summary */}
@@ -437,16 +202,6 @@ const ArkConfig = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
                     <span className="text-white">${selectedPlan?.price}/mo</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Software</span>
-                    <span className="text-white">{serverTypes.find(s => s.id === serverType)?.name}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Modpack</span>
-                    <span className="text-white">{modpacks.find(p => p.id === modpack)?.name}</span>
                   </div>
                   
                   <div className="flex justify-between">

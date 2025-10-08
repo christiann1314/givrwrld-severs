@@ -8,9 +8,9 @@ import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 const MindustryConfig = () => {
   const { user } = useAuth();
   const [serverName, setServerName] = useState('');
-  const [region, setRegion] = useState('us-east-1');
-  const [planId, setPlanId] = useState('mindustry-2gb');
-  const [term, setTerm] = useState('monthly');
+  const [region, setRegion] = useState('us-west');
+  const [planId, setPlanId] = useState('mindustry-4gb');
+  const [billingTerm, setBillingTerm] = useState('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
     if (!user) throw new Error('Please sign in to continue');
@@ -21,7 +21,7 @@ const MindustryConfig = () => {
       plan_id: planId,
       region,
       server_name: serverName.trim(),
-      term,
+      term: billingTerm,
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/mindustry`
     });
@@ -30,127 +30,227 @@ const MindustryConfig = () => {
   });
 
   const plans = [
-    { id: 'mindustry-1gb', name: 'Mindustry 1GB', price: '$2.99', ram: '1GB', players: '4-8' },
-    { id: 'mindustry-2gb', name: 'Mindustry 2GB', price: '$3.99', ram: '2GB', players: '8-16' },
-    { id: 'mindustry-4gb', name: 'Mindustry 4GB', price: '$6.99', ram: '4GB', players: '16-32' }
+    { id: 'mindustry-2gb', name: '2GB', ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 3.99, players: '2-4', description: 'Small tower defense servers, 2-4 players' },
+    { id: 'mindustry-4gb', name: '4GB', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 5.99, players: '4-8', description: 'Medium tower defense servers, 4-8 players', recommended: true },
+    { id: 'mindustry-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 9.99, players: '8-16', description: 'Large tower defense servers, 8-16 players' }
   ];
+
+  const billingTerms = [
+    { id: 'monthly', name: 'Monthly', discount: 0 },
+    { id: 'quarterly', name: '3 Months', discount: 5 },
+    { id: 'semiannual', name: '6 Months', discount: 10 },
+    { id: 'yearly', name: '12 Months', discount: 20 }
+  ];
+
+  const selectedPlan = plans.find(p => p.id === planId);
+  const selectedTerm = billingTerms.find(t => t.id === billingTerm);
+  const basePrice = selectedPlan?.price || 0;
+  const discount = (basePrice * selectedTerm?.discount || 0) / 100;
+  const finalPrice = (basePrice - discount) * (selectedTerm?.id === 'quarterly' ? 3 : selectedTerm?.id === 'semiannual' ? 6 : selectedTerm?.id === 'yearly' ? 12 : 1);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url("${medievalBackdrop}")` }}
+        style={{ backgroundImage: `url(${medievalBackdrop})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
       
       <div className="relative z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="mb-8">
-            <Link to="/deploy" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-6">
-              ← Back to Games
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-6">
+            <Link to="/deploy" className="inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors mb-4">
+              ← Back to Servers
             </Link>
           </div>
           
-          <h1 className="text-5xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+            <span className="text-gray-300">Configure Your</span>{' '}
             <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Configure Your Mindustry Server
+              Mindustry Server
             </span>
           </h1>
           
-          <p className="text-xl text-gray-300 max-w-3xl mb-12">
-            Set up your Mindustry server for tower defense and factory building.
+          <p className="text-lg text-gray-300 max-w-3xl mb-8">
+            Customize your server settings to match your gaming needs
           </p>
 
-          <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Server Configuration</h2>
-            
-            <div className="space-y-6">
-              {/* Server Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Server Name
-                </label>
-                <input
-                  type="text"
-                  value={serverName}
-                  onChange={(e) => setServerName(e.target.value)}
-                  placeholder="My Mindustry Base"
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                />
+          {/* Current Selection Banner */}
+          <div className="bg-cyan-500 text-white px-6 py-3 rounded-lg mb-8 inline-block">
+            High-performance, moddable server, 100+ players
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Configuration */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Server Configuration */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-6 h-6 bg-cyan-500 rounded mr-3 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">Server Configuration</h2>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-white font-semibold mb-2">Server Name</label>
+                    <input
+                      type="text"
+                      value={serverName}
+                      onChange={(e) => setServerName(e.target.value)}
+                      placeholder="Enter your server name"
+                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-white font-semibold mb-2">Server Location</label>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setRegion('us-west')}
+                        className={`px-4 py-3 rounded-lg transition-colors ${
+                          region === 'us-west'
+                            ? 'bg-cyan-500 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        US West (California)
+                      </button>
+                      <button
+                        onClick={() => setRegion('us-east')}
+                        className={`px-4 py-3 rounded-lg transition-colors ${
+                          region === 'us-east'
+                            ? 'bg-cyan-500 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        US East (New York)
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Plan Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Server Plan
-                </label>
-                <div className="grid md:grid-cols-3 gap-4">
+              {/* Choose Your Plan */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Choose Your Plan</h2>
+                
+                <div className="grid md:grid-cols-2 gap-4">
                   {plans.map((plan) => (
                     <div
                       key={plan.id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      onClick={() => setPlanId(plan.id)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                         planId === plan.id
                           ? 'border-cyan-500 bg-cyan-500/10'
                           : 'border-gray-600 hover:border-gray-500'
                       }`}
-                      onClick={() => setPlanId(plan.id)}
                     >
-                      <div className="font-semibold text-white">{plan.name}</div>
-                      <div className="text-cyan-400 font-bold">{plan.price}/month</div>
-                      <div className="text-sm text-gray-400">{plan.ram} RAM • {plan.players} players</div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-bold text-white">{plan.name}</h3>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-white">${plan.price}</div>
+                          <div className="text-gray-400 text-sm">per month</div>
+                        </div>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-2">{plan.description}</p>
+                      <div className="text-cyan-400 text-sm font-semibold">
+                        {plan.ram} RAM • {plan.cpu} • {plan.disk} SSD
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Region */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Region
-                </label>
-                <select
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                >
-                  <option value="us-east-1">US East (Virginia)</option>
-                  <option value="us-west-2">US West (Oregon)</option>
-                  <option value="eu-west-1">Europe (Ireland)</option>
-                  <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                </select>
-              </div>
-
-              {/* Billing Term */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Billing Term
-                </label>
-                <div className="flex space-x-4">
-                  {['monthly', 'quarterly', 'yearly'].map((termOption) => (
-                    <label key={termOption} className="flex items-center">
-                      <input
-                        type="radio"
-                        value={termOption}
-                        checked={term === termOption}
-                        onChange={(e) => setTerm(e.target.value)}
-                        className="mr-2 text-cyan-500"
-                      />
-                      <span className="capitalize">{termOption}</span>
-                    </label>
+              {/* Billing Period */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Billing Period</h2>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {billingTerms.map((term) => (
+                    <button
+                      key={term.id}
+                      onClick={() => setBillingTerm(term.id)}
+                      className={`px-4 py-3 rounded-lg transition-colors text-center ${
+                        billingTerm === term.id
+                          ? 'bg-cyan-500 text-white'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      }`}
+                    >
+                      <div className="font-semibold">{term.name}</div>
+                      {term.discount > 0 && (
+                        <div className="text-xs text-cyan-300">Save {term.discount}%</div>
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Deploy Button */}
-              <button
-                onClick={createCheckout}
-                disabled={loading || !serverName.trim()}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed"
-              >
-                {loading ? 'Creating Server...' : 'Deploy Mindustry Server'}
-              </button>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6 sticky top-8">
+                <h3 className="text-xl font-bold text-white mb-6">Order Summary</h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
+                    <span className="text-white">${selectedPlan?.price}/mo</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Billing</span>
+                    <span className="text-white">{selectedTerm?.name}</span>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-600 pt-4 mb-6">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span className="text-cyan-400">${finalPrice.toFixed(2)}</span>
+                  </div>
+                  {selectedTerm?.id !== 'monthly' && (
+                    <div className="text-sm text-cyan-300 text-right mt-1">
+                      Save ${discount.toFixed(2)} ({selectedTerm?.discount}% off)
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-6">
+                  <h4 className="text-white font-semibold mb-3">Included Features</h4>
+                  <div className="space-y-2">
+                    {[
+                      '99.9% uptime SLA',
+                      'Anti-DDoS Game protection',
+                      'Instant setup & SSD',
+                      'Ryzen 9 5950X CPU',
+                      '24/7 support and Discord community access'
+                    ].map((feature, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className="w-4 h-4 bg-cyan-500 rounded-full mr-3 flex items-center justify-center">
+                          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-white text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={createCheckout}
+                  disabled={loading || !serverName.trim()}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Creating Server...' : 'Sign Up to Deploy Server'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
