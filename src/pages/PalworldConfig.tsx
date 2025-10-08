@@ -10,6 +10,7 @@ const PalworldConfig = () => {
   const [serverName, setServerName] = useState('');
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('palworld-8gb');
+  const [gameType, setGameType] = useState('palworld');
   const [billingTerm, setBillingTerm] = useState('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
@@ -21,6 +22,7 @@ const PalworldConfig = () => {
       plan_id: planId,
       region,
       server_name: serverName.trim(),
+      modpack_id: gameType,
       term: billingTerm,
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/palworld`
@@ -33,6 +35,10 @@ const PalworldConfig = () => {
     { id: 'palworld-4gb', name: '4GB', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 11.99, players: '4-8', description: 'Small survival servers, 4-8 players' },
     { id: 'palworld-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 23.99, players: '8-16', description: 'Medium servers with plugins, 8-16 players', recommended: true },
     { id: 'palworld-16gb', name: '16GB', ram: '16GB', cpu: '4 vCPU', disk: '160GB SSD', price: 47.99, players: '16-32', description: 'Large servers with mods, 16-32 players' }
+  ];
+
+  const gameTypes = [
+    { id: 'palworld', name: 'Palworld', description: 'Fight, farm, build and work alongside mysterious creatures called "Pals" in this completely new multiplayer, open world survival and crafting game!' }
   ];
 
   const billingTerms = [
@@ -136,6 +142,37 @@ const PalworldConfig = () => {
                 </div>
               </div>
 
+              {/* Game Type Selection */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Game Type</h2>
+                
+                <div className="space-y-3">
+                  {gameTypes.map((type) => (
+                    <div
+                      key={type.id}
+                      onClick={() => setGameType(type.id)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        gameType === type.id
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold text-white">{type.name}</h3>
+                          <p className="text-gray-300 text-sm">{type.description}</p>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 border-gray-400 flex items-center justify-center">
+                          {gameType === type.id && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Choose Your Plan */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Choose Your Plan</h2>
@@ -202,6 +239,11 @@ const PalworldConfig = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
                     <span className="text-white">${selectedPlan?.price}/mo</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Game Type</span>
+                    <span className="text-white">{gameTypes.find(t => t.id === gameType)?.name}</span>
                   </div>
                   
                   <div className="flex justify-between">

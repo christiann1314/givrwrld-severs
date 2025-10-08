@@ -10,6 +10,7 @@ const RustConfig = () => {
   const [serverName, setServerName] = useState('');
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('rust-6gb');
+  const [gameType, setGameType] = useState('rust-generic');
   const [billingTerm, setBillingTerm] = useState('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
@@ -21,6 +22,7 @@ const RustConfig = () => {
       plan_id: planId,
       region,
       server_name: serverName.trim(),
+      modpack_id: gameType,
       term: billingTerm,
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/rust`
@@ -34,6 +36,10 @@ const RustConfig = () => {
     { id: 'rust-6gb', name: '6GB', ram: '6GB', cpu: '2 vCPU', disk: '60GB SSD', price: 16.99, players: '100-200', description: 'Medium servers with plugins, 100-200 players', recommended: true },
     { id: 'rust-8gb', name: '8GB', ram: '8GB', cpu: '3 vCPU', disk: '80GB SSD', price: 24.99, players: '200-300', description: 'Large servers with mods, 200-300 players' },
     { id: 'rust-12gb', name: '12GB', ram: '12GB', cpu: '4 vCPU', disk: '120GB SSD', price: 36.99, players: '300+', description: 'High-pop servers with custom mods, 300+ players' }
+  ];
+
+  const gameTypes = [
+    { id: 'rust-generic', name: 'Rust Generic', description: 'Creates a container that runs rust with cargo' }
   ];
 
   const billingTerms = [
@@ -137,6 +143,37 @@ const RustConfig = () => {
                 </div>
               </div>
 
+              {/* Game Type Selection */}
+              <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4">Game Type</h2>
+                
+                <div className="space-y-3">
+                  {gameTypes.map((type) => (
+                    <div
+                      key={type.id}
+                      onClick={() => setGameType(type.id)}
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        gameType === type.id
+                          ? 'border-orange-500 bg-orange-500/10'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-bold text-white">{type.name}</h3>
+                          <p className="text-gray-300 text-sm">{type.description}</p>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 border-gray-400 flex items-center justify-center">
+                          {gameType === type.id && (
+                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Choose Your Plan */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Choose Your Plan</h2>
@@ -203,6 +240,11 @@ const RustConfig = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-300">Server Plan ({selectedPlan?.name})</span>
                     <span className="text-white">${selectedPlan?.price}/mo</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-300">Game Type</span>
+                    <span className="text-white">{gameTypes.find(t => t.id === gameType)?.name}</span>
                   </div>
                   
                   <div className="flex justify-between">
