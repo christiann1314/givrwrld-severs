@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAction } from '../hooks/useAction';
 import { stripeService } from '../services/stripeService';
-import minecraftWallpaper from '../assets/minecraft-gameplay-wallpaper.jpg';
+import medievalBackdrop from '../assets/medieval-throne-backdrop.jpg';
 
-const MinecraftConfig = () => {
+const TerrariaConfig = () => {
   const { user } = useAuth();
   const [serverName, setServerName] = useState('');
   const [region, setRegion] = useState('us-east-1');
-  const [planId, setPlanId] = useState('mc-4gb');
+  const [planId, setPlanId] = useState('terraria-2gb');
   const [serverType, setServerType] = useState('vanilla');
   const [modpack, setModpack] = useState('vanilla');
   const [billingTerm, setBillingTerm] = useState('monthly');
@@ -31,33 +31,29 @@ const MinecraftConfig = () => {
       server_name: serverName.trim(),
       term: billingTerm,
       success_url: `${window.location.origin}/purchase-success`,
-      cancel_url: `${window.location.origin}/configure/minecraft`
+      cancel_url: `${window.location.origin}/configure/terraria`
     });
 
     window.location.href = response.checkout_url;
   });
 
   const plans = [
-    { id: 'mc-1gb', name: '1GB', ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 3.99, players: '2-4' },
-    { id: 'mc-2gb', name: '2GB', ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 6.99, players: '4-8' },
-    { id: 'mc-4gb', name: '4GB', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 13.99, players: '8-16', recommended: true },
-    { id: 'mc-8gb', name: '8GB', ram: '8GB', cpu: '4 vCPU', disk: '80GB SSD', price: 27.99, players: '16-32' }
+    { id: 'terraria-1gb', name: '1GB', ram: '1GB', cpu: '0.5 vCPU', disk: '10GB SSD', price: 2.99, players: '4-8' },
+    { id: 'terraria-2gb', name: '2GB', ram: '2GB', cpu: '1 vCPU', disk: '20GB SSD', price: 4.99, players: '8-16', recommended: true },
+    { id: 'terraria-4gb', name: '4GB', ram: '4GB', cpu: '2 vCPU', disk: '40GB SSD', price: 7.99, players: '16-32' }
   ];
 
   const serverTypes = [
-    { id: 'vanilla', name: 'Vanilla Minecraft', description: 'Official Minecraft server without modifications' },
-    { id: 'paper', name: 'Paper', description: 'High-performance server with optimizations' },
-    { id: 'spigot', name: 'Spigot', description: 'Plugin-compatible server platform' },
-    { id: 'forge', name: 'Forge', description: 'Mod support with Minecraft Forge' },
-    { id: 'fabric', name: 'Fabric', description: 'Lightweight mod support with Fabric' }
+    { id: 'vanilla', name: 'Vanilla Terraria', description: 'Official Terraria server without modifications' },
+    { id: 'tmodloader', name: 'tModLoader', description: 'Mod support with tModLoader' },
+    { id: 'custom', name: 'Custom', description: 'Custom server configuration' }
   ];
 
   const modpacks = [
-    { id: 'vanilla', name: 'Vanilla', description: 'Pure Minecraft experience' },
-    { id: 'rlcraft', name: 'RLCraft', description: 'Hardcore survival modpack with dragons' },
-    { id: 'atm9', name: 'All The Mods 9', description: 'Kitchen sink modpack with 400+ mods' },
-    { id: 'create', name: 'Create Above & Beyond', description: 'Engineering and automation focused' },
-    { id: 'skyfactory', name: 'Sky Factory 4', description: 'Skyblock with tech progression' }
+    { id: 'vanilla', name: 'Vanilla', description: 'Pure Terraria experience' },
+    { id: 'calamity', name: 'Calamity', description: 'Massive content expansion mod' },
+    { id: 'thorium', name: 'Thorium', description: 'Quality of life improvements' },
+    { id: 'spirit', name: 'Spirit', description: 'Spirit mod with new biomes' }
   ];
 
   const billingTerms = [
@@ -83,10 +79,9 @@ const MinecraftConfig = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
-      {/* Background */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${minecraftWallpaper})` }}
+        style={{ backgroundImage: `url(${medievalBackdrop})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
@@ -100,8 +95,8 @@ const MinecraftConfig = () => {
           </div>
           
           <h1 className="text-5xl lg:text-6xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
-              Configure Your Minecraft Server
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+              Configure Your Terraria Server
             </span>
           </h1>
           
@@ -109,27 +104,25 @@ const MinecraftConfig = () => {
             High-performance, moddable server with 100+ players
           </p>
 
-          {/* Current Selection Bar */}
-          <div className="bg-emerald-500 text-white px-6 py-3 rounded-lg mb-8 inline-block">
+          <div className="bg-purple-500 text-white px-6 py-3 rounded-lg mb-8 inline-block">
             {selectedPlan?.ram} + {serverTypes.find(s => s.id === serverType)?.name} + Optimal Performance
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Configuration */}
             <div className="lg:col-span-2 space-y-8">
               {/* Service Bundles */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                   <h2 className="text-xl font-bold text-white">Service Bundles</h2>
                 </div>
                 <p className="text-gray-400 mb-6">Bundles are optional. You can add or change them later.</p>
                 
                 <div className="grid md:grid-cols-3 gap-4">
-                  <div className="border-2 border-emerald-500 bg-emerald-500/10 rounded-lg p-4 cursor-pointer">
+                  <div className="border-2 border-purple-500 bg-purple-500/10 rounded-lg p-4 cursor-pointer">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-white">None</span>
-                      <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     </div>
@@ -139,27 +132,27 @@ const MinecraftConfig = () => {
                   <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-white">GIVWorld Basic</span>
-                      <span className="text-emerald-400 font-bold">$4.99/mo</span>
+                      <span className="text-purple-400 font-bold">$4.99/mo</span>
                     </div>
                     <ul className="text-sm text-gray-400 space-y-1">
                       <li>• Basic server with 100+ players</li>
                       <li>• Automatic backups</li>
                       <li>• 24/7 support</li>
                     </ul>
-                    <button className="text-emerald-400 text-sm mt-2">What's included?</button>
+                    <button className="text-purple-400 text-sm mt-2">What's included?</button>
                   </div>
                   
                   <div className="border border-gray-600 rounded-lg p-4 cursor-pointer hover:border-gray-500 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-white">Game Expansion</span>
-                      <span className="text-emerald-400 font-bold">$10.99/mo</span>
+                      <span className="text-purple-400 font-bold">$10.99/mo</span>
                     </div>
                     <ul className="text-sm text-gray-400 space-y-1">
                       <li>• Access to all supported game types</li>
                       <li>• Unlimited modpack support</li>
                       <li>• Custom game plugins</li>
                     </ul>
-                    <button className="text-emerald-400 text-sm mt-2">What's included?</button>
+                    <button className="text-purple-400 text-sm mt-2">What's included?</button>
                   </div>
                 </div>
               </div>
@@ -167,14 +160,14 @@ const MinecraftConfig = () => {
               {/* Server Software Type */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                   <h2 className="text-xl font-bold text-white">Server Software Type</h2>
                 </div>
                 
                 <select
                   value={serverType}
                   onChange={(e) => setServerType(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4"
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
                 >
                   {serverTypes.map((type) => (
                     <option key={type.id} value={type.id}>{type.name}</option>
@@ -186,21 +179,21 @@ const MinecraftConfig = () => {
                     onClick={() => setServerType('vanilla')}
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       serverType === 'vanilla' 
-                        ? 'bg-emerald-500 text-white' 
+                        ? 'bg-purple-500 text-white' 
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
-                    Vanilla Minecraft
+                    Vanilla Terraria
                   </button>
                   <button
-                    onClick={() => setServerType('forge')}
+                    onClick={() => setServerType('tmodloader')}
                     className={`px-4 py-2 rounded-lg transition-colors ${
-                      serverType === 'forge' 
-                        ? 'bg-emerald-500 text-white' 
+                      serverType === 'tmodloader' 
+                        ? 'bg-purple-500 text-white' 
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
-                    Forge
+                    tModLoader
                   </button>
                 </div>
                 
@@ -212,14 +205,14 @@ const MinecraftConfig = () => {
               {/* Modpack Selection */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                   <h2 className="text-xl font-bold text-white">Modpack Selection</h2>
                 </div>
                 
                 <select
                   value={modpack}
                   onChange={(e) => setModpack(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-4"
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4"
                 >
                   {modpacks.map((pack) => (
                     <option key={pack.id} value={pack.id}>{pack.name}</option>
@@ -234,7 +227,7 @@ const MinecraftConfig = () => {
               {/* Billing Period */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                   <h2 className="text-xl font-bold text-white">Billing Period</h2>
                 </div>
                 
@@ -245,13 +238,13 @@ const MinecraftConfig = () => {
                       onClick={() => setBillingTerm(term.id)}
                       className={`px-4 py-3 rounded-lg transition-colors text-center ${
                         billingTerm === term.id
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-purple-500 text-white'
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
                     >
                       <div className="font-semibold">{term.name}</div>
                       {term.discount > 0 && (
-                        <div className="text-xs text-emerald-300">Save {term.discount}%</div>
+                        <div className="text-xs text-purple-300">Save {term.discount}%</div>
                       )}
                     </button>
                   ))}
@@ -261,7 +254,7 @@ const MinecraftConfig = () => {
               {/* Optional Add-ons */}
               <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
                   <h2 className="text-xl font-bold text-white">Optional Add-ons</h2>
                 </div>
                 
@@ -273,7 +266,7 @@ const MinecraftConfig = () => {
                           onClick={() => setAddons(prev => ({ ...prev, [addon.id]: !prev[addon.id] }))}
                           className={`w-6 h-6 rounded-full border-2 mr-4 transition-colors ${
                             addons[addon.id as keyof typeof addons]
-                              ? 'bg-emerald-500 border-emerald-500'
+                              ? 'bg-purple-500 border-purple-500'
                               : 'border-gray-500 hover:border-gray-400'
                           }`}
                         >
@@ -286,7 +279,7 @@ const MinecraftConfig = () => {
                           <div className="text-sm text-gray-400">{addon.description}</div>
                         </div>
                       </div>
-                      <div className="text-emerald-400 font-bold">+${addon.price.toFixed(2)}/month</div>
+                      <div className="text-purple-400 font-bold">+${addon.price.toFixed(2)}/month</div>
                     </div>
                   ))}
                 </div>
@@ -305,7 +298,7 @@ const MinecraftConfig = () => {
                       type="text"
                       value={serverName}
                       onChange={(e) => setServerName(e.target.value)}
-                      placeholder="My Minecraft Server"
+                      placeholder="My Terraria Server"
                       className="bg-gray-700/50 border border-gray-600 rounded px-3 py-1 text-white text-sm w-32"
                     />
                   </div>
@@ -334,10 +327,10 @@ const MinecraftConfig = () => {
                 <div className="border-t border-gray-600 pt-4">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-emerald-400">${finalPrice.toFixed(2)}</span>
+                    <span className="text-purple-400">${finalPrice.toFixed(2)}</span>
                   </div>
                   {selectedTerm?.id !== 'monthly' && (
-                    <div className="text-sm text-emerald-300 text-right mt-1">
+                    <div className="text-sm text-purple-300 text-right mt-1">
                       Save ${discount.toFixed(2)} ({selectedTerm?.discount}% off)
                     </div>
                   )}
@@ -346,9 +339,9 @@ const MinecraftConfig = () => {
                 <button
                   onClick={createCheckout}
                   disabled={loading || !serverName.trim()}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed mt-6"
+                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:transform-none disabled:cursor-not-allowed mt-6"
                 >
-                  {loading ? 'Creating Server...' : 'Deploy Minecraft Server'}
+                  {loading ? 'Creating Server...' : 'Deploy Terraria Server'}
                 </button>
               </div>
             </div>
@@ -359,4 +352,4 @@ const MinecraftConfig = () => {
   );
 };
 
-export default MinecraftConfig;
+export default TerrariaConfig;

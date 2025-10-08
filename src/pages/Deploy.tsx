@@ -49,6 +49,141 @@ const Deploy = () => {
       buttonText: 'Deploy Palworld Server',
       buttonColor: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500',
       configPath: '/configure/palworld'
+    },
+    {
+      id: 'ark',
+      name: 'Ark: Survival Evolved',
+      subtitle: 'Tame, build, survive the prehistoric world',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/2399830/header.jpg',
+      features: [
+        'Medium to large servers',
+        'Mod & workshop support',
+        'High CPU performance'
+      ],
+      price: '$14.99',
+      buttonText: 'Deploy Ark Server',
+      buttonColor: 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500',
+      configPath: '/configure/ark'
+    },
+    {
+      id: 'terraria',
+      name: 'Terraria',
+      subtitle: '2D sandbox adventure game',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/105600/header.jpg',
+      features: [
+        '2D sandbox adventure',
+        'Mod support available',
+        'Low resource usage'
+      ],
+      price: '$2.99',
+      buttonText: 'Deploy Terraria Server',
+      buttonColor: 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-400 hover:to-purple-500',
+      configPath: '/configure/terraria'
+    },
+    {
+      id: 'factorio',
+      name: 'Factorio',
+      subtitle: 'Automation and factory building',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/427520/header.jpg',
+      features: [
+        'Factory automation game',
+        'Mod support available',
+        'CPU intensive'
+      ],
+      price: '$6.99',
+      buttonText: 'Deploy Factorio Server',
+      buttonColor: 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500',
+      configPath: '/configure/factorio'
+    },
+    {
+      id: 'mindustry',
+      name: 'Mindustry',
+      subtitle: 'Tower defense meets factory building',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/1127400/header.jpg',
+      features: [
+        'Tower defense + factory',
+        'Open source game',
+        'Mod support available'
+      ],
+      price: '$3.99',
+      buttonText: 'Deploy Mindustry Server',
+      buttonColor: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500',
+      configPath: '/configure/mindustry'
+    },
+    {
+      id: 'rimworld',
+      name: 'Rimworld',
+      subtitle: 'Colony simulation and management',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/294100/header.jpg',
+      features: [
+        'Colony simulation',
+        'Mod support available',
+        'Story-driven gameplay'
+      ],
+      price: '$5.99',
+      buttonText: 'Deploy Rimworld Server',
+      buttonColor: 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500',
+      configPath: '/configure/rimworld'
+    },
+    {
+      id: 'veloren',
+      name: 'Veloren',
+      subtitle: 'Open world voxel RPG',
+      image: 'https://veloren.net/assets/images/veloren-logo.png',
+      features: [
+        'Voxel-based RPG',
+        'Open source project',
+        'Multiplayer focused'
+      ],
+      price: '$4.99',
+      buttonText: 'Deploy Veloren Server',
+      buttonColor: 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500',
+      configPath: '/configure/veloren'
+    },
+    {
+      id: 'vintage-story',
+      name: 'Vintage Story',
+      subtitle: 'Survival crafting with realistic mechanics',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/1608230/header.jpg',
+      features: [
+        'Realistic survival crafting',
+        'Beautiful voxel graphics',
+        'Mod support available'
+      ],
+      price: '$7.99',
+      buttonText: 'Deploy Vintage Story Server',
+      buttonColor: 'bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500',
+      configPath: '/configure/vintage-story'
+    },
+    {
+      id: 'teeworlds',
+      name: 'Teeworlds',
+      subtitle: '2D multiplayer shooter platformer',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/380840/header.jpg',
+      features: [
+        '2D multiplayer shooter',
+        'Fast-paced gameplay',
+        'Low resource usage'
+      ],
+      price: '$2.49',
+      buttonText: 'Deploy Teeworlds Server',
+      buttonColor: 'bg-gradient-to-r from-lime-500 to-green-600 hover:from-lime-400 hover:to-green-500',
+      configPath: '/configure/teeworlds'
+    },
+    {
+      id: 'among-us',
+      name: 'Among Us',
+      subtitle: 'Social deduction multiplayer game',
+      image: 'https://cdn.akamai.steamstatic.com/steam/apps/945360/header.jpg',
+      features: [
+        'Social deduction game',
+        '4-15 players',
+        'Low resource usage'
+      ],
+      price: '$1.99',
+      buttonText: 'Deploy Among Us Server',
+      buttonColor: 'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500',
+      configPath: '/configure/among-us'
     }
   ];
 
@@ -90,17 +225,18 @@ const Deploy = () => {
 
         {/* Game Server Cards */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
             {gameServers.map((server) => (
               <div key={server.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
-                {/* Game Image - Further Extended Height */}
+                {/* Game Image - Responsive Height */}
                 <div 
-                  className="h-80 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden bg-cover bg-center"
+                  className="h-64 sm:h-72 lg:h-80 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden"
                   style={{
                     backgroundImage: `url("${server.image}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
+                    backgroundRepeat: 'no-repeat',
+                    objectFit: 'cover'
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent"></div>

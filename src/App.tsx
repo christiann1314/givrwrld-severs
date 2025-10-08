@@ -32,6 +32,15 @@ import DashboardServices from "@/pages/DashboardServices";
 import MinecraftConfig from "@/pages/MinecraftConfig";
 import RustConfig from "@/pages/RustConfig";
 import PalworldConfig from "@/pages/PalworldConfig";
+import ArkConfig from "@/pages/ArkConfig";
+import TerrariaConfig from "@/pages/TerrariaConfig";
+import FactorioConfig from "@/pages/FactorioConfig";
+import MindustryConfig from "@/pages/MindustryConfig";
+import RimworldConfig from "@/pages/RimworldConfig";
+import VelorenConfig from "@/pages/VelorenConfig";
+import VintageStoryConfig from "@/pages/VintageStoryConfig";
+import TeeworldsConfig from "@/pages/TeeworldsConfig";
+import AmongUsConfig from "@/pages/AmongUsConfig";
 import CommunityPack from "@/pages/CommunityPack";
 import GameExpansionPack from "@/pages/GameExpansionPack";
 import GivrwrldEssentials from "@/pages/GivrwrldEssentials";
@@ -74,6 +83,15 @@ const App = () => (
                 <Route path="/configure/minecraft" element={<MinecraftConfig />} />
                 <Route path="/configure/rust" element={<RustConfig />} />
                 <Route path="/configure/palworld" element={<PalworldConfig />} />
+                <Route path="/configure/ark" element={<ArkConfig />} />
+                <Route path="/configure/terraria" element={<TerrariaConfig />} />
+                <Route path="/configure/factorio" element={<FactorioConfig />} />
+                <Route path="/configure/mindustry" element={<MindustryConfig />} />
+                <Route path="/configure/rimworld" element={<RimworldConfig />} />
+                <Route path="/configure/veloren" element={<VelorenConfig />} />
+                <Route path="/configure/vintage-story" element={<VintageStoryConfig />} />
+                <Route path="/configure/teeworlds" element={<TeeworldsConfig />} />
+                <Route path="/configure/among-us" element={<AmongUsConfig />} />
                 <Route path="/community-pack" element={<CommunityPack />} />
                 <Route path="/game-expansion-pack" element={<GameExpansionPack />} />
                 <Route path="/givrwrld-essentials" element={<GivrwrldEssentials />} />
