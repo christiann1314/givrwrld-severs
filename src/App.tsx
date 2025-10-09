@@ -37,7 +37,6 @@ import TerrariaConfig from "@/pages/TerrariaConfig";
 import FactorioConfig from "@/pages/FactorioConfig";
 import MindustryConfig from "@/pages/MindustryConfig";
 import RimworldConfig from "@/pages/RimworldConfig";
-import VelorenConfig from "@/pages/VelorenConfig";
 import VintageStoryConfig from "@/pages/VintageStoryConfig";
 import TeeworldsConfig from "@/pages/TeeworldsConfig";
 import AmongUsConfig from "@/pages/AmongUsConfig";
@@ -88,7 +87,6 @@ const App = () => (
                 <Route path="/configure/factorio" element={<FactorioConfig />} />
                 <Route path="/configure/mindustry" element={<MindustryConfig />} />
                 <Route path="/configure/rimworld" element={<RimworldConfig />} />
-                <Route path="/configure/veloren" element={<VelorenConfig />} />
                 <Route path="/configure/vintage-story" element={<VintageStoryConfig />} />
                 <Route path="/configure/teeworlds" element={<TeeworldsConfig />} />
                 <Route path="/configure/among-us" element={<AmongUsConfig />} />

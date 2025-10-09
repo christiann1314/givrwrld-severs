@@ -126,21 +126,6 @@ const Deploy = () => {
       configPath: '/configure/rimworld'
     },
     {
-      id: 'veloren',
-      name: 'Veloren',
-      subtitle: 'Open world voxel RPG',
-      image: '/images/veloren-title-screen.png',
-      features: [
-        'Voxel-based RPG',
-        'Open source project',
-        'Multiplayer focused'
-      ],
-      price: '$4.99',
-      buttonText: 'Deploy Veloren Server',
-      buttonColor: 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500',
-      configPath: '/configure/veloren'
-    },
-    {
       id: 'vintage-story',
       name: 'Vintage Story',
       subtitle: 'Survival crafting with realistic mechanics',
