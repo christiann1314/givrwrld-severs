@@ -129,7 +129,7 @@ const Deploy = () => {
       id: 'veloren',
       name: 'Veloren',
       subtitle: 'Open world voxel RPG',
-      image: 'https://veloren.net/assets/images/veloren-logo.png',
+      image: 'https://veloren.net/assets/images/veloren-title-screen.png',
       features: [
         'Voxel-based RPG',
         'Open source project',
