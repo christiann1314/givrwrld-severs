@@ -214,20 +214,16 @@ const Deploy = () => {
             {gameServers.map((server) => (
               <div key={server.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
                 {/* Game Image - Responsive Height */}
-                <div 
-                  className="h-64 sm:h-72 lg:h-80 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden"
-                  style={{
-                    backgroundImage: `url("${server.image}")`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    objectFit: 'cover'
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent"></div>
+                <div className="h-64 sm:h-72 lg:h-80 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden">
+                  <img 
+                    src={server.image}
+                    alt={server.name}
+                    className="w-full h-full object-contain bg-gray-800"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-3xl font-bold text-white mb-2">{server.name}</h3>
-                    <p className="text-gray-200 text-base">{server.subtitle}</p>
+                    <h3 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">{server.name}</h3>
+                    <p className="text-gray-200 text-base drop-shadow-lg">{server.subtitle}</p>
                   </div>
                 </div>
 
