@@ -60,7 +60,7 @@ const FactorioConfig = () => {
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Background */}
       <div 
-        className="fixed inset-0 z-0 bg-contain bg-center bg-no-repeat"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${factorioBackdrop})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/20 via-gray-900/10 to-gray-900/30"></div>

@@ -218,7 +218,7 @@ const Deploy = () => {
                   <img 
                     src={server.image}
                     alt={server.name}
-                    className="w-full h-full object-contain bg-gray-800"
+                    className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">
