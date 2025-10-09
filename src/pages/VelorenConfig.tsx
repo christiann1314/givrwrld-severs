@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useAction } from '../hooks/useAction';
 import { stripeService } from '../services/stripeService';
-const velorenBackdrop = 'https://via.placeholder.com/1920x1080/4F46E5/FFFFFF?text=Veloren+Open+World+Voxel+RPG';
+const velorenBackdrop = '/images/veloren-title-screen.png';
 
 const VelorenConfig = () => {
   const { user } = useAuth();
