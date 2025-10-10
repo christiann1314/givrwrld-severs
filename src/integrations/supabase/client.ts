@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = "https://mjhvkvnshnbnxojnandf.supabase.co";
+const SUPABASE_FUNCTIONS_URL = "https://mjhvkvnshnbnxojnandf.functions.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable___jaqpjR0s2bgEMxG9gjsg_pgaezEI4";
 
 // Import the supabase client like this:
@@ -13,5 +14,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  functions: {
+    url: SUPABASE_FUNCTIONS_URL,
+  },
+  global: {
+    headers: {
+      'Cache-Control': 'no-cache',
+    },
   }
 });

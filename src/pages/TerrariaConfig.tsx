@@ -61,11 +61,25 @@ const TerrariaConfig = () => {
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
       {/* Background */}
       <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${terrariaBackdrop})` }}
+        className="fixed inset-0 z-0 bg-no-repeat"
+        style={{ 
+          backgroundImage: `url(${terrariaBackdrop})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundAttachment: 'fixed'
+        }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/20 via-gray-900/10 to-gray-900/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
+      
+      {/* Mobile responsive background */}
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .bg-fixed {
+            background-attachment: scroll !important;
+          }
+        }
+      `}</style>
       
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

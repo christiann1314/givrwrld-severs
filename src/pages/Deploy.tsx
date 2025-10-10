@@ -213,17 +213,17 @@ const Deploy = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
             {gameServers.map((server) => (
               <div key={server.id} className="bg-gray-800/40 backdrop-blur-md border border-gray-600/30 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-emerald-500/10">
-                {/* Game Image - Fixed Height with Cover */}
-                <div className="h-[230px] bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden rounded-t-xl">
+                {/* Game Image - Responsive Height */}
+                <div className="h-64 sm:h-72 lg:h-80 bg-gradient-to-br from-gray-700 to-gray-800 relative overflow-hidden">
                   <img 
-                    src={`${server.image}?v=${Date.now()}`}
+                    src={server.image}
                     alt={server.name}
-                    className="w-full h-[230px] object-cover rounded-t-xl shadow-md"
+                    className="w-full h-full object-cover"
                     style={{
-                      objectFit: 'cover',
-                      objectPosition: 'center',
-                      width: '100%',
-                      height: '230px'
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      objectFit: 'cover'
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>

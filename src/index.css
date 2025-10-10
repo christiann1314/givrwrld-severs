@@ -108,7 +108,7 @@ html {
     /* Global Medieval Throne Background */
     background-image: url('/src/assets/medieval-throne-backdrop.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-color: #1a1a2e; /* Medieval fallback color */
@@ -192,4 +192,22 @@ body::after {
   border-color: rgba(251, 191, 36, 0.5);
   box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
   transform: translateY(-5px);
+}
+
+/* Game card images - responsive and properly sized */
+.game-card-image {
+  width: 100% !important;
+  height: 250px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-card-image {
+    height: 200px !important;
+  }
 }
