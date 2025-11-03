@@ -4,12 +4,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number; ssd_gb: number }) => {
   const configs = {
     minecraft: {
-      eggId: 1, // Update with your actual Minecraft egg ID
+      // Use the official Minecraft egg id from your panel (nest 16 "Minecraft" → e.g., Paper 39)
+      eggId: 39,
       dockerImage: 'ghcr.io/pterodactyl/yolks:java_17',
       startup: 'java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}',
       environment: {
         SERVER_JARFILE: 'server.jar',
-        VERSION: 'latest'
+        VERSION: 'latest',
+        EULA: 'TRUE',
+        MINECRAFT_VERSION: '1.21.1',
+        BUILD_NUMBER: 'latest',
+        DL_PATH: ''
       },
       limits: {
         memory: resources.ram_gb * 1024,
@@ -179,8 +184,9 @@ serve(async (req) => {
     }
 
     const allocationsData = await allocationsResponse.json()
+    // Pick the first unassigned allocation on the node (no restrictive port range)
     const availableAllocation = allocationsData.data.find((alloc: any) => 
-      !alloc.attributes.assigned && alloc.attributes.port >= 25565 && alloc.attributes.port <= 65535
+      !alloc.attributes.assigned
     )
 
     if (!availableAllocation) {
@@ -206,7 +212,8 @@ serve(async (req) => {
       limits: gameConfig.limits,
       feature_limits: {
         databases: 0,
-        allocations: 1
+        allocations: 1,
+        backups: 0
       },
       allocation: {
         default: availableAllocation.attributes.id
