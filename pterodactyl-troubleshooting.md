@@ -25,7 +25,7 @@
 
 ### **Option A: Direct Panel Access**
 1. **SSH into your dedicated server** (ubuntu@15.204.251.32)
-2. **Check Pterodactyl logs**: `sudo tail -f /var/www/pterodactyl/storage/logs/laravel.log`
+2. **Check Pterodactyl logs**: `sudo journalctl -u pterodactyl -e --no-pager`
 3. **Restart services**: `sudo systemctl restart pterodactyl`
 
 ### **Option B: Manual Configuration**
@@ -52,7 +52,8 @@ ssh ubuntu@15.204.251.32
 sudo systemctl status pterodactyl
 
 # Check logs for errors
-sudo tail -f /var/www/pterodactyl/storage/logs/laravel.log
+sudo journalctl -u pterodactyl -f
+sudo tail -f /var/log/nginx/error.log
 
 # Check if services are running
 sudo systemctl status nginx

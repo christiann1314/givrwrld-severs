@@ -37,7 +37,8 @@ Once you can access the server, run these commands:
 sudo systemctl status pterodactyl
 
 # Check logs for errors
-sudo tail -f /var/www/pterodactyl/storage/logs/laravel.log
+sudo journalctl -u pterodactyl -e --no-pager
+sudo tail -f /var/log/nginx/error.log
 
 # Access MySQL to get configuration
 sudo mysql -u root -p
@@ -58,18 +59,9 @@ SELECT id, name, description FROM eggs WHERE name LIKE '%minecraft%' OR name LIK
 SELECT * FROM api_keys WHERE type = 'client';
 ```
 
-### **Step 3: Alternative - Create New API Keys**
+### **Step 3: Alternative - Create/Reset Admin via Panel UI**
 
-If the existing keys don't work, create new ones:
-
-```bash
-# Create new Application API key
-cd /var/www/pterodactyl
-php artisan p:user:make --email=admin@example.com --admin --name-first=Admin --name-last=User --password=yourpassword
-
-# Or reset existing admin
-php artisan p:user:make --email=your-email@example.com --admin --name-first=Your --name-last=Name --password=yourpassword
-```
+If existing credentials don't work, use the panel login reset flow or your provider's database access to reset the admin password. Avoid framework-specific CLI steps.
 
 ### **Step 4: What We Need**
 
@@ -102,7 +94,8 @@ php artisan p:user:make --email=admin@givrwrldservers.com --admin --name-first=A
 ### **Option 2: Check Panel Logs**
 ```bash
 # Check what's causing the 500 error
-sudo tail -f /var/www/pterodactyl/storage/logs/laravel.log
+sudo journalctl -u pterodactyl -f
+sudo tail -f /var/log/nginx/error.log
 ```
 
 ### **Option 3: Restart Services**
