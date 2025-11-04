@@ -29,7 +29,7 @@
 - **Endpoint URL:** `https://mjhvkvnshnbnxojnandf.functions.supabase.co/stripe-webhook`
 - **Events Required:** `checkout.session.completed` (at minimum)
 - **Signing Secret:** Must match `STRIPE_WEBHOOK_SECRET` in Supabase secrets
-- **Current Secret in Supabase:** `whsec_dD4wcqqH4sWOJyZrRsYz52w0sHe4rBSt`
+- **Current Secret in Supabase:** Set in Supabase Edge Functions secrets
 
 ## Current Production Configuration
 
@@ -39,9 +39,9 @@
 ✅ **SUPABASE_URL** = `https://mjhvkvnshnbnxojnandf.supabase.co`
 ✅ **SUPABASE_SERVICE_ROLE_KEY** = Set in Supabase
 ✅ **PANEL_URL** = `https://panel.givrwrldservers.com`
-✅ **PTERO_APP_KEY** = `ptla_nCMil1ujYSSZ3ooMPiOI9r459kfGztE0Hfdlw8FrFQC`
+✅ **PTERO_APP_KEY** = `ptla_...` (Pterodactyl Application API key)
 ✅ **PTERODACTYL_URL** = `https://panel.givrwrldservers.com` (redundant with PANEL_URL)
-✅ **PTERODACTYL_API_KEY** = `ptla_nCMil1ujYSSZ3ooMPiOI9r459kfGztE0Hfdlw8FrFQC` (redundant with PTERO_APP_KEY)
+✅ **PTERODACTYL_API_KEY** = Same as PTERO_APP_KEY (redundant)
 
 ### Redundant Secrets to Clean Up
 These are duplicate names for the same values:
