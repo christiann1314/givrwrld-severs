@@ -55,6 +55,12 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         
+        console.log('Checkout session completed:', {
+          mode: session.mode,
+          subscription: session.subscription,
+          metadata: session.metadata
+        })
+        
         if (session.mode === 'subscription' && session.subscription) {
           // Get subscription details
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
