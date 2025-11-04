@@ -122,6 +122,12 @@ serve(async (req) => {
               console.error('Failed to trigger server provisioning:', provisionError)
             }
           }
+        } else {
+          console.error('Checkout session not in subscription mode or missing subscription:', {
+            mode: session.mode,
+            subscription: session.subscription,
+            session_id: session.id
+          })
         }
         break
       }
