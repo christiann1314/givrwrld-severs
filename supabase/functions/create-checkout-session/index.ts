@@ -3,9 +3,17 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 
 function cors(req: Request) {
-  const allowList = (Deno.env.get("ALLOW_ORIGINS") ?? "").split(",").map(s => s.trim());
+  // Allow your production domain and common origins
+  const allowedOrigins = [
+    "https://givrwrldservers.com",
+    "https://www.givrwrldservers.com",
+    "http://localhost:3000",
+    "http://localhost:5173"
+  ];
+  const allowList = (Deno.env.get("ALLOW_ORIGINS") ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  const allAllowed = [...allowedOrigins, ...allowList];
   const origin = req.headers.get("origin") ?? "";
-  const allow = allowList.includes(origin) ? origin : allowList[0] ?? "*";
+  const allow = allAllowed.includes(origin) ? origin : allAllowed[0] ?? "*";
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -50,9 +58,20 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('ANON_KEY')
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing Supabase config:', { hasUrl: !!supabaseUrl, hasAnonKey: !!supabaseAnonKey })
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...cors(req), 'Content-Type': 'application/json' } }
+      )
+    }
+    
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      supabaseUrl,
+      supabaseAnonKey,
       { global: { headers: { Authorization: authHeader } } }
     )
 
@@ -83,7 +102,16 @@ serve(async (req) => {
     }
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeSecretKey) {
+      console.error('STRIPE_SECRET_KEY is missing')
+      return new Response(
+        JSON.stringify({ error: 'Payment system configuration error' }),
+        { status: 500, headers: { ...cors(req), 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2023-10-16',
     })
 
