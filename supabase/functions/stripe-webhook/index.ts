@@ -58,76 +58,123 @@ serve(async (req) => {
         console.log('Checkout session completed:', {
           mode: session.mode,
           subscription: session.subscription,
+          session_id: session.id,
           metadata: session.metadata
         })
         
+        // Validate required metadata
+        if (!session.metadata || !session.metadata.user_id) {
+          const errorMsg = 'Missing required metadata in checkout session'
+          console.error(errorMsg, { session_id: session.id, metadata: session.metadata })
+          return new Response(
+            JSON.stringify({ error: errorMsg, received: false }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
         if (session.mode === 'subscription' && session.subscription) {
-          // Get subscription details
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-          
-          // Create order record with new schema
-          const { data: order, error: orderError } = await supabase
-            .from('orders')
-            .insert({
+          try {
+            // Get subscription details
+            const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+            
+            console.log('Processing subscription order:', {
+              subscription_id: subscription.id,
               user_id: session.metadata.user_id,
               item_type: session.metadata.item_type,
-              plan_id: session.metadata.plan_id,
-              term: session.metadata.term,
-              region: session.metadata.region,
-              server_name: session.metadata.server_name,
-              modpack_id: session.metadata.modpack_id || null,
-              addons: JSON.parse(session.metadata.addons || '[]'),
-              stripe_sub_id: subscription.id,
-              status: 'paid'
+              server_name: session.metadata.server_name
             })
-            .select()
-            .single()
-
-          if (orderError) {
-            console.error('Error creating order:', orderError)
-            throw orderError
-          }
-
-          // Send alert
-          const alertsWebhook = Deno.env.get('ALERTS_WEBHOOK')
-          if (alertsWebhook) {
-            try {
-              await fetch(alertsWebhook, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  content: `✅ New order: ${session.metadata.item_type} ${session.metadata.plan_id} for ${session.metadata.server_name} in ${session.metadata.region}`
-                })
+            
+            // Create order record with new schema
+            const { data: order, error: orderError } = await supabase
+              .from('orders')
+              .insert({
+                user_id: session.metadata.user_id,
+                item_type: session.metadata.item_type,
+                plan_id: session.metadata.plan_id,
+                term: session.metadata.term,
+                region: session.metadata.region,
+                server_name: session.metadata.server_name,
+                modpack_id: session.metadata.modpack_id || null,
+                addons: JSON.parse(session.metadata.addons || '[]'),
+                stripe_sub_id: subscription.id,
+                status: 'paid'
               })
-            } catch (alertError) {
-              console.error('Failed to send alert:', alertError)
-            }
-          }
+              .select()
+              .single()
 
-          // Trigger server provisioning for game servers
-          if (session.metadata.item_type === 'game') {
-            try {
-              const functionsUrl = Deno.env.get('SUPABASE_URL')!.replace('https://', 'https://').replace('.supabase.co', '.functions.supabase.co')
-              await fetch(`${functionsUrl}/servers-provision`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${supabaseServiceKey}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  order_id: order.id
-                })
-              })
-            } catch (provisionError) {
-              console.error('Failed to trigger server provisioning:', provisionError)
+            if (orderError) {
+              console.error('Error creating order:', orderError)
+              throw orderError
             }
+
+            console.log('Order created successfully:', { order_id: order.id })
+
+            // Send alert
+            const alertsWebhook = Deno.env.get('ALERTS_WEBHOOK')
+            if (alertsWebhook) {
+              try {
+                await fetch(alertsWebhook, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    content: `✅ New order: ${session.metadata.item_type} ${session.metadata.plan_id} for ${session.metadata.server_name} in ${session.metadata.region}`
+                  })
+                })
+              } catch (alertError) {
+                console.error('Failed to send alert:', alertError)
+              }
+            }
+
+            // Trigger server provisioning for game servers
+            if (session.metadata.item_type === 'game') {
+              console.log('Triggering server provisioning for order:', order.id)
+              try {
+                const functionsUrl = Deno.env.get('SUPABASE_URL')!.replace('https://', 'https://').replace('.supabase.co', '.functions.supabase.co')
+                const provisionResponse = await fetch(`${functionsUrl}/servers-provision`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${supabaseServiceKey}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    order_id: order.id
+                  })
+                })
+                
+                if (!provisionResponse.ok) {
+                  const errorText = await provisionResponse.text()
+                  console.error('Provisioning failed:', {
+                    status: provisionResponse.status,
+                    error: errorText
+                  })
+                } else {
+                  console.log('Server provisioning triggered successfully')
+                }
+              } catch (provisionError) {
+                console.error('Failed to trigger server provisioning:', provisionError)
+              }
+            }
+          } catch (processError) {
+            console.error('Error processing checkout session:', processError)
+            throw processError
           }
         } else {
-          console.error('Checkout session not in subscription mode or missing subscription:', {
+          const errorMsg = 'Checkout session not in subscription mode or missing subscription'
+          const errorDetails = {
             mode: session.mode,
             subscription: session.subscription,
             session_id: session.id
-          })
+          }
+          console.error(errorMsg, errorDetails)
+          // Return error instead of silently failing
+          return new Response(
+            JSON.stringify({ 
+              error: errorMsg, 
+              details: errorDetails,
+              received: false 
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
         }
         break
       }
