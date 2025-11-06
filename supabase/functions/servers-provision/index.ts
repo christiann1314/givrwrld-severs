@@ -205,11 +205,18 @@ serve(async (req) => {
 
     // Check if this is an internal call (from webhook with service role) or external call (with JWT)
     const authHeader = req.headers.get('Authorization')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    
+    // Check if this is a service role call (from webhook or dashboard)
     const isInternalCall = authHeader?.startsWith('Bearer ') && 
-      authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '')
+      (authHeader.includes(serviceRoleKey) || authHeader === `Bearer ${serviceRoleKey}`)
+    
+    // Also allow calls with no auth header when called from dashboard with service role
+    // (Supabase dashboard service role mode may not send explicit Authorization header)
+    const isServiceRoleCall = !authHeader || isInternalCall
 
     // If JWT verification is enabled, verify the caller (unless it's an internal service-role call)
-    if (!isInternalCall && authHeader) {
+    if (!isServiceRoleCall && authHeader) {
       const supabaseAnon = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
