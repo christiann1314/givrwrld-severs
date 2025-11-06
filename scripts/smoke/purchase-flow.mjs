@@ -79,7 +79,9 @@ async function main() {
   const supabaseService = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
   const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' }) : null;
 
-  const testEmail = `test-${Date.now()}@smoketest.givrwrldservers.com`;
+  // Use a valid test email format
+  const timestamp = Date.now();
+  const testEmail = `test+smoke${timestamp}@givrwrldservers.com`;
   const testPassword = 'TestPassword123!';
   let userId = null;
   let orderId = null;
@@ -105,14 +107,44 @@ async function main() {
     userId = authData.user.id;
     logSuccess(`User created: ${testEmail} (${userId})`);
 
+    // Confirm email using service role (for testing)
+    logStep('1.5', 'Confirming email (test mode)');
+    const { error: confirmError } = await supabaseService.auth.admin.updateUserById(
+      userId,
+      { email_confirm: true }
+    );
+    
+    if (confirmError) {
+      logWarning(`Email confirmation failed: ${confirmError.message}`);
+      logWarning('Continuing anyway - may need manual confirmation');
+    } else {
+      logSuccess('Email confirmed');
+    }
+
+    // Get session token - sign in after confirmation
+    logStep('1.6', 'Signing in to get session token');
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: testEmail,
+      password: testPassword,
+    });
+    
+    if (signInError || !signInData.session) {
+      logError(`Sign in failed: ${signInError?.message}`);
+      throw new Error('Failed to get session token');
+    }
+    
+    const sessionToken = signInData.session.access_token;
+    logSuccess('Session token obtained');
+
     // Step 2: Panel Account Creation
     logStep('2', 'Creating Pterodactyl panel account');
     const functionsUrl = SUPABASE_URL.replace('.supabase.co', '.functions.supabase.co');
     const panelResponse = await fetch(`${functionsUrl}/create-pterodactyl-user`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authData.session?.access_token}`,
+        'Authorization': `Bearer ${sessionToken}`,
         'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ userId }),
     });
@@ -146,15 +178,19 @@ async function main() {
     const checkoutResponse = await fetch(`${functionsUrl}/create-checkout-session`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authData.session?.access_token}`,
+        'Authorization': `Bearer ${sessionToken}`,
         'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
+        item_type: 'game',
         plan_id: plans.id,
         region: 'east',
         server_name: `Smoke Test ${Date.now()}`,
         term: 'monthly',
         addons: [],
+        success_url: 'https://givrwrldservers.com/dashboard?success=true',
+        cancel_url: 'https://givrwrldservers.com/purchase',
       }),
     });
 
@@ -164,8 +200,11 @@ async function main() {
       throw new Error('Checkout session creation failed');
     }
 
-    const { url: checkoutUrl, session_id } = await checkoutResponse.json();
-    logSuccess(`Checkout session created: ${session_id}`);
+    const checkoutData = await checkoutResponse.json();
+    const checkoutUrl = checkoutData.url || checkoutData.checkout_url;
+    const sessionId = checkoutData.session_id || checkoutData.id;
+    logSuccess(`Checkout session created: ${sessionId || 'N/A'}`);
+    logSuccess(`Checkout URL: ${checkoutUrl || 'N/A'}`);
 
     if (!stripe) {
       logWarning('Stripe not configured - skipping payment simulation');
@@ -178,13 +217,17 @@ async function main() {
       
       // In a real smoke test, you might use Stripe test cards
       // For now, we'll just verify the session exists
-      try {
-        const session = await stripe.checkout.sessions.retrieve(session_id);
-        logSuccess(`Session retrieved: ${session.id}`);
-        log(`Session status: ${session.status}`);
-        log(`Session mode: ${session.mode}`);
-      } catch (stripeError) {
-        logWarning(`Could not retrieve session: ${stripeError.message}`);
+      if (!sessionId) {
+        logWarning('No session ID returned - skipping Stripe verification');
+      } else {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(sessionId);
+          logSuccess(`Session retrieved: ${session.id}`);
+          log(`Session status: ${session.status}`);
+          log(`Session mode: ${session.mode}`);
+        } catch (stripeError) {
+          logWarning(`Could not retrieve session: ${stripeError.message}`);
+        }
       }
     }
 
