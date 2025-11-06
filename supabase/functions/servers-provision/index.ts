@@ -25,7 +25,7 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       }
     },
     rust: {
-      eggId: 2, // Update with your actual Rust egg ID
+      eggId: 50, // Rust (nest 19) - verified
       dockerImage: 'ghcr.io/pterodactyl/games:rust',
       startup: './RustDedicated -batchmode +server.port {{SERVER_PORT}} +server.identity "rust" +rcon.port {{RCON_PORT}} +rcon.web true +server.hostname "{{HOSTNAME}}" +server.level "{{LEVEL}}" +server.description "{{DESCRIPTION}}" +server.url "{{SERVER_URL}}" +server.headerimage "{{SERVER_IMG}}" +server.maxplayers {{MAX_PLAYERS}} +rcon.password "{{RCON_PASS}}" +server.saveinterval {{SAVEINTERVAL}} {{ADDITIONAL_ARGS}}',
       environment: {
@@ -43,7 +43,7 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       }
     },
     palworld: {
-      eggId: 3, // Update with your actual Palworld egg ID
+      eggId: 15, // Palworld (nest 6) - verified
       dockerImage: 'ghcr.io/pterodactyl/games:palworld',
       startup: './PalServer.sh',
       environment: {
