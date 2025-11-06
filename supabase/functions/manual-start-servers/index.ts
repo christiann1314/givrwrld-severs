@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
 }
 
 serve(async (req) => {
@@ -12,8 +12,34 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🚀 Manual server start request received')
+    // Authenticate user via JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization header required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create authenticated client to get user from JWT
+    const supabaseAnon = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
     
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    console.log('🚀 Manual server start request received for user:', user.id)
+    
+    // Use service role for database queries after authentication
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -28,11 +54,12 @@ serve(async (req) => {
       return new Response('Pterodactyl configuration missing', { status: 500, headers: corsHeaders })
     }
 
-    // Get all servers that need to be started
+    // Get all servers that need to be started (only for authenticated user)
     const { data: servers, error } = await supabase
-      .from('user_servers')
+      .from('orders')
       .select('*')
-      .in('status', ['installing', 'offline'])
+      .eq('user_id', user.id)
+      .in('status', ['installing', 'offline', 'paid', 'provisioning'])
       .not('pterodactyl_server_id', 'is', null)
 
     if (error || !servers) {
@@ -81,9 +108,9 @@ serve(async (req) => {
         if (startResponse.ok) {
           console.log(`✅ Successfully started server: ${server.server_name}`)
           
-          // Update server status
+          // Update order status
           await supabase
-            .from('user_servers')
+            .from('orders')
             .update({ status: 'starting' })
             .eq('id', server.id)
 

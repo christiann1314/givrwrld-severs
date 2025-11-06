@@ -2,9 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://mjhvkvnshnbnxojnandf.supabase.co";
-const SUPABASE_FUNCTIONS_URL = "https://mjhvkvnshnbnxojnandf.functions.supabase.co";
-// Use environment variable or fallback to correct anon key
+// Use environment variables with production fallbacks
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://mjhvkvnshnbnxojnandf.supabase.co";
+const SUPABASE_FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL || "https://mjhvkvnshnbnxojnandf.functions.supabase.co";
+// Use environment variable or fallback to correct anon key (JWT format)
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qaHZrdm5zaG5ibnhvam5hbmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTU0MTksImV4cCI6MjA2OTM5MTQxOX0.GxI1VdNCKD0nxJ3Tlkvy63PHEqoiPlJUlfLMrSoM6Tw";
 
 // Import the supabase client like this:
@@ -20,10 +21,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     url: SUPABASE_FUNCTIONS_URL,
   },
   global: {
-    // Temporarily removed Cache-Control header until Edge Functions are deployed with CORS fix
-    // TODO: Re-enable after deploying create-checkout-session with cache-control in CORS headers
-    // headers: {
-    //   'Cache-Control': 'no-cache',
-    // },
+    headers: {
+      'Cache-Control': 'no-cache',
+    },
   }
 });

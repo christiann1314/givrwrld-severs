@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
 }
 
 serve(async (req) => {
@@ -12,8 +12,34 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🛑 Server stop request received')
+    // Authenticate user via JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization header required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create authenticated client to get user from JWT
+    const supabaseAnon = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
     
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    console.log('🛑 Server stop request received for user:', user.id)
+    
+    // Use service role for database queries after authentication
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -23,26 +49,36 @@ serve(async (req) => {
     const { serverId } = requestBody
     
     if (!serverId) {
-      return new Response('No serverId provided', { status: 400, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'No serverId provided' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      })
     }
     
     console.log('🔍 Looking for server:', serverId)
     
-    // Get server details
+    // Get server details and verify ownership
     const { data: server, error: fetchError } = await supabase
-      .from('user_servers')
-      .select('*')
+      .from('orders')
+      .select('*, user_id')
       .eq('id', serverId)
+      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !server) {
-      console.error('❌ Server not found:', fetchError)
-      return new Response('Server not found', { status: 404, headers: corsHeaders })
+      console.error('❌ Server not found or access denied:', fetchError)
+      return new Response(JSON.stringify({ error: 'Server not found or access denied' }), { 
+        status: 404, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      })
     }
 
     if (!server.pterodactyl_server_id) {
       console.error('❌ Server has no Pterodactyl ID')
-      return new Response('Server not properly provisioned', { status: 400, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'Server not properly provisioned' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      })
     }
 
     // Pterodactyl configuration
@@ -86,9 +122,9 @@ serve(async (req) => {
     if (stopResponse.ok) {
       console.log('✅ Server stop command sent successfully')
       
-      // Update server status
+      // Update order status
       await supabase
-        .from('user_servers')
+        .from('orders')
         .update({ status: 'stopping' })
         .eq('id', serverId)
       

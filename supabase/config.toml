@@ -40,10 +40,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.start-server]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stop-server]
-verify_jwt = false
+verify_jwt = true
 
 [functions.get-server-console]
 verify_jwt = true
@@ -58,7 +58,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.manual-start-servers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.reassign-servers]
 verify_jwt = false
