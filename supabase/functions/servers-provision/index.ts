@@ -259,15 +259,115 @@ serve(async (req) => {
       .update({ status: 'provisioning' })
       .eq('id', order_id)
 
-    // Get user's external account
-    const { data: externalAccount, error: accountError } = await supabase
+    // Get user's external account - create if missing
+    let { data: externalAccount, error: accountError } = await supabase
       .from('external_accounts')
       .select('*')
       .eq('user_id', order.user_id)
       .single()
 
     if (accountError || !externalAccount) {
-      throw new Error('User external account not found. Please create panel account first.')
+      console.log('External account not found, creating Pterodactyl user automatically...')
+      
+      // Get user email from profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('email, first_name, last_name')
+        .eq('user_id', order.user_id)
+        .single()
+      
+      if (profileError || !profile || !profile.email) {
+        throw new Error('User email not found. Cannot create Pterodactyl account.')
+      }
+      
+      // Get Pterodactyl configuration
+      const pterodactylUrl = Deno.env.get('PANEL_URL') || Deno.env.get('PTERODACTYL_URL')
+      const pterodactylKey = Deno.env.get('PTERO_APP_KEY') || Deno.env.get('PTERODACTYL_API_KEY')
+      
+      if (!pterodactylUrl || !pterodactylKey) {
+        throw new Error('Pterodactyl configuration missing')
+      }
+      
+      // Check if user already exists in Pterodactyl by email
+      const existingUserResponse = await fetch(`${pterodactylUrl}/api/application/users?filter[email]=${encodeURIComponent(profile.email)}`, {
+        headers: {
+          'Authorization': `Bearer ${pterodactylKey}`,
+          'Accept': 'Application/vnd.pterodactyl.v1+json'
+        }
+      })
+      
+      let pterodactylUserId: number
+      let panelUsername: string
+      
+      if (existingUserResponse.ok) {
+        const existingData = await existingUserResponse.json()
+        if (existingData.data && existingData.data.length > 0) {
+          // User already exists in Pterodactyl, link them
+          pterodactylUserId = existingData.data[0].attributes.id
+          panelUsername = existingData.data[0].attributes.username
+          console.log('Linking existing Pterodactyl user:', { pterodactylUserId, panelUsername })
+        } else {
+          // Create new Pterodactyl user
+          const password = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map(b => b.toString(36))
+            .join('')
+            .substring(0, 16)
+          
+          const displayName = profile.first_name && profile.last_name 
+            ? `${profile.first_name} ${profile.last_name}`
+            : profile.email.split('@')[0]
+          
+          const userData = {
+            email: profile.email,
+            username: displayName.split(' ')[0] || profile.email.split('@')[0],
+            first_name: profile.first_name || profile.email.split('@')[0],
+            last_name: profile.last_name || 'User',
+            password: password
+          }
+          
+          const createUserResponse = await fetch(`${pterodactylUrl}/api/application/users`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${pterodactylKey}`,
+              'Content-Type': 'application/json',
+              'Accept': 'Application/vnd.pterodactyl.v1+json'
+            },
+            body: JSON.stringify(userData)
+          })
+          
+          if (!createUserResponse.ok) {
+            const errorText = await createUserResponse.text()
+            console.error('Failed to create Pterodactyl user:', errorText)
+            throw new Error(`Failed to create Pterodactyl user: ${errorText}`)
+          }
+          
+          const pterodactylUser = await createUserResponse.json()
+          pterodactylUserId = pterodactylUser.attributes.id
+          panelUsername = pterodactylUser.attributes.username
+          console.log('Pterodactyl user created successfully:', { pterodactylUserId, panelUsername })
+        }
+      } else {
+        throw new Error('Failed to check for existing Pterodactyl user')
+      }
+      
+      // Create external_accounts entry
+      const { data: newAccount, error: createAccountError } = await supabase
+        .from('external_accounts')
+        .upsert({
+          user_id: order.user_id,
+          pterodactyl_user_id: pterodactylUserId,
+          panel_username: panelUsername,
+          last_synced_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+      
+      if (createAccountError || !newAccount) {
+        throw new Error(`Failed to create external account: ${createAccountError?.message}`)
+      }
+      
+      externalAccount = newAccount
+      console.log('External account created/linked successfully')
     }
 
     // Find best-fit node
