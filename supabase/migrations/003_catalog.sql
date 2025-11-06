@@ -150,22 +150,54 @@ CREATE INDEX IF NOT EXISTS idx_affiliates_code ON public.affiliates(code);
 CREATE TRIGGER handle_orders_updated_at BEFORE UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
--- Seed data for plans (replace with your actual Stripe price IDs)
+-- Seed data for plans (with actual Stripe price IDs)
 INSERT INTO public.plans (id, item_type, game, ram_gb, vcores, ssd_gb, stripe_price_id, display_name) VALUES
   -- Minecraft Plans
-  ('mc-1gb', 'game', 'minecraft', 1, 1, 10, 'price_minecraft_1gb_monthly', 'Minecraft 1GB'),
-  ('mc-2gb', 'game', 'minecraft', 2, 1, 20, 'price_minecraft_2gb_monthly', 'Minecraft 2GB'),
-  ('mc-4gb', 'game', 'minecraft', 4, 2, 40, 'price_minecraft_4gb_monthly', 'Minecraft 4GB'),
-  ('mc-8gb', 'game', 'minecraft', 8, 4, 80, 'price_minecraft_8gb_monthly', 'Minecraft 8GB'),
+  ('mc-1gb', 'game', 'minecraft', 1, 1, 10, 'price_1SPmR6B3VffY65l6oa9Vc1T4', 'Minecraft 1GB'),
+  ('mc-2gb', 'game', 'minecraft', 2, 1, 20, 'price_1SPmR6B3VffY65l6Ya3UxaOt', 'Minecraft 2GB'),
+  ('mc-4gb', 'game', 'minecraft', 4, 2, 40, 'price_1SPmR7B3VffY65l61o7vcnLj', 'Minecraft 4GB'),
+  ('mc-8gb', 'game', 'minecraft', 8, 4, 80, 'price_1SPmR7B3VffY65l68V9C5v6W', 'Minecraft 8GB'),
   -- Rust Plans
-  ('rust-3gb', 'game', 'rust', 3, 2, 20, 'price_rust_3gb_monthly', 'Rust 3GB'),
-  ('rust-6gb', 'game', 'rust', 6, 3, 40, 'price_rust_6gb_monthly', 'Rust 6GB'),
-  ('rust-8gb', 'game', 'rust', 8, 4, 60, 'price_rust_8gb_monthly', 'Rust 8GB'),
-  ('rust-12gb', 'game', 'rust', 12, 6, 80, 'price_rust_12gb_monthly', 'Rust 12GB'),
-  -- Palworld Plans
+  ('rust-3gb', 'game', 'rust', 3, 2, 20, 'price_1SPmUhB3VffY65l6HJUM5I6P', 'Rust 3GB'),
+  ('rust-6gb', 'game', 'rust', 6, 3, 40, 'price_1SPmUiB3VffY65l6Yax8JGJT', 'Rust 6GB'),
+  ('rust-8gb', 'game', 'rust', 8, 4, 60, 'price_1SPmUiB3VffY65l6zkKjQcsP', 'Rust 8GB'),
+  ('rust-12gb', 'game', 'rust', 12, 6, 80, 'price_1SPmUjB3VffY65l6lRm0CDLF', 'Rust 12GB'),
+  -- Palworld Plans (NOTE: No Palworld prices in Stripe - these need to be created)
   ('palworld-4gb', 'game', 'palworld', 4, 2, 25, 'price_palworld_4gb_monthly', 'Palworld 4GB'),
   ('palworld-8gb', 'game', 'palworld', 8, 4, 50, 'price_palworld_8gb_monthly', 'Palworld 8GB'),
   ('palworld-16gb', 'game', 'palworld', 16, 8, 100, 'price_palworld_16gb_monthly', 'Palworld 16GB'),
+  -- ARK Plans
+  ('ark-4gb', 'game', 'ark', 4, 2, 30, 'price_1SPmWnB3VffY65l61pDqOIFb', 'ARK 4GB'),
+  ('ark-8gb', 'game', 'ark', 8, 4, 60, 'price_1SPmWnB3VffY65l67sv6bQRF', 'ARK 8GB'),
+  ('ark-16gb', 'game', 'ark', 16, 8, 120, 'price_1SPmWoB3VffY65l6IuunmP51', 'ARK 16GB'),
+  -- Terraria Plans
+  ('terraria-1gb', 'game', 'terraria', 1, 1, 10, 'price_1SPmWoB3VffY65l6h8gabJi1', 'Terraria 1GB'),
+  ('terraria-2gb', 'game', 'terraria', 2, 1, 20, 'price_1SPmWpB3VffY65l6MEZw3ob6', 'Terraria 2GB'),
+  ('terraria-4gb', 'game', 'terraria', 4, 2, 40, 'price_1SPmWpB3VffY65l6LVSBoOrj', 'Terraria 4GB'),
+  -- Factorio Plans
+  ('factorio-2gb', 'game', 'factorio', 2, 1, 15, 'price_1SPmbFB3VffY65l6UJpNHuoD', 'Factorio 2GB'),
+  ('factorio-4gb', 'game', 'factorio', 4, 2, 30, 'price_1SPmbFB3VffY65l6WnwX5pkK', 'Factorio 4GB'),
+  ('factorio-8gb', 'game', 'factorio', 8, 4, 60, 'price_1SPmbGB3VffY65l6hH7aNUc1', 'Factorio 8GB'),
+  -- Mindustry Plans
+  ('mindustry-2gb', 'game', 'mindustry', 2, 1, 15, 'price_1SPmbGB3VffY65l67QWQwdHN', 'Mindustry 2GB'),
+  ('mindustry-4gb', 'game', 'mindustry', 4, 2, 30, 'price_1SPmbHB3VffY65l6RyueapJs', 'Mindustry 4GB'),
+  ('mindustry-8gb', 'game', 'mindustry', 8, 4, 60, 'price_1SPmbHB3VffY65l6UUksvbUm', 'Mindustry 8GB'),
+  -- Rimworld Plans
+  ('rimworld-2gb', 'game', 'rimworld', 2, 1, 15, 'price_1SPmbIB3VffY65l677XUEhXi', 'Rimworld 2GB'),
+  ('rimworld-4gb', 'game', 'rimworld', 4, 2, 30, 'price_1SPmbIB3VffY65l63jyVMNvb', 'Rimworld 4GB'),
+  ('rimworld-8gb', 'game', 'rimworld', 8, 4, 60, 'price_1SPmbIB3VffY65l6qzsyiXX5', 'Rimworld 8GB'),
+  -- Vintage Story Plans
+  ('vintage-story-2gb', 'game', 'vintage-story', 2, 1, 15, 'price_1SPmbJB3VffY65l6ghwbyqCl', 'Vintage Story 2GB'),
+  ('vintage-story-4gb', 'game', 'vintage-story', 4, 2, 30, 'price_1SPmbJB3VffY65l6gX4H8CN4', 'Vintage Story 4GB'),
+  ('vintage-story-8gb', 'game', 'vintage-story', 8, 4, 60, 'price_1SPmbKB3VffY65l6eyLHNRjj', 'Vintage Story 8GB'),
+  -- Teeworlds Plans
+  ('teeworlds-1gb', 'game', 'teeworlds', 1, 1, 10, 'price_1SPmbKB3VffY65l66gSZP9XR', 'Teeworlds 1GB'),
+  ('teeworlds-2gb', 'game', 'teeworlds', 2, 1, 20, 'price_1SPmbLB3VffY65l6bKNT9J8o', 'Teeworlds 2GB'),
+  ('teeworlds-4gb', 'game', 'teeworlds', 4, 2, 40, 'price_1SPmbLB3VffY65l6VCs0HHTW', 'Teeworlds 4GB'),
+  -- Among Us Plans
+  ('among-us-1gb', 'game', 'among-us', 1, 1, 10, 'price_1SPmbMB3VffY65l6Bio5NjIE', 'Among Us 1GB'),
+  ('among-us-2gb', 'game', 'among-us', 2, 1, 20, 'price_1SPmbMB3VffY65l6ZdF7pFBL', 'Among Us 2GB'),
+  ('among-us-4gb', 'game', 'among-us', 4, 2, 40, 'price_1SPmbNB3VffY65l68KrkZAJT', 'Among Us 4GB'),
   -- VPS Plans
   ('vps-basic', 'vps', null, 4, 2, 40, 'price_vps_basic_monthly', 'Basic VPS'),
   ('vps-standard', 'vps', null, 8, 4, 80, 'price_vps_standard_monthly', 'Standard VPS'),
