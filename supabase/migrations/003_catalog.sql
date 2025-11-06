@@ -157,6 +157,7 @@ INSERT INTO public.plans (id, item_type, game, ram_gb, vcores, ssd_gb, stripe_pr
   ('mc-2gb', 'game', 'minecraft', 2, 1, 20, 'price_1SPmR6B3VffY65l6Ya3UxaOt', 'Minecraft 2GB'),
   ('mc-4gb', 'game', 'minecraft', 4, 2, 40, 'price_1SPmR7B3VffY65l61o7vcnLj', 'Minecraft 4GB'),
   ('mc-8gb', 'game', 'minecraft', 8, 4, 80, 'price_1SPmR7B3VffY65l68V9C5v6W', 'Minecraft 8GB'),
+  ('mc-16gb', 'game', 'minecraft', 16, 8, 160, 'price_1SPmR8B3VffY65l6eqd679dM', 'Minecraft 16GB'),
   -- Rust Plans
   ('rust-3gb', 'game', 'rust', 3, 2, 20, 'price_1SPmUhB3VffY65l6HJUM5I6P', 'Rust 3GB'),
   ('rust-6gb', 'game', 'rust', 6, 3, 40, 'price_1SPmUiB3VffY65l6Yax8JGJT', 'Rust 6GB'),

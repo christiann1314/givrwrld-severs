@@ -6,6 +6,10 @@ UPDATE public.plans SET stripe_price_id = 'price_1SPmR6B3VffY65l6oa9Vc1T4' WHERE
 UPDATE public.plans SET stripe_price_id = 'price_1SPmR6B3VffY65l6Ya3UxaOt' WHERE id = 'mc-2gb';
 UPDATE public.plans SET stripe_price_id = 'price_1SPmR7B3VffY65l61o7vcnLj' WHERE id = 'mc-4gb';
 UPDATE public.plans SET stripe_price_id = 'price_1SPmR7B3VffY65l68V9C5v6W' WHERE id = 'mc-8gb';
+-- Minecraft 16GB (insert if doesn't exist)
+INSERT INTO public.plans (id, item_type, game, ram_gb, vcores, ssd_gb, stripe_price_id, display_name) VALUES
+  ('mc-16gb', 'game', 'minecraft', 16, 8, 160, 'price_1SPmR8B3VffY65l6eqd679dM', 'Minecraft 16GB')
+ON CONFLICT (id) DO UPDATE SET stripe_price_id = EXCLUDED.stripe_price_id;
 
 -- Rust Plans
 UPDATE public.plans SET stripe_price_id = 'price_1SPmUhB3VffY65l6HJUM5I6P' WHERE id = 'rust-3gb';
