@@ -135,8 +135,8 @@ serve(async (req) => {
       }
     }
 
-    // Validate and use provided URLs or fallback to origin-based URLs
-    const origin = req.headers.get('origin') || ''
+    // Validate and construct absolute URLs
+    const origin = req.headers.get('origin') || 'https://givrwrldservers.com'
     const allowedOrigins = [
       'https://givrwrldservers.com',
       'https://www.givrwrldservers.com',
@@ -144,39 +144,45 @@ serve(async (req) => {
       'http://localhost:5173'
     ]
     
-    // Validate success_url if provided
-    let finalSuccessUrl = success_url
-    if (success_url) {
-      try {
-        const url = new URL(success_url)
-        // Allow same origin or known allowed origins
-        if (!allowedOrigins.some(allowed => url.origin === allowed || url.origin === origin)) {
-          console.warn('Invalid success_url origin, using fallback')
-          finalSuccessUrl = `${origin}/dashboard?success=true`
-        }
-      } catch {
-        console.warn('Invalid success_url format, using fallback')
-        finalSuccessUrl = `${origin}/dashboard?success=true`
-      }
-    } else {
-      finalSuccessUrl = `${origin}/dashboard?success=true`
+    // Determine base URL - use origin if allowed, otherwise default to production
+    let baseUrl = origin
+    if (!allowedOrigins.includes(origin)) {
+      baseUrl = 'https://givrwrldservers.com'
     }
     
-    // Validate cancel_url if provided
-    let finalCancelUrl = cancel_url
-    if (cancel_url) {
-      try {
-        const url = new URL(cancel_url)
-        if (!allowedOrigins.some(allowed => url.origin === allowed || url.origin === origin)) {
-          console.warn('Invalid cancel_url origin, using fallback')
-          finalCancelUrl = `${origin}/purchase`
-        }
-      } catch {
-        console.warn('Invalid cancel_url format, using fallback')
-        finalCancelUrl = `${origin}/purchase`
+    // Helper function to ensure absolute URL
+    const ensureAbsoluteUrl = (url: string | undefined, defaultPath: string): string => {
+      if (!url) {
+        return `${baseUrl}${defaultPath}`
       }
-    } else {
-      finalCancelUrl = `${origin}/purchase`
+      
+      // If already absolute URL, validate and return
+      try {
+        const parsedUrl = new URL(url)
+        // Check if origin is allowed
+        if (allowedOrigins.includes(parsedUrl.origin)) {
+          return url
+        }
+        // If origin not allowed, use baseUrl with the path
+        return `${baseUrl}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`
+      } catch {
+        // Relative URL - prepend baseUrl
+        const path = url.startsWith('/') ? url : `/${url}`
+        return `${baseUrl}${path}`
+      }
+    }
+    
+    // Construct absolute URLs
+    const finalSuccessUrl = ensureAbsoluteUrl(success_url, '/dashboard?success=true')
+    const finalCancelUrl = ensureAbsoluteUrl(cancel_url, '/purchase')
+    
+    // Final validation - ensure URLs are absolute
+    try {
+      new URL(finalSuccessUrl)
+      new URL(finalCancelUrl)
+    } catch (error) {
+      console.error('Failed to construct absolute URLs:', error)
+      throw new Error('Invalid URL configuration')
     }
     
     // Create Stripe checkout session
