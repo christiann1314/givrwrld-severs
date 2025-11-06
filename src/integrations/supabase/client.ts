@@ -20,8 +20,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     url: SUPABASE_FUNCTIONS_URL,
   },
   global: {
-    headers: {
-      'Cache-Control': 'no-cache',
-    },
+    // Temporarily removed Cache-Control header until Edge Functions are deployed with CORS fix
+    // TODO: Re-enable after deploying create-checkout-session with cache-control in CORS headers
+    // headers: {
+    //   'Cache-Control': 'no-cache',
+    // },
   }
 });
