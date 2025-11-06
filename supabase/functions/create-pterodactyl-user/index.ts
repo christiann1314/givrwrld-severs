@@ -36,13 +36,22 @@ serve(async (req) => {
       )
     }
 
-    const { userId, email, displayName } = await req.json()
+    const { userId, email: requestEmail, displayName } = await req.json()
     
     // Verify userId matches authenticated user
     if (user.id !== userId) {
       return new Response(
         JSON.stringify({ error: 'User ID mismatch' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Use email from authenticated user (more reliable than request body)
+    const email = user.email || requestEmail
+    if (!email) {
+      return new Response(
+        JSON.stringify({ error: 'Email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
