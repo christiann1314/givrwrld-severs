@@ -4,12 +4,13 @@ import type { Database } from './types';
 
 const SUPABASE_URL = "https://mjhvkvnshnbnxojnandf.supabase.co";
 const SUPABASE_FUNCTIONS_URL = "https://mjhvkvnshnbnxojnandf.functions.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable___jaqpjR0s2bgEMxG9gjsg_pgaezEI4";
+// Use environment variable or fallback to correct anon key
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qaHZrdm5zaG5ibnhvam5hbmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTU0MTksImV4cCI6MjA2OTM5MTQxOX0.GxI1VdNCKD0nxJ3Tlkvy63PHEqoiPlJUlfLMrSoM6Tw";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
