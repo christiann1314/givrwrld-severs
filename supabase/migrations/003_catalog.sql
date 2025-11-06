@@ -162,10 +162,10 @@ INSERT INTO public.plans (id, item_type, game, ram_gb, vcores, ssd_gb, stripe_pr
   ('rust-6gb', 'game', 'rust', 6, 3, 40, 'price_1SPmUiB3VffY65l6Yax8JGJT', 'Rust 6GB'),
   ('rust-8gb', 'game', 'rust', 8, 4, 60, 'price_1SPmUiB3VffY65l6zkKjQcsP', 'Rust 8GB'),
   ('rust-12gb', 'game', 'rust', 12, 6, 80, 'price_1SPmUjB3VffY65l6lRm0CDLF', 'Rust 12GB'),
-  -- Palworld Plans (NOTE: No Palworld prices in Stripe - these need to be created)
-  ('palworld-4gb', 'game', 'palworld', 4, 2, 25, 'price_palworld_4gb_monthly', 'Palworld 4GB'),
-  ('palworld-8gb', 'game', 'palworld', 8, 4, 50, 'price_palworld_8gb_monthly', 'Palworld 8GB'),
-  ('palworld-16gb', 'game', 'palworld', 16, 8, 100, 'price_palworld_16gb_monthly', 'Palworld 16GB'),
+  -- Palworld Plans
+  ('palworld-4gb', 'game', 'palworld', 4, 2, 25, 'price_1SQK3YB3VffY65l6mttysyH7', 'Palworld 4GB'),
+  ('palworld-8gb', 'game', 'palworld', 8, 4, 50, 'price_1SQK3aB3VffY65l65HvxiHLC', 'Palworld 8GB'),
+  ('palworld-16gb', 'game', 'palworld', 16, 8, 100, 'price_1SQK3cB3VffY65l6s3NcHy0Y', 'Palworld 16GB'),
   -- ARK Plans
   ('ark-4gb', 'game', 'ark', 4, 2, 30, 'price_1SPmWnB3VffY65l61pDqOIFb', 'ARK 4GB'),
   ('ark-8gb', 'game', 'ark', 8, 4, 60, 'price_1SPmWnB3VffY65l67sv6bQRF', 'ARK 8GB'),
