@@ -202,7 +202,7 @@ async function main() {
 
     const checkoutData = await checkoutResponse.json();
     const checkoutUrl = checkoutData.url || checkoutData.checkout_url;
-    const sessionId = checkoutData.session_id || checkoutData.id;
+    const sessionId = checkoutData.session_id;
     logSuccess(`Checkout session created: ${sessionId || 'N/A'}`);
     logSuccess(`Checkout URL: ${checkoutUrl || 'N/A'}`);
 
