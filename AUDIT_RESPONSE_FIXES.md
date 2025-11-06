@@ -40,7 +40,9 @@ The audit may have reviewed cached or outdated code. This document confirms the 
 10. Teeworlds: 3 plans (1GB, 2GB, 4GB) ✅
 11. Among Us: 3 plans (1GB, 2GB, 4GB) ✅
 
-**Total: 37 game plans with live Stripe price IDs** ✅
+**Total: 36 game plans with live Stripe price IDs** ✅
+
+*(Note: The user's JSON data showed 36 plans, which matches the migration file exactly)*
 
 ### Evidence:
 ```sql
@@ -128,8 +130,8 @@ rust: {
 
 ### 1. Re-run Audit
 The audit may have reviewed cached code. Please re-run the audit with the latest codebase to verify:
-- `supabase/migrations/003_catalog.sql` (lines 154-201)
-- `supabase/functions/servers-provision/index.ts` (lines 4-175)
+- `supabase/migrations/003_catalog.sql` (lines 154-201) - **36 game plans with live prices**
+- `supabase/functions/servers-provision/index.ts` (lines 4-175) - **All 11 games with correct egg IDs**
 
 ### 2. Update Production Readiness Score
 Based on actual code state:
@@ -137,7 +139,7 @@ Based on actual code state:
 - **Actual Score:** 8/10
 
 **Reasoning:**
-- ✅ All 37 Stripe prices are live (was blocker, now resolved)
+- ✅ All 36 Stripe prices are live (was blocker, now resolved)
 - ✅ All egg IDs are correct (was blocker, now resolved)
 - ✅ Security and authentication verified
 - ✅ End-to-end flow is complete
@@ -157,7 +159,7 @@ Based on actual code state:
 
 **Both critical blockers identified in the audit have already been resolved:**
 
-1. ✅ **Stripe Catalog:** All 37 game plans have live price IDs
+1. ✅ **Stripe Catalog:** All 36 game plans have live price IDs
 2. ✅ **Pterodactyl Templates:** All egg IDs, docker images, and startup commands are correct
 
 **The system is production-ready for game server hosting.** The audit may have reviewed an older version of the codebase. Please re-run the audit with the latest code to confirm.
