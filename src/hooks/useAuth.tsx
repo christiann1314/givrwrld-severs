@@ -62,13 +62,19 @@ export const useAuth = () => {
     // Create Pterodactyl user if signup was successful
     if (!error && data.user) {
       try {
-        await supabase.functions.invoke('create-pterodactyl-user', {
+        const { data: pterodactylData, error: pterodactylError } = await supabase.functions.invoke('create-pterodactyl-user', {
           body: {
             userId: data.user.id,
             email: data.user.email,
             displayName: fullName || email.split('@')[0] // Use full name if available
           }
         });
+        
+        if (pterodactylError) {
+          console.error('Failed to create Pterodactyl user:', pterodactylError);
+          // Log but don't fail signup - user can create panel account later
+          // Consider showing a warning toast in the UI
+        }
         
         // Track user registration
         await analytics.trackUserRegistration({
@@ -79,6 +85,7 @@ export const useAuth = () => {
       } catch (pterodactylError) {
         console.error('Failed to create Pterodactyl user:', pterodactylError);
         // Don't fail the signup if Pterodactyl user creation fails
+        // User will be prompted to create panel account before purchasing
       }
     }
 

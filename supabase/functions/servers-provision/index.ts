@@ -203,7 +203,28 @@ serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client with service role
+    // Check if this is an internal call (from webhook with service role) or external call (with JWT)
+    const authHeader = req.headers.get('Authorization')
+    const isInternalCall = authHeader?.startsWith('Bearer ') && 
+      authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '')
+
+    // If JWT verification is enabled, verify the caller (unless it's an internal service-role call)
+    if (!isInternalCall && authHeader) {
+      const supabaseAnon = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      )
+      const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
+    // Initialize Supabase client with service role for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -254,13 +275,15 @@ serve(async (req) => {
     }
 
     // Calculate available capacity for each node
+    // Include all active statuses: paid, provisioning, installing, active, provisioned
+    const activeStatuses = ['paid', 'provisioning', 'installing', 'active', 'provisioned']
     const nodesWithCapacity = await Promise.all(
       nodes.map(async (node) => {
         const { data: orders } = await supabase
           .from('orders')
           .select('plans(ram_gb)')
           .eq('node_id', node.id)
-          .eq('status', 'provisioned')
+          .in('status', activeStatuses)
 
         const usedRam = orders?.reduce((sum, order) => sum + (order.plans?.ram_gb || 0), 0) || 0
         const availableRam = node.max_ram_gb - node.reserved_headroom_gb - usedRam

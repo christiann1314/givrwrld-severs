@@ -30,6 +30,8 @@ interface CheckoutRequest {
   modpack_id?: string;
   term: 'monthly' | 'quarterly' | 'yearly';
   addons?: string[];
+  success_url?: string;
+  cancel_url?: string;
 }
 
 serve(async (req) => {
@@ -38,7 +40,7 @@ serve(async (req) => {
   }
 
   try {
-    const { item_type, plan_id, region, server_name, modpack_id, term, addons }: CheckoutRequest = await req.json()
+    const { item_type, plan_id, region, server_name, modpack_id, term, addons, success_url, cancel_url }: CheckoutRequest = await req.json()
 
     // Validate required fields
     if (!item_type || !plan_id || !region || !server_name || !term) {
@@ -133,13 +135,57 @@ serve(async (req) => {
       }
     }
 
+    // Validate and use provided URLs or fallback to origin-based URLs
+    const origin = req.headers.get('origin') || ''
+    const allowedOrigins = [
+      'https://givrwrldservers.com',
+      'https://www.givrwrldservers.com',
+      'http://localhost:3000',
+      'http://localhost:5173'
+    ]
+    
+    // Validate success_url if provided
+    let finalSuccessUrl = success_url
+    if (success_url) {
+      try {
+        const url = new URL(success_url)
+        // Allow same origin or known allowed origins
+        if (!allowedOrigins.some(allowed => url.origin === allowed || url.origin === origin)) {
+          console.warn('Invalid success_url origin, using fallback')
+          finalSuccessUrl = `${origin}/dashboard?success=true`
+        }
+      } catch {
+        console.warn('Invalid success_url format, using fallback')
+        finalSuccessUrl = `${origin}/dashboard?success=true`
+      }
+    } else {
+      finalSuccessUrl = `${origin}/dashboard?success=true`
+    }
+    
+    // Validate cancel_url if provided
+    let finalCancelUrl = cancel_url
+    if (cancel_url) {
+      try {
+        const url = new URL(cancel_url)
+        if (!allowedOrigins.some(allowed => url.origin === allowed || url.origin === origin)) {
+          console.warn('Invalid cancel_url origin, using fallback')
+          finalCancelUrl = `${origin}/purchase`
+        }
+      } catch {
+        console.warn('Invalid cancel_url format, using fallback')
+        finalCancelUrl = `${origin}/purchase`
+      }
+    } else {
+      finalCancelUrl = `${origin}/purchase`
+    }
+    
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/dashboard?success=true`,
-      cancel_url: `${req.headers.get('origin')}/purchase`,
+      success_url: finalSuccessUrl,
+      cancel_url: finalCancelUrl,
       metadata: {
         user_id: user.id,
         item_type,

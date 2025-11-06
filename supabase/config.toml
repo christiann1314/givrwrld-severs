@@ -30,6 +30,15 @@ verify_jwt = false
 [functions.pterodactyl-provision]
 verify_jwt = false
 
+[functions.servers-provision]
+verify_jwt = true
+
+[functions.create-pterodactyl-user]
+verify_jwt = true
+
+[functions.panel-sync-user]
+verify_jwt = true
+
 [functions.start-server]
 verify_jwt = false
 
