@@ -14,6 +14,8 @@ export const config = {
   
   // Stripe Configuration
   stripe: {
+    // IMPORTANT: Use LIVE key in production (pk_live_...)
+    // Set VITE_STRIPE_PUBLISHABLE_KEY environment variable
     publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51Qj8jR0s2bgEMxG9gjsg_pgaezEI4'
   },
   

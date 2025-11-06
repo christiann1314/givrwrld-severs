@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { config } from "@/config/environment";
 
 type Stats = {
   state: string | null;
@@ -39,7 +40,7 @@ export function useServerStats({ orderId, serverIdentifier, token, fnBase }: {
         const res = await fetch(url, {
           headers: {
             "Authorization": `Bearer ${token}`,
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qaHZrdm5zaG5ibnhvam5hbmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTU0MTksImV4cCI6MjA2OTM5MTQxOX0.GxI1VdNCKD0nxJ3Tlkvy63PHEqoiPlJUlfLMrSoM6Tw"
+            "apikey": config.supabase.anonKey
           }
         });
         
