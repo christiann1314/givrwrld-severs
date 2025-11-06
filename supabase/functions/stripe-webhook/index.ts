@@ -129,7 +129,10 @@ serve(async (req) => {
             if (session.metadata.item_type === 'game') {
               console.log('Triggering server provisioning for order:', order.id)
               try {
-                const functionsUrl = Deno.env.get('SUPABASE_URL')!.replace('https://', 'https://').replace('.supabase.co', '.functions.supabase.co')
+                // Construct functions URL: https://PROJECT_REF.supabase.co -> https://PROJECT_REF.functions.supabase.co
+                const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+                const functionsUrl = supabaseUrl.replace('.supabase.co', '.functions.supabase.co')
+                console.log('Calling provisioning function at:', `${functionsUrl}/servers-provision`)
                 const provisionResponse = await fetch(`${functionsUrl}/servers-provision`, {
                   method: 'POST',
                   headers: {
