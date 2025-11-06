@@ -25,6 +25,16 @@ const Support = () => {
 
   const faqs = [
     {
+      id: 'provisioning',
+      question: 'How long does server provisioning take?',
+      answer: 'Server provisioning is automatic and typically completes within 3-5 minutes after payment. You can monitor the status in your dashboard. If your server takes longer than 10 minutes, please contact support.'
+    },
+    {
+      id: 'panel-access',
+      question: 'How do I access my Pterodactyl control panel?',
+      answer: 'After your server is provisioned, click "Open Panel" in your dashboard, or go to https://panel.givrwrldservers.com and log in with your account email. A panel account is automatically created during signup, but you can also create one manually from the dashboard if needed.'
+    },
+    {
       id: 'connect',
       question: 'How do I connect to my server?',
       answer: 'You can connect to your server using the IP address and port provided in your control panel. Make sure your server is running and check your firewall settings.'

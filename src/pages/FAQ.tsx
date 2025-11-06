@@ -23,6 +23,16 @@ const FAQ = () => {
           answer: 'Getting started is easy! Simply choose your game type, select a server plan that fits your needs, complete the setup process, and your server will be ready in minutes. Our control panel makes server management simple and intuitive.'
         },
         {
+          id: 'provisioning-time',
+          question: 'How long does it take for my server to be ready after purchase?',
+          answer: 'Most servers are automatically provisioned and ready within 3-5 minutes after payment. You\'ll see your server appear in your dashboard once provisioning is complete. If your server takes longer than 10 minutes, please contact support for assistance.'
+        },
+        {
+          id: 'panel-access',
+          question: 'How do I access my server control panel (Pterodactyl)?',
+          answer: 'After your server is provisioned, you can access the control panel from your dashboard. Click "Open Panel" on any server card, or go directly to https://panel.givrwrldservers.com and log in with your account email. If you don\'t have a panel account yet, one is automatically created during signup or you can create one manually from the dashboard.'
+        },
+        {
           id: 'customer-support',
           question: 'Do you offer 24/7 customer support?',
           answer: 'Yes! Our expert support team is available 24/7 to help with any technical issues, questions, or server configurations. You can reach us through our Discord server, support tickets, or live chat.'

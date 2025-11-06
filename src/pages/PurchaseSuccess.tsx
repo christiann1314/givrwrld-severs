@@ -161,10 +161,10 @@ const PurchaseSuccess = () => {
           <div className="bg-gray-800/60 backdrop-blur-md border border-gray-600/50 rounded-xl p-6">
             <h3 className="text-lg font-bold text-white mb-4">What's Next?</h3>
             <div className="space-y-3 text-gray-300">
-              <p>• Your server is being automatically provisioned and will be ready within 5-10 minutes</p>
-              <p>• You'll receive connection details via email once setup is complete</p>
-              <p>• Visit your dashboard to monitor setup progress and access server controls</p>
-              <p>• Need help? Our support team is available 24/7 to assist you</p>
+              <p>• <strong>Server Provisioning:</strong> Your server is being automatically provisioned and will be ready within 3-5 minutes. You can monitor progress in your dashboard.</p>
+              <p>• <strong>Access Control Panel:</strong> Once your server is ready, access it via the "Open Panel" button in your dashboard or go directly to https://panel.givrwrldservers.com. A panel account is automatically created during signup.</p>
+              <p>• <strong>Server Status:</strong> Check your dashboard to see when your server status changes from "provisioning" to "active". You'll also see connection details and server information.</p>
+              <p>• <strong>Need Help?</strong> Our support team is available 24/7. If your server takes longer than 10 minutes to provision, please contact support for assistance.</p>
             </div>
           </div>
 

@@ -53,44 +53,52 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Authenticate user via JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization header required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Create authenticated client to get user from JWT
+    const supabaseAnon = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
+    
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Use service role client for database queries (now that user is authenticated)
     const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      )
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
 
-      // Parse request body
-      const { email } = await req.json()
-      
-      if (!email) {
-        return new Response(JSON.stringify({ error: 'Email is required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      // Get user ID from email
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('email', email)
-        .single()
-
-      if (!profile) {
-        return new Response(JSON.stringify({
-          has_server: false,
-          message: 'User not found'
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      // Get user servers
-      const { data: servers } = await supabase
-        .from('user_servers')
-        .select('id, server_name, status, ip, port, game_type, pterodactyl_server_id')
-        .eq('user_id', profile.user_id)
-        .order('created_at', { ascending: false })
+    // Get user servers - restricted to authenticated user's UUID
+    const { data: servers } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        server_name,
+        status,
+        plan_id,
+        pterodactyl_server_id,
+        pterodactyl_server_identifier,
+        plans:plan_id (game, ram_gb)
+      `)
+      .eq('user_id', user.id)
+      .in('status', ['paid', 'provisioning', 'installing', 'provisioned', 'active'])
+      .order('created_at', { ascending: false })
 
       if (!servers || servers.length === 0) {
         return new Response(JSON.stringify({
@@ -104,6 +112,7 @@ Deno.serve(async (req) => {
 
       // Return the first/main server info
       const mainServer = servers[0]
+      const game = mainServer.plans?.game || 'unknown'
       
       return new Response(JSON.stringify({
         has_server: true,
@@ -111,10 +120,10 @@ Deno.serve(async (req) => {
           id: mainServer.id,
           name: mainServer.server_name,
           status: mainServer.status,
-          ip: mainServer.ip || 'dedicated.givrwrldservers.com',
-          port: mainServer.port || '25565',
-          game_type: mainServer.game_type,
-          pterodactyl_id: mainServer.pterodactyl_server_id
+          game: game,
+          ram_gb: mainServer.plans?.ram_gb || null,
+          pterodactyl_id: mainServer.pterodactyl_server_id,
+          pterodactyl_identifier: mainServer.pterodactyl_server_identifier
         },
         total_servers: servers.length
       }), {
