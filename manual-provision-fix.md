@@ -18,7 +18,7 @@ SELECT
   created_at
 FROM orders
 WHERE status = 'paid'
-  AND (pterodactyl_server_id IS NULL OR pterodactyl_server_id = '')
+  AND pterodactyl_server_id IS NULL
 ORDER BY created_at DESC
 LIMIT 10;
 ```
