@@ -27,3 +27,8 @@ dist-ssr
 create-stripe-products.js
 get-price-ids.js
 *.ps1
+
+# Environment variables
+.env
+.env.local
+.env.*.local
