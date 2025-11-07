@@ -50,7 +50,15 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle API requests
+  // Skip caching for non-GET requests (POST, PUT, DELETE, etc.)
+  // Cache API only supports GET requests
+  if (request.method !== 'GET') {
+    // Just pass through POST/PUT/DELETE requests without caching
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Handle API requests (GET only)
   if (url.hostname.includes('supabase.co')) {
     event.respondWith(
       caches.open(API_CACHE).then((cache) => {
@@ -69,7 +77,8 @@ self.addEventListener('fetch', (event) => {
           
           // Fetch fresh data
           return fetch(request).then((response) => {
-            if (response.status === 200) {
+            // Only cache successful GET responses
+            if (response.status === 200 && request.method === 'GET') {
               cache.put(request, response.clone());
             }
             return response;

@@ -141,11 +141,13 @@ serve(async (req) => {
             // Trigger server provisioning for game servers
             if (session.metadata.item_type === 'game') {
               console.log('Triggering server provisioning for order:', order.id)
+              
+              // Construct functions URL: https://PROJECT_REF.supabase.co -> https://PROJECT_REF.functions.supabase.co
+              const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+              const functionsUrl = supabaseUrl.replace('.supabase.co', '.functions.supabase.co')
+              console.log('Calling provisioning function at:', `${functionsUrl}/servers-provision`)
+              
               try {
-                // Construct functions URL: https://PROJECT_REF.supabase.co -> https://PROJECT_REF.functions.supabase.co
-                const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-                const functionsUrl = supabaseUrl.replace('.supabase.co', '.functions.supabase.co')
-                console.log('Calling provisioning function at:', `${functionsUrl}/servers-provision`)
                 const provisionResponse = await fetch(`${functionsUrl}/servers-provision`, {
                   method: 'POST',
                   headers: {
@@ -159,15 +161,72 @@ serve(async (req) => {
                 
                 if (!provisionResponse.ok) {
                   const errorText = await provisionResponse.text()
-                  console.error('Provisioning failed:', {
-                    status: provisionResponse.status,
-                    error: errorText
-                  })
+                  const errorMessage = `Provisioning failed: ${provisionResponse.status} - ${errorText}`
+                  console.error(errorMessage)
+                  
+                  // Store provisioning error in order for debugging
+                  await supabase
+                    .from('orders')
+                    .update({ 
+                      status: 'error',
+                      // Store error in a JSONB field if you have one, or log it
+                    })
+                    .eq('id', order.id)
+                  
+                  // Send alert about provisioning failure
+                  const alertsWebhook = Deno.env.get('ALERTS_WEBHOOK')
+                  if (alertsWebhook) {
+                    try {
+                      await fetch(alertsWebhook, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          content: `⚠️ Provisioning failed for order ${order.id}: ${errorMessage}`
+                        })
+                      })
+                    } catch (alertError) {
+                      console.error('Failed to send alert:', alertError)
+                    }
+                  }
+                  
+                  // Don't throw - we still want to return 200 to Stripe
+                  // The order is created, provisioning can be retried manually
+                  console.warn('Provisioning failed but order created. Manual retry required.')
                 } else {
-                  console.log('Server provisioning triggered successfully')
+                  const provisionResult = await provisionResponse.json()
+                  console.log('Server provisioning triggered successfully:', provisionResult)
+                  
+                  // Verify provisioning succeeded by checking if server_id was set
+                  // (This happens in servers-provision function, but we can verify here)
                 }
               } catch (provisionError) {
-                console.error('Failed to trigger server provisioning:', provisionError)
+                const errorMessage = provisionError instanceof Error ? provisionError.message : 'Unknown provisioning error'
+                console.error('Failed to trigger server provisioning:', errorMessage)
+                
+                // Store error in order
+                await supabase
+                  .from('orders')
+                  .update({ status: 'error' })
+                  .eq('id', order.id)
+                
+                // Send alert
+                const alertsWebhook = Deno.env.get('ALERTS_WEBHOOK')
+                if (alertsWebhook) {
+                  try {
+                    await fetch(alertsWebhook, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        content: `⚠️ Failed to trigger provisioning for order ${order.id}: ${errorMessage}`
+                      })
+                    })
+                  } catch (alertError) {
+                    console.error('Failed to send alert:', alertError)
+                  }
+                }
+                
+                // Don't throw - return 200 to Stripe, but log the error
+                console.warn('Provisioning trigger failed but order created. Manual retry required.')
               }
             }
           } catch (processError) {
