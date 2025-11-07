@@ -178,9 +178,25 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
   return configs[game as keyof typeof configs] || configs.minecraft
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// CORS headers with origin validation
+function corsHeaders(req: Request) {
+  const allowedOrigins = [
+    'https://givrwrldservers.com',
+    'https://www.givrwrldservers.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ]
+  const allowList = (Deno.env.get('ALLOW_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+  const allAllowed = [...allowedOrigins, ...allowList]
+  const origin = req.headers.get('origin') || ''
+  const allow = allAllowed.includes(origin) ? origin : allAllowed[0] || '*'
+  
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  }
 }
 
 interface ProvisionRequest {
@@ -190,7 +206,7 @@ interface ProvisionRequest {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   try {
@@ -199,7 +215,7 @@ serve(async (req) => {
     if (!order_id) {
       return new Response(
         JSON.stringify({ error: 'order_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -226,7 +242,7 @@ serve(async (req) => {
       if (userError || !user) {
         return new Response(
           JSON.stringify({ error: 'Invalid authentication' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
     }
@@ -406,7 +422,7 @@ serve(async (req) => {
     // Find best-fit node
     const suitableNodes = nodesWithCapacity.filter(node => node.available_ram >= plan.ram_gb)
     if (suitableNodes.length === 0) {
-      throw new Error(`No available capacity for plan ${plan_id} in region ${region}`)
+      throw new Error(`No available capacity for plan ${plan.id} in region ${order.region}`)
     }
 
     const bestNode = suitableNodes.reduce((best, current) => 
@@ -507,14 +523,15 @@ serve(async (req) => {
         node: bestNode.name,
         allocation: availableAllocation.attributes.port
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     console.error('Server provisioning error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

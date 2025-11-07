@@ -1,14 +1,30 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+// CORS headers with origin validation
+function corsHeaders(req: Request) {
+  const allowedOrigins = [
+    'https://givrwrldservers.com',
+    'https://www.givrwrldservers.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ]
+  const allowList = (Deno.env.get('ALLOW_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+  const allAllowed = [...allowedOrigins, ...allowList]
+  const origin = req.headers.get('origin') || ''
+  const allow = allAllowed.includes(origin) ? origin : allAllowed[0] || '*'
+  
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  }
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   try {
@@ -17,7 +33,7 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Authorization header required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -32,7 +48,7 @@ serve(async (req) => {
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -42,7 +58,7 @@ serve(async (req) => {
     if (user.id !== userId) {
       return new Response(
         JSON.stringify({ error: 'User ID mismatch' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 403, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -51,7 +67,7 @@ serve(async (req) => {
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -61,9 +77,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
     
-    // Pterodactyl Panel API configuration
-    const pterodactylUrl = Deno.env.get('PTERODACTYL_URL')
-    const pterodactylKey = Deno.env.get('PTERODACTYL_API_KEY')
+    // Pterodactyl Panel API configuration (use consistent env var names)
+    const pterodactylUrl = Deno.env.get('PANEL_URL') || Deno.env.get('PTERODACTYL_URL')
+    const pterodactylKey = Deno.env.get('PTERO_APP_KEY') || Deno.env.get('PTERODACTYL_API_KEY')
 
     if (!pterodactylUrl || !pterodactylKey) {
       console.error('Pterodactyl configuration missing')
@@ -84,7 +100,7 @@ serve(async (req) => {
         panel_username: existingAccount.panel_username
       }), { 
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
       })
     }
 
@@ -125,7 +141,7 @@ serve(async (req) => {
           message: 'Existing panel account linked successfully'
         }), { 
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
         })
       }
     }
@@ -172,7 +188,7 @@ serve(async (req) => {
     
     if (encryptError) {
       console.error('Error encrypting password:', encryptError)
-      return new Response('Password encryption failed', { status: 500, headers: corsHeaders })
+      return new Response('Password encryption failed', { status: 500, headers: corsHeaders(req) })
     }
 
     // Create external_accounts entry
@@ -208,14 +224,15 @@ serve(async (req) => {
       panel_username: panelUsername
     }), { 
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
     console.error('Pterodactyl user creation error:', error)
-    return new Response('User creation failed', { 
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    return new Response(JSON.stringify({ error: errorMessage }), { 
       status: 500,
-      headers: corsHeaders 
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
     })
   }
 })

@@ -1,9 +1,25 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+// CORS headers with origin validation
+function corsHeaders(req: Request) {
+  const allowedOrigins = [
+    'https://givrwrldservers.com',
+    'https://www.givrwrldservers.com',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ]
+  const allowList = (Deno.env.get('ALLOW_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+  const allAllowed = [...allowedOrigins, ...allowList]
+  const origin = req.headers.get('origin') || ''
+  const allow = allAllowed.includes(origin) ? origin : allAllowed[0] || '*'
+  
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  }
 }
 
 // Simple rate limiting for this function
@@ -41,7 +57,7 @@ function checkRateLimit(identifier: string, maxRequests: number = 30, windowMs: 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   try {
@@ -51,7 +67,7 @@ serve(async (req) => {
     if (!checkRateLimit(identifier)) {
       return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
         status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
       })
     }
 
@@ -60,7 +76,7 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Authorization header required' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
       })
     }
 
@@ -76,7 +92,7 @@ serve(async (req) => {
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Invalid authentication' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
       })
     }
 
@@ -92,7 +108,10 @@ serve(async (req) => {
     const { serverId } = requestBody
     
     if (!serverId) {
-      return new Response('No serverId provided', { status: 400, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'No serverId provided' }), { 
+        status: 400, 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
+      })
     }
     
     console.log('🔍 Looking for server:', serverId)
@@ -109,7 +128,7 @@ serve(async (req) => {
       console.error('❌ Server not found or access denied:', fetchError)
       return new Response(JSON.stringify({ error: 'Server not found or access denied' }), { 
         status: 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
       })
     }
 
@@ -117,17 +136,20 @@ serve(async (req) => {
       console.error('❌ Server has no Pterodactyl ID')
       return new Response(JSON.stringify({ error: 'Server not properly provisioned' }), { 
         status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
       })
     }
 
-    // Pterodactyl configuration
-    const pterodactylUrl = Deno.env.get('PTERODACTYL_URL')
-    const pterodactylKey = Deno.env.get('PTERODACTYL_API_KEY')
+    // Pterodactyl configuration (use consistent env var names)
+    const pterodactylUrl = Deno.env.get('PANEL_URL') || Deno.env.get('PTERODACTYL_URL')
+    const pterodactylKey = Deno.env.get('PTERO_APP_KEY') || Deno.env.get('PTERODACTYL_API_KEY')
 
     if (!pterodactylUrl || !pterodactylKey) {
       console.error('❌ Pterodactyl configuration missing')
-      return new Response('Pterodactyl configuration missing', { status: 500, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'Pterodactyl configuration missing' }), { 
+        status: 500, 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
+      })
     }
 
     // Get server identifier from Pterodactyl
@@ -139,8 +161,12 @@ serve(async (req) => {
     });
 
     if (!serverDetailsResponse.ok) {
-      console.error('❌ Failed to get server details from Pterodactyl')
-      return new Response('Failed to get server details', { status: 500, headers: corsHeaders })
+      const errorText = await serverDetailsResponse.text()
+      console.error('❌ Failed to get server details from Pterodactyl:', errorText)
+      return new Response(JSON.stringify({ error: 'Failed to get server details', details: errorText }), { 
+        status: 500, 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
+      })
     }
 
     const serverDetails = await serverDetailsResponse.json()
@@ -148,8 +174,8 @@ serve(async (req) => {
 
     console.log('🚀 Starting server:', serverIdentifier)
 
-    // Start the server using client API
-    const startResponse = await fetch(`${pterodactylUrl}/api/client/servers/${serverIdentifier}/power`, {
+    // Start the server using application API (correct endpoint for admin operations)
+    const startResponse = await fetch(`${pterodactylUrl}/api/application/servers/${server.pterodactyl_server_id}/power`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${pterodactylKey}`,
@@ -168,24 +194,28 @@ serve(async (req) => {
         .update({ status: 'starting' })
         .eq('id', serverId)
       
-      return new Response('Server start command sent', { 
+      return new Response(JSON.stringify({ success: true, message: 'Server start command sent' }), { 
         status: 200,
-        headers: corsHeaders 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
       })
     } else {
       const errorText = await startResponse.text()
       console.error('❌ Failed to start server:', errorText)
-      return new Response('Failed to start server', { status: 500, headers: corsHeaders })
+      return new Response(JSON.stringify({ error: 'Failed to start server', details: errorText }), { 
+        status: 500, 
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } 
+      })
     }
 
   } catch (error) {
     console.error('❌ Start server error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return new Response(JSON.stringify({ 
       error: 'Start server failed', 
-      details: error.message 
+      details: errorMessage 
     }), { 
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders(req), 'Content-Type': 'application/json' }
     })
   }
 })

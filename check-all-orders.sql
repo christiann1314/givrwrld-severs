@@ -26,3 +26,4 @@ FROM orders
 GROUP BY status
 ORDER BY latest_order DESC;
 
+

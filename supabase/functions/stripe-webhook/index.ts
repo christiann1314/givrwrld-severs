@@ -2,15 +2,28 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+// CORS headers - webhook should only accept from Stripe
+function corsHeaders(req: Request) {
+  // Webhooks come from Stripe, but we still need CORS for preflight
+  const allowedOrigins = [
+    'https://givrwrldservers.com',
+    'https://www.givrwrldservers.com'
+  ]
+  const origin = req.headers.get('origin') || ''
+  const allow = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*'
+  
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  }
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders(req) })
   }
 
   try {
@@ -20,7 +33,7 @@ serve(async (req) => {
     if (!signature) {
       return new Response(
         JSON.stringify({ error: 'Missing stripe-signature header' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -41,7 +54,7 @@ serve(async (req) => {
       console.error('Webhook signature verification failed:', err)
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -68,7 +81,7 @@ serve(async (req) => {
           console.error(errorMsg, { session_id: session.id, metadata: session.metadata })
           return new Response(
             JSON.stringify({ error: errorMsg, received: false }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
         
@@ -170,13 +183,13 @@ serve(async (req) => {
           }
           console.error(errorMsg, errorDetails)
           // Return error instead of silently failing
-          return new Response(
+            return new Response(
             JSON.stringify({ 
               error: errorMsg, 
               details: errorDetails,
               received: false 
             }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
         break
@@ -225,14 +238,14 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ received: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     console.error('Webhook error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })
