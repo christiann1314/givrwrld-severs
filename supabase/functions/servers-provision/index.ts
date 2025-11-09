@@ -77,7 +77,6 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       eggId: 16, // Terraria Vanilla
       dockerImage: 'ghcr.io/parkervcp/yolks:debian',
       startup: './TerrariaServer.bin.x86_64 -config serverconfig.txt',
-      environment: {},
       limits: {
         memory: resources.ram_gb * 1024,
         swap: 0,
@@ -90,7 +89,6 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       eggId: 14, // ARK: Survival Evolved
       dockerImage: 'quay.io/parkervcp/pterodactyl-images:debian_source',
       startup: 'rmv() { echo -e "stopping server"; rcon -t rcon -a 127.0.0.1:${RCON_PORT} -p ${ARK_ADMIN_PASSWORD} -c saveworld && rcon -a 127.0.0.1:${RCON_PORT} -p ${ARK_ADMIN_PASSWORD} -c DoExit; }; trap rmv 15; cd ShooterGame/Binaries/Linux && ./ShooterGameServer {{SERVER_MAP}}?listen?SessionName="{{SESSION_NAME}}"?ServerPassword={{ARK_PASSWORD}}?ServerAdminPassword={{ARK_ADMIN_PASSWORD}}?Port={{SERVER_PORT}}?RCONPort={{RCON_PORT}}?QueryPort={{QUERY_PORT}}?RCONEnabled=True$( [ "$BATTLE_EYE" == "1" ] || printf %s " -NoBattlEye" ) -server {{ARGS}} -log & until echo "waiting for rcon connection..."; rcon -t rcon -a 127.0.0.1:${RCON_PORT} -p ${ARK_ADMIN_PASSWORD}; do sleep 5; done',
-      environment: {},
       limits: {
         memory: resources.ram_gb * 1024,
         swap: 0,
@@ -103,7 +101,6 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       eggId: 21, // Factorio
       dockerImage: 'ghcr.io/parkervcp/yolks:debian',
       startup: 'if [ ! -f "./saves/{{SAVE_NAME}}.zip" ]; then ./bin/x64/factorio --create ./saves/{{SAVE_NAME}}.zip --map-gen-settings data/map-gen-settings.json --map-settings data/map-settings.json; fi; ./bin/x64/factorio --port {{SERVER_PORT}} --server-settings data/server-settings.json --start-server saves/{{SAVE_NAME}}.zip',
-      environment: {},
       limits: {
         memory: resources.ram_gb * 1024,
         swap: 0,
@@ -164,7 +161,6 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
       eggId: 33, // Teeworlds
       dockerImage: 'ghcr.io/parkervcp/yolks:debian',
       startup: './teeworlds_srv',
-      environment: {},
       limits: {
         memory: resources.ram_gb * 1024,
         swap: 0,
@@ -175,7 +171,12 @@ const getGameConfig = (game: string, resources: { ram_gb: number; vcores: number
     }
   }
   
-  return configs[game as keyof typeof configs] || configs.minecraft
+  const config = configs[game as keyof typeof configs] || configs.minecraft
+  // Ensure environment is always defined
+  if (!config.environment) {
+    config.environment = {}
+  }
+  return config
 }
 
 // CORS headers with origin validation
