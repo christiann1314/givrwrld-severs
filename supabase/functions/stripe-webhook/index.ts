@@ -97,6 +97,24 @@ serve(async (req) => {
               server_name: session.metadata.server_name
             })
             
+            // Validate modpack_id exists if provided
+            let validModpackId: string | null = null
+            if (session.metadata.modpack_id && session.metadata.modpack_id.trim() !== '') {
+              const { data: modpack, error: modpackError } = await supabase
+                .from('modpacks')
+                .select('id')
+                .eq('id', session.metadata.modpack_id)
+                .single()
+              
+              if (modpackError || !modpack) {
+                console.warn(`⚠️ Modpack "${session.metadata.modpack_id}" not found in database. Setting modpack_id to null.`, modpackError)
+                validModpackId = null
+              } else {
+                validModpackId = session.metadata.modpack_id
+                console.log(`✅ Valid modpack found: ${validModpackId}`)
+              }
+            }
+            
             // Create order record with new schema
             const { data: order, error: orderError } = await supabase
               .from('orders')
@@ -107,7 +125,7 @@ serve(async (req) => {
                 term: session.metadata.term,
                 region: session.metadata.region,
                 server_name: session.metadata.server_name,
-                modpack_id: session.metadata.modpack_id || null,
+                modpack_id: validModpackId,
                 addons: JSON.parse(session.metadata.addons || '[]'),
                 stripe_sub_id: subscription.id,
                 status: 'paid'
