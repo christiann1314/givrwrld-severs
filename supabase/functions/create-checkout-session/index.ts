@@ -27,7 +27,6 @@ interface CheckoutRequest {
   plan_id: string;
   region: string;
   server_name: string;
-  modpack_id?: string;
   term: 'monthly' | 'quarterly' | 'yearly';
   addons?: string[];
   success_url?: string;
@@ -40,7 +39,7 @@ serve(async (req) => {
   }
 
   try {
-    const { item_type, plan_id, region, server_name, modpack_id, term, addons, success_url, cancel_url }: CheckoutRequest = await req.json()
+    const { item_type, plan_id, region, server_name, term, addons, success_url, cancel_url }: CheckoutRequest = await req.json()
 
     // Validate required fields
     if (!item_type || !plan_id || !region || !server_name || !term) {
@@ -198,7 +197,6 @@ serve(async (req) => {
         plan_id,
         region,
         server_name,
-        modpack_id: modpack_id || '',
         term,
         addons: JSON.stringify(addons || [])
       },
@@ -210,7 +208,6 @@ serve(async (req) => {
           plan_id,
           region,
           server_name,
-          modpack_id: modpack_id || '',
           term,
           addons: JSON.stringify(addons || [])
         },
