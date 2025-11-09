@@ -54,6 +54,9 @@ verify_jwt = true
 [functions.sync-server-status]
 verify_jwt = true
 
+[functions.sync-all-data]
+verify_jwt = true
+
 [functions.repair-failed-servers]
 verify_jwt = true
 
