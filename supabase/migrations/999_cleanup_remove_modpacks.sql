@@ -20,12 +20,25 @@ DROP TABLE IF EXISTS public.modpacks CASCADE;
 ALTER TABLE public.orders 
   DROP COLUMN IF EXISTS modpack_id;
 
--- Step 5: Remove modpack_id from user_servers if it exists
-ALTER TABLE public.user_servers 
-  DROP CONSTRAINT IF EXISTS user_servers_modpack_id_fkey;
-
-ALTER TABLE public.user_servers 
-  DROP COLUMN IF EXISTS modpack_id;
+-- Step 5: Remove modpack_id from user_servers if table exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'user_servers') THEN
+    -- Drop constraint if it exists
+    ALTER TABLE public.user_servers 
+      DROP CONSTRAINT IF EXISTS user_servers_modpack_id_fkey;
+    
+    -- Drop column if it exists
+    IF EXISTS (
+      SELECT FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+        AND table_name = 'user_servers' 
+        AND column_name = 'modpack_id'
+    ) THEN
+      ALTER TABLE public.user_servers DROP COLUMN modpack_id;
+    END IF;
+  END IF;
+END $$;
 
 -- =====================================================
 -- VERIFICATION

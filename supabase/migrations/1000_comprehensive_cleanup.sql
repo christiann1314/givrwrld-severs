@@ -7,8 +7,20 @@
 ALTER TABLE public.orders 
   DROP COLUMN IF EXISTS modpack_id CASCADE;
 
-ALTER TABLE public.user_servers 
-  DROP COLUMN IF EXISTS modpack_id CASCADE;
+-- Remove modpack_id from user_servers if table exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'user_servers') THEN
+    IF EXISTS (
+      SELECT FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+        AND table_name = 'user_servers' 
+        AND column_name = 'modpack_id'
+    ) THEN
+      ALTER TABLE public.user_servers DROP COLUMN modpack_id CASCADE;
+    END IF;
+  END IF;
+END $$;
 
 -- Step 2: Clean up orphaned orders
 -- Mark orders as error if plan doesn't exist
