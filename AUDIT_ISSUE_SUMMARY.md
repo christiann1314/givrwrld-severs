@@ -6,102 +6,115 @@
 - ❌ Dashboard shows "No Servers Yet"
 - ⚠️  Note: `givrwrld-paper-1` in Pterodactyl is just a test server, not from this purchase
 
-## What to Check
+## Database State
+- **Orders table**: Empty (no orders created)
+- **Stripe events log**: Empty (no webhook events received)
+- **Order sessions**: Empty (no checkout sessions stored)
 
-### 1. Order Creation
-- Was an order created in the `orders` table?
-- Check `order_sessions` table for checkout session
-- Verify order has correct `user_id`, `plan_id`, `status`
+## Root Cause Analysis
 
-### 2. Webhook Processing
-- Was Stripe webhook received?
-- Check `stripe_events_log` table for `checkout.session.completed` event
-- Verify webhook processed the payment correctly
+### Issue 1: No Order Created
+The purchase completed but no order was created in the database. This suggests:
+- Checkout session creation might have failed
+- Order creation in `api/routes/checkout.js` might have failed silently
+- Frontend might not be calling the checkout API correctly
 
-### 3. Provisioning Trigger
-- Did webhook call `provisionServer()` function?
-- Check API logs for provisioning attempts
-- Check for any errors in provisioning process
+### Issue 2: No Webhook Events
+No Stripe webhook events were received. This suggests:
+- Webhook endpoint not configured in Stripe Dashboard
+- Webhook URL incorrect
+- Webhook secret mismatch
 
-### 4. Database Schema
-- Verify `orders` table has correct columns
-- Check for `pterodactyl_server_id` and `pterodactyl_server_identifier` columns
-- Verify `status` column values
-
-## Debugging Queries
-
-### Check Recent Orders
+## Database Schema (Verified)
 ```sql
-SELECT id, user_id, plan_id, status, server_name, created_at 
-FROM orders 
-ORDER BY created_at DESC 
-LIMIT 5;
+orders table columns:
+- ptero_server_id (INT) ✅
+- ptero_identifier (VARCHAR(32)) ✅
+- status (ENUM) ✅
 ```
 
-### Check Stripe Events
-```sql
-SELECT event_id, type, received_at 
-FROM stripe_events_log 
-ORDER BY received_at DESC 
-LIMIT 10;
-```
+**Backend code uses correct column names** ✅
 
-### Check Order Sessions
-```sql
-SELECT order_id, stripe_session_id, status, created_at 
-FROM order_sessions 
-ORDER BY created_at DESC 
-LIMIT 5;
-```
+## Expected Flow (What Should Happen)
 
-### Check Orders Table Schema
-```sql
-DESCRIBE orders;
-```
+1. **User clicks checkout** → Frontend calls `POST /api/checkout/create-session`
+2. **API creates order** → `status = 'pending'` in `orders` table
+3. **API creates Stripe session** → Stores in `order_sessions` table
+4. **User completes payment** → Stripe redirects to success page
+5. **Stripe sends webhook** → `POST /api/stripe/webhook`
+6. **Webhook updates order** → `status = 'paid'`
+7. **Webhook triggers provisioning** → Calls `provisionServer(orderId)`
+8. **Server created** → Order updated with `ptero_server_id` and `ptero_identifier`
+9. **Frontend fetches** → `GET /api/servers` returns servers
+10. **Dashboard displays** → Servers shown to user
 
-## Expected Flow
+## What Actually Happened
 
-1. User completes checkout → Order created (`status = 'pending'`)
-2. Payment completed → Webhook received
-3. Webhook updates order (`status = 'paid'`)
-4. Webhook calls `provisionServer(orderId)`
-5. Server created in Pterodactyl
-6. Order updated (`status = 'provisioned'`, `pterodactyl_server_id` set)
-7. Frontend fetches servers → Shows in dashboard
+Based on empty database:
+- ❌ Step 1-3: Checkout might have failed (no order created)
+- ❌ Step 5-6: Webhook not received (no events logged)
+- ❌ Step 7-8: Provisioning never triggered
 
 ## Files to Audit
 
-### 1. Webhook Handler
-- `api/routes/stripe.js` - Webhook processing
-- Verify it calls `provisionServer()` after payment
-- Check error handling
+### 1. Checkout Flow
+- `api/routes/checkout.js` - Order creation
+- `src/pages/Checkout.tsx` - Frontend checkout call
+- `src/services/stripeService.ts` - API client
 
-### 2. Provisioning Function
-- `api/routes/servers.js` - `provisionServer()` function
-- Verify it creates server in Pterodactyl
-- Check error handling and logging
+### 2. Webhook Configuration
+- `api/routes/stripe.js` - Webhook handler
+- Stripe Dashboard - Webhook endpoint URL
+- Database - Webhook secret
 
-### 3. Database Schema
-- `sql/app_core.sql` - Orders table definition
-- Verify all required columns exist
+### 3. API Server
+- `api/server.js` - Route registration
+- API server logs - Check for errors
+- API server status - Is it running?
 
-### 4. API Logs
-- Check API server logs for errors
-- Look for provisioning attempts
-- Check for Pterodactyl API errors
+## Debugging Steps
+
+### Step 1: Check API Server
+```bash
+# Is API server running?
+ps aux | grep "node.*server.js"
+
+# Check API logs
+# (Look at terminal where API is running)
+```
+
+### Step 2: Test Checkout Endpoint
+```bash
+# Test with valid JWT token
+curl -X POST http://localhost:3001/api/checkout/create-session \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"plan_id":"paper-4gb","item_type":"game","term":"monthly","region":"us-central","server_name":"test-server"}'
+```
+
+### Step 3: Check Stripe Webhook
+- Go to Stripe Dashboard → Webhooks
+- Verify endpoint URL: `https://your-domain.com/api/stripe/webhook`
+- Check webhook secret in database matches Stripe
+
+### Step 4: Check Frontend
+- Open browser console
+- Check for API errors
+- Verify `VITE_API_URL` is set correctly
+- Check network tab for failed requests
 
 ## Likely Issues
 
-1. **Webhook not received**: Stripe webhook endpoint not configured correctly
-2. **Webhook not processing**: Webhook received but failed to process
-3. **Provisioning not triggered**: Webhook didn't call `provisionServer()`
-4. **Provisioning failed**: Server creation failed silently
-5. **Order not linked**: Order created but not linked to user correctly
+1. **API Server Not Running**: Frontend can't reach backend
+2. **Checkout API Failing**: Order creation failing silently
+3. **Webhook Not Configured**: Stripe not sending webhooks
+4. **CORS Issues**: Frontend blocked from calling API
+5. **Authentication Issues**: JWT token not being sent/validated
 
 ## Next Steps
 
-1. Check if order was created
-2. Check if webhook was received
-3. Check if provisioning was triggered
-4. Check API logs for errors
-5. Verify database schema matches code expectations
+1. ✅ Verify API server is running
+2. ✅ Check API logs for errors
+3. ✅ Test checkout endpoint manually
+4. ✅ Verify Stripe webhook configuration
+5. ✅ Check frontend console for errors
