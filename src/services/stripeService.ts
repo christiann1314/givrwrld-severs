@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 
 export interface CheckoutSessionData {
   item_type: 'game' | 'vps';
@@ -19,23 +19,21 @@ export interface CheckoutSessionResponse {
 
 export const stripeService = {
   async createCheckoutSession(data: CheckoutSessionData): Promise<CheckoutSessionResponse> {
-    console.log('Creating Stripe checkout session with Supabase:', data);
+    console.log('Creating Stripe checkout session with API:', data);
     
-    const { data: response, error } = await supabase.functions.invoke('create-checkout-session', {
-      body: {
-        ...data,
-        success_url: data.success_url || `${window.location.origin}/success`,
-        cancel_url: data.cancel_url || `${window.location.origin}/dashboard`,
-      }
+    const response = await api.createCheckoutSession({
+      ...data,
+      success_url: data.success_url || `${window.location.origin}/success`,
+      cancel_url: data.cancel_url || `${window.location.origin}/dashboard`,
     });
 
-    if (error) {
-      console.error('Supabase function error:', error);
-      throw new Error(error.message || 'Failed to create checkout session');
+    if (!response.success || !response.data) {
+      console.error('API error:', response.error);
+      throw new Error(response.error || 'Failed to create checkout session');
     }
 
-    // Function returns { url }. Normalize to { checkout_url }
-    const checkoutUrl = (response as any)?.url || (response as any)?.checkout_url;
+    // API returns { sessionId, url }
+    const checkoutUrl = (response.data as any)?.url || (response.data as any)?.checkout_url;
     if (!checkoutUrl) {
       throw new Error('No checkout URL received from server');
     }

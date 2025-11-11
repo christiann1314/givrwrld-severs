@@ -86,26 +86,32 @@ serve(async (req) => {
       )
     }
 
-    // Get plan details
-    const { data: plan, error: planError } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('id', plan_id)
-      .eq('item_type', item_type)
-      .eq('is_active', true)
-      .single()
+    // Get AES key for decrypting secrets
+    const aesKey = Deno.env.get('AES_KEY')
+    if (!aesKey) {
+      return new Response(
+        JSON.stringify({ error: 'AES_KEY environment variable not set' }),
+        { status: 500, headers: { ...cors(req), 'Content-Type': 'application/json' } }
+      )
+    }
 
-    if (planError || !plan) {
+    // Get plan from MySQL
+    const { getPlan } = await import('../_shared/mysql-client.ts')
+    const plan = await getPlan(plan_id)
+
+    if (!plan || plan.item_type !== item_type || !plan.is_active) {
       return new Response(
         JSON.stringify({ error: 'Plan not found or inactive' }),
         { status: 404, headers: { ...cors(req), 'Content-Type': 'application/json' } }
       )
     }
 
-    // Initialize Stripe
-    const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY')
+    // Decrypt Stripe secret from MySQL
+    const { decryptSecret } = await import('../_shared/mysql-client.ts')
+    const stripeSecretKey = await decryptSecret('stripe', 'STRIPE_SECRET_KEY', aesKey)
+    
     if (!stripeSecretKey) {
-      console.error('STRIPE_SECRET_KEY is missing')
+      console.error('STRIPE_SECRET_KEY not found in MySQL')
       return new Response(
         JSON.stringify({ error: 'Payment system configuration error' }),
         { status: 500, headers: { ...cors(req), 'Content-Type': 'application/json' } }
@@ -114,25 +120,14 @@ serve(async (req) => {
     
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2025-08-27.basil',
+      httpClient: Stripe.createFetchHttpClient(),
     })
 
     // Build line items
     const lineItems = [{ price: plan.stripe_price_id, quantity: 1 }]
     
-    // Add addon line items if specified
-    if (addons && addons.length > 0) {
-      const { data: addonData } = await supabase
-        .from('addons')
-        .select('*')
-        .in('id', addons)
-        .eq('item_type', item_type)
-
-      if (addonData) {
-        addonData.forEach(addon => {
-          lineItems.push({ price: addon.stripe_price_id, quantity: 1 })
-        })
-      }
-    }
+    // TODO: Add addon support if needed (addons table in MySQL)
+    // For now, addons are not supported in MySQL migration
 
     // Validate and construct absolute URLs
     const origin = req.headers.get('origin') || 'https://givrwrldservers.com'

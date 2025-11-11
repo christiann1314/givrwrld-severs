@@ -35,7 +35,8 @@ const Success = () => {
         if (sessionId) {
           // Fetch order details from Supabase
           const { data, error } = await supabase
-            .from('orders')
+            // Orders now come from MySQL via Edge Function
+            // Use get-user-orders-mysql Edge Function instead
             .select('*')
             .eq('stripe_session_id', sessionId)
             .single();

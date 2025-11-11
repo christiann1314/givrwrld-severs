@@ -1,29 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@18.5.0'
+import { corsHeaders } from '../_shared/cors.ts'
+import {
+  getMySQLPool,
+  decryptSecret,
+  getPlan,
+  createOrder,
+  updateOrderStatus,
+} from '../_shared/mysql-client.ts'
+import { v4 as uuidv4 } from 'https://esm.sh/uuid@9.0.0'
 
-// CORS headers - webhook should only accept from Stripe
-function corsHeaders(req: Request) {
-  // Webhooks come from Stripe, but we still need CORS for preflight
-  const allowedOrigins = [
-    'https://givrwrldservers.com',
-    'https://www.givrwrldservers.com'
-  ]
-  const origin = req.headers.get('origin') || ''
-  const allow = allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*'
-  
-  return {
-    'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Vary': 'Origin'
-  }
-}
+// Note: Using shared CORS headers from _shared/cors.ts
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders(req) })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
@@ -33,35 +25,41 @@ serve(async (req) => {
     if (!signature) {
       return new Response(
         JSON.stringify({ error: 'Missing stripe-signature header' }),
-        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+    // Get AES key for decrypting secrets from MySQL
+    const aesKey = Deno.env.get('AES_KEY')
+    if (!aesKey) {
+      throw new Error('AES_KEY environment variable not set')
+    }
+
+    // Decrypt Stripe secrets from MySQL
+    const stripeSecretKey = await decryptSecret('stripe', 'STRIPE_SECRET_KEY', aesKey)
+    const stripeWebhookSecret = await decryptSecret('stripe', 'STRIPE_WEBHOOK_SECRET', aesKey)
+
+    if (!stripeSecretKey || !stripeWebhookSecret) {
+      throw new Error('Stripe secrets not found in MySQL database')
+    }
+
+    // Initialize Stripe with decrypted secret
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: '2025-08-27.basil',
+      httpClient: Stripe.createFetchHttpClient(),
     })
 
-    // Verify webhook signature (async version required for Deno)
+    // Verify webhook signature
     let event: Stripe.Event
     try {
-      event = await stripe.webhooks.constructEventAsync(
-        body,
-        signature,
-        Deno.env.get('STRIPE_WEBHOOK_SECRET')!
-      )
+      event = stripe.webhooks.constructEvent(body, signature, stripeWebhookSecret)
     } catch (err) {
       console.error('Webhook signature verification failed:', err)
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
-        { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Handle the event
     switch (event.type) {
@@ -80,8 +78,8 @@ serve(async (req) => {
           const errorMsg = 'Missing required metadata in checkout session'
           console.error(errorMsg, { session_id: session.id, metadata: session.metadata })
           return new Response(
-            JSON.stringify({ error: errorMsg, received: false }),
-            { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: errorMsg, received: false }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
         
@@ -129,7 +127,7 @@ serve(async (req) => {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    content: `✅ New order: ${session.metadata.item_type} ${session.metadata.plan_id} for ${session.metadata.server_name} in ${session.metadata.region}`
+                    content: `✅ New order: ${session.metadata.item_type} ${session.metadata.plan_id} for ${session.metadata.server_name} in ${session.metadata.region} (Order ID: ${orderId})`
                   })
                 })
               } catch (alertError) {
@@ -247,7 +245,7 @@ serve(async (req) => {
               details: errorDetails,
               received: false 
             }),
-            { status: 400, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
         break
@@ -257,18 +255,15 @@ serve(async (req) => {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
         
-        // Update order status
+        // Update order status in MySQL
         const status = event.type === 'customer.subscription.deleted' ? 'canceled' : 'paid'
+        const pool = getMySQLPool()
+        await pool.execute(
+          `UPDATE orders SET status = ? WHERE stripe_sub_id = ?`,
+          [status, subscription.id]
+        )
         
-        const { error: updateError } = await supabase
-          .from('orders')
-          .update({ status })
-          .eq('stripe_sub_id', subscription.id)
-
-        if (updateError) {
-          console.error('Error updating order status:', updateError)
-          throw updateError
-        }
+        console.log(`Updated order status to ${status} for subscription: ${subscription.id}`)
         break
       }
 
@@ -276,16 +271,14 @@ serve(async (req) => {
         const invoice = event.data.object as Stripe.Invoice
         
         if (invoice.subscription) {
-          // Mark order as error
-          const { error: updateError } = await supabase
-            .from('orders')
-            .update({ status: 'error' })
-            .eq('stripe_sub_id', invoice.subscription as string)
-
-          if (updateError) {
-            console.error('Error updating order status:', updateError)
-            throw updateError
-          }
+          // Mark order as error in MySQL
+          const pool = getMySQLPool()
+          await pool.execute(
+            `UPDATE orders SET status = 'error' WHERE stripe_sub_id = ?`,
+            [invoice.subscription as string]
+          )
+          
+          console.log(`Marked order as error for subscription: ${invoice.subscription}`)
         }
         break
       }
@@ -296,14 +289,14 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ received: true }),
-      { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     console.error('Webhook error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })

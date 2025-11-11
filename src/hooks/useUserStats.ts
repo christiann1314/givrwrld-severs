@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
 
 interface UserStats {
@@ -30,26 +30,27 @@ export const useUserStats = (userEmail?: string) => {
     setUserStats(prev => ({ ...prev, loading: true }));
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No authenticated user found');
-        setUserStats(prev => ({ ...prev, loading: false }));
-        return;
+      // Fetch from API (includes user authentication check)
+      const ordersResponse = await api.getOrders();
+
+      let activeServers = 0;
+      let totalSpentNum = 0;
+      let supportTickets = 0;
+      let referrals = 0;
+
+      if (ordersResponse.success && ordersResponse.data) {
+        const orders = ordersResponse.data.orders || [];
+        activeServers = orders.filter((o: any) => 
+          o.item_type === 'game' && ['paid', 'provisioned', 'active'].includes(o.status)
+        ).length;
+        totalSpentNum = orders.reduce((sum: number, order: any) => {
+          // Calculate total from orders (you may need to add price_monthly to orders or join with plans)
+          return sum + (order.total_amount || 0);
+        }, 0);
       }
 
-      // Derive live values from source tables to avoid stale user_stats
-      const [serversRes, purchasesRes, extraStatsRes] = await Promise.all([
-        supabase.from('user_servers').select('id').eq('user_id', user.id),
-        supabase.from('purchases').select('amount').eq('user_id', user.id),
-        supabase.from('user_stats').select('support_tickets, referrals').eq('user_id', user.id).maybeSingle()
-      ]);
-
-      const activeServers = Array.isArray(serversRes.data) ? serversRes.data.length : 0;
-      const totalSpentNum = Array.isArray(purchasesRes.data)
-        ? purchasesRes.data.reduce((sum: number, row: any) => sum + (row?.amount ? Number(row.amount) : 0), 0)
-        : 0;
-      const supportTickets = (extraStatsRes.data as any)?.support_tickets ?? 0;
-      const referrals = (extraStatsRes.data as any)?.referrals ?? 0;
+      // TODO: Fetch support tickets and referrals from MySQL
+      // For now, set to 0 (these tables may not exist in MySQL yet)
 
       setUserStats({
         activeServers,
@@ -76,33 +77,19 @@ export const useUserStats = (userEmail?: string) => {
     }
   }, [userEmail]);
 
-  // Set up real-time subscription to keep dashboard numbers in sync
-  useEffect(() => {
-    if (!userEmail) return;
+    // Set up periodic refresh (MySQL doesn't have real-time subscriptions)
+    useEffect(() => {
+      if (!userEmail) return;
 
-    const channel = supabase
-      .channel('dashboard-stats')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_servers' },
-        () => { console.log('user_servers changed, refetching...'); fetchUserStats(); }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'purchases' },
-        () => { console.log('purchases changed, refetching...'); fetchUserStats(); }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_stats' },
-        () => { console.log('user_stats changed, refetching...'); fetchUserStats(); }
-      )
-      .subscribe();
+      // Refresh every 30 seconds
+      const interval = setInterval(() => {
+        fetchUserStats();
+      }, 30000);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userEmail]);
+      return () => {
+        clearInterval(interval);
+      };
+    }, [userEmail]);
 
   return { userStats, refetchStats: fetchUserStats };
 };

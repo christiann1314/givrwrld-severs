@@ -1,8 +1,19 @@
 
 import * as React from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { analytics } from '@/services/analytics';
+
+interface User {
+  id: string;
+  email: string;
+  display_name?: string;
+  is_email_verified?: boolean;
+}
+
+interface Session {
+  user: User;
+  access_token: string;
+}
 
 export const useAuth = () => {
   console.log('useAuth hook called...');
@@ -14,24 +25,29 @@ export const useAuth = () => {
   console.log('useAuth useState calls completed');
 
   React.useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check for existing session
+    checkSession();
   }, []);
+
+  const checkSession = async () => {
+    try {
+      const response = await api.getCurrentUser();
+      if (response.success && response.data) {
+        const user = response.data.user;
+        setUser(user);
+        setSession({ user, access_token: api['token'] || '' });
+      } else {
+        setUser(null);
+        setSession(null);
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      setUser(null);
+      setSession(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
     // Security: Validate input parameters
@@ -42,54 +58,25 @@ export const useAuth = () => {
     // Security: Sanitize email
     const sanitizedEmail = email.trim().toLowerCase();
     
-    const redirectUrl = `${window.location.origin}/`;
-    const fullName = firstName && lastName ? `${firstName} ${lastName}`.trim() : '';
-    
-    const { data, error } = await supabase.auth.signUp({
-      email: sanitizedEmail,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName || '',
-          last_name: lastName || '',
-          full_name: fullName,
-          display_name: fullName || email.split('@')[0]
-        }
-      }
-    });
-
-    // Create Pterodactyl user if signup was successful
-    if (!error && data.user) {
-      try {
-        const { data: pterodactylData, error: pterodactylError } = await supabase.functions.invoke('create-pterodactyl-user', {
-          body: {
-            userId: data.user.id,
-            email: data.user.email,
-            displayName: fullName || email.split('@')[0] // Use full name if available
-          }
-        });
+    try {
+      const response = await api.signUp(sanitizedEmail, password, firstName, lastName);
+      
+      if (response.success && response.data) {
+        const user = response.data.user;
+        setUser(user);
+        setSession({ user, access_token: response.data.token });
         
-        if (pterodactylError) {
-          console.error('Failed to create Pterodactyl user:', pterodactylError);
-          // Log but don't fail signup - user can create panel account later
-          // Consider showing a warning toast in the UI
-        }
+        // Track signup
+        await analytics.trackUserSignup(user.id);
         
-        // Track user registration
-        await analytics.trackUserRegistration({
-          email: data.user.email,
-          first_name: firstName,
-          last_name: lastName
-        });
-      } catch (pterodactylError) {
-        console.error('Failed to create Pterodactyl user:', pterodactylError);
-        // Don't fail the signup if Pterodactyl user creation fails
-        // User will be prompted to create panel account before purchasing
+        return { error: null };
+      } else {
+        return { error: { message: response.error || 'Signup failed' } };
       }
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { error: { message: error instanceof Error ? error.message : 'Signup failed' } };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -101,38 +88,40 @@ export const useAuth = () => {
     // Security: Sanitize email
     const sanitizedEmail = email.trim().toLowerCase();
     
-    const { error } = await supabase.auth.signInWithPassword({
-      email: sanitizedEmail,
-      password
-    });
-
-    // On successful login, ensure Pterodactyl account exists/linked
-    if (!error) {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        const uid = userData?.user?.id;
-        if (uid) {
-          // Track user login
-          await analytics.trackUserLogin(uid);
-          await supabase.functions.invoke('create-pterodactyl-user', {
-            body: {
-              userId: uid,
-              email: sanitizedEmail,
-              displayName: sanitizedEmail.split('@')[0]
-            }
-          });
-        }
-      } catch (e) {
-        console.error('Post-login Pterodactyl link failed:', e);
+    try {
+      const response = await api.signIn(sanitizedEmail, password);
+      
+      if (response.success && response.data) {
+        const user = response.data.user;
+        setUser(user);
+        setSession({ user, access_token: response.data.token });
+        
+        // Track login
+        await analytics.trackUserLogin(user.id);
+        
+        // TODO: Create Pterodactyl user if needed
+        // This can be done via API endpoint if needed
+        
+        return { error: null };
+      } else {
+        return { error: { message: response.error || 'Login failed' } };
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { error: { message: error instanceof Error ? error.message : 'Login failed' } };
     }
-
-    return { error };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      await api.signOut();
+      setUser(null);
+      setSession(null);
+      return { error: null };
+    } catch (error) {
+      console.error('Logout error:', error);
+      return { error: { message: error instanceof Error ? error.message : 'Logout failed' } };
+    }
   };
 
   return {

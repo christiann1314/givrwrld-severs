@@ -74,3 +74,21 @@ verify_jwt = true
 
 [functions.fix-pterodactyl-credentials]
 verify_jwt = true
+
+[functions.stripe-webhook-mysql]
+verify_jwt = false
+
+[functions.create-checkout-session-mysql]
+verify_jwt = true
+
+[functions.get-plans-mysql]
+verify_jwt = false
+
+[functions.servers-provision-mysql]
+verify_jwt = false
+
+[functions.get-user-orders-mysql]
+verify_jwt = true
+
+[functions.get-user-servers-mysql]
+verify_jwt = true

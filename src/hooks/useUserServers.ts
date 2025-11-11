@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
-import { API_BASE_URL } from '../config/api';
+import { api } from '@/lib/api';
+import { useAuth } from './useAuth';
 
 interface ServerSpec {
   id: string;
@@ -56,35 +55,29 @@ export const useUserServers = (userEmail?: string) => {
     setServersData(prev => ({ ...prev, loading: true }));
 
     try {
-      // Primary source: Supabase (more reliable than Laravel API)
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get current user from API
+      const userResponse = await api.getCurrentUser();
       
-      if (!user) {
+      if (!userResponse.success || !userResponse.data) {
         console.log('No authenticated user found');
         setServersData(prev => ({ ...prev, loading: false }));
         return;
       }
 
-      console.log('🔍 Fetching servers from Supabase for user:', user.id);
+      const user = userResponse.data.user;
+      console.log('🔍 Fetching servers from API for user:', user.id);
       
-      const { data: sbServers, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          pterodactyl_server_id,
-          pterodactyl_server_identifier
-        `)
-        .eq('user_id', user.id)
-        .eq('item_type', 'game')
-        .in('status', ['paid', 'provisioned', 'active']);
-
-      if (error) {
-        console.error('Error fetching user servers from Supabase:', error);
+      // Fetch from API
+      const response = await api.getServers();
+      
+      if (!response.success || !response.data) {
+        console.error('Error fetching user servers from API:', response.error);
         setServersData({ servers: [], loading: false });
         return;
       }
 
-      console.log('📊 Raw server data from Supabase:', sbServers);
+      const sbServers = response.data.servers || [];
+      console.log('📊 Raw server data from API:', sbServers);
 
       const formattedServers = (sbServers || []).map((order: any) => ({
         id: order.id,
@@ -115,16 +108,8 @@ export const useUserServers = (userEmail?: string) => {
       console.log('🎮 Formatted servers for display:', formattedServers);
       setServersData({ servers: formattedServers, loading: false });
 
-      // One-time sync on initial load only (prevent infinite loops)
-      if (!skipSync && formattedServers.length > 0) {
-        try {
-          console.log('🔄 Initial sync with Pterodactyl...');
-          await supabase.functions.invoke('sync-server-status');
-          console.log('✅ Initial sync completed');
-        } catch (syncError) {
-          console.warn('Initial sync failed, using cached data:', syncError);
-        }
-      }
+      // Sync is now handled by the API - no need for separate sync call
+      // Server data is fetched directly from MySQL orders table
 
     } catch (error) {
       console.error('Failed to fetch user servers:', error);
@@ -138,81 +123,17 @@ export const useUserServers = (userEmail?: string) => {
     }
   }, [userEmail]);
 
-  // Set up real-time subscription and periodic sync
+  // Set up periodic refresh (MySQL doesn't have real-time subscriptions)
   useEffect(() => {
     if (!userEmail) return;
 
-    const setupRealtimeSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      console.log('🔗 Setting up real-time subscription for user:', user.id);
-
-      const channel = supabase
-        .channel('user-servers-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('🚨 Server data changed! Payload:', payload);
-            console.log('📡 Refetching server data...');
-            // Skip sync on realtime updates to prevent loops
-            fetchUserServers(true);
-            
-            // Auto-start servers that just finished installing
-            if (payload.eventType === 'UPDATE' && 
-                payload.new?.status === 'installing' && 
-                payload.old?.status === 'provisioning' &&
-                payload.new?.pterodactyl_server_id) {
-              console.log('🚀 Server finished provisioning, attempting auto-start in 30 seconds...');
-              setTimeout(async () => {
-                try {
-                  const response = await supabase.functions.invoke('start-server', {
-                    body: { serverId: payload.new.id }
-                  });
-                  if (response.error) {
-                    console.error('❌ Auto-start failed:', response.error);
-                  } else {
-                    console.log('✅ Auto-start successful');
-                  }
-                } catch (error) {
-                  console.error('❌ Auto-start error:', error);
-                }
-              }, 30000); // Wait 30 seconds for installation to complete
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('📻 Subscription status:', status);
-        });
-
-      // Set up periodic live sync every 5 minutes (reduced frequency)
-      const syncInterval = setInterval(async () => {
-        try {
-          console.log('🔄 Periodic live sync...');
-          await supabase.functions.invoke('sync-server-status');
-          // Wait a bit then refresh data without triggering another sync
-          setTimeout(() => fetchUserServers(true), 2000);
-        } catch (error) {
-          console.log('Periodic sync failed:', error);
-        }
-      }, 300000); // 5 minutes instead of 2
-
-      return () => {
-        supabase.removeChannel(channel);
-        clearInterval(syncInterval);
-      };
-    };
-
-    const cleanup = setupRealtimeSubscription();
+    // Refresh every 30 seconds (MySQL doesn't have real-time subscriptions)
+    const interval = setInterval(() => {
+      fetchUserServers(true);
+    }, 30000);
 
     return () => {
-      cleanup.then(fn => fn && fn());
+      clearInterval(interval);
     };
   }, [userEmail]);
 

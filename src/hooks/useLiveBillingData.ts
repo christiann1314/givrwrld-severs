@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { useAuth } from './useAuth';
 
 interface BillingData {
@@ -42,82 +42,17 @@ export const useLiveBillingData = (refreshInterval: number = 60000) => {
     try {
       setError(null);
 
-      // Fetch user's billing data from Supabase (orders table)
-      const { data: userOrders, error: billingError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'paid')
-        .order('created_at', { ascending: false })
-        .limit(10);
+      // Fetch user's billing data from API
+      const response = await api.getOrders();
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to fetch billing data');
+      }
 
-      if (billingError) {
-        console.error('Error fetching billing data:', billingError);
-        // Fallback to mock data for demo
-        const mockPayments: Payment[] = [
-          {
-            id: 'pay_1',
-            amount: 24.99,
-            currency: 'USD',
-            status: 'succeeded',
-            description: 'Minecraft Server - Monthly',
-            date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            paymentMethod: 'card_****1234'
-          },
-          {
-            id: 'pay_2',
-            amount: 49.99,
-            currency: 'USD',
-            status: 'succeeded',
-            description: 'Palworld Server - Monthly',
-            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            paymentMethod: 'card_****1234'
-          },
-          {
-            id: 'pay_3',
-            amount: 99.99,
-            currency: 'USD',
-            status: 'succeeded',
-            description: 'Rust Server - Monthly',
-            date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-            paymentMethod: 'card_****1234'
-          }
-        ];
+      const userOrders = response.data.orders || [];
 
-        const mockInvoices: Invoice[] = [
-          {
-            id: 'inv_1',
-            amount: 24.99,
-            currency: 'USD',
-            dueDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'open',
-            description: 'Minecraft Server - Next Month'
-          },
-          {
-            id: 'inv_2',
-            amount: 49.99,
-            currency: 'USD',
-            dueDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'open',
-            description: 'Palworld Server - Next Month'
-          }
-        ];
-
-        const totalRevenue = mockPayments.reduce((sum, p) => sum + p.amount, 0);
-        const monthlyRevenue = mockPayments
-          .filter(p => new Date(p.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-          .reduce((sum, p) => sum + p.amount, 0);
-
-        setData({
-          totalRevenue,
-          monthlyRevenue,
-          activeSubscriptions: 3,
-          recentPayments: mockPayments,
-          upcomingInvoices: mockInvoices
-        });
-      } else {
-        // Process real billing data from orders table
-        const payments: Payment[] = (userOrders || []).map((order: any) => ({
+      // Process real billing data from orders table
+      const payments: Payment[] = (userOrders || []).filter((o: any) => o.status === 'paid').slice(0, 10).map((order: any) => ({
           id: order.id,
           amount: order.total_amount || 0,
           currency: 'USD',

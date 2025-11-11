@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { useUserStats } from '../hooks/useUserStats';
+import { useLiveBillingData } from '../hooks/useLiveBillingData';
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -19,42 +20,22 @@ import {
 const Billing = () => {
   const { user } = useAuth();
   const { userStats } = useUserStats();
+  const { data: billingData, loading: billingLoading, error: billingError } = useLiveBillingData();
 
-  const mockInvoices = [
-    {
-      id: 'INV-001',
-      date: '2024-01-15',
-      amount: 24.99,
-      status: 'paid',
-      description: 'Minecraft Server - Monthly'
-    },
-    {
-      id: 'INV-002', 
-      date: '2024-01-01',
-      amount: 49.99,
-      status: 'paid',
-      description: 'Palworld Server - Monthly'
-    },
-    {
-      id: 'INV-003',
-      date: '2023-12-15',
-      amount: 24.99,
-      status: 'paid',
-      description: 'Minecraft Server - Monthly'
-    }
-  ];
-
-  const mockPaymentMethods = [
-    {
-      id: 'pm_1',
-      type: 'card',
-      last4: '4242',
-      brand: 'Visa',
-      expiryMonth: 12,
-      expiryYear: 2025,
-      isDefault: true
-    }
-  ];
+  // Use real data from hook, fallback to empty arrays if loading or error
+  const invoices = billingData?.upcomingInvoices || [];
+  const payments = billingData?.recentPayments || [];
+  
+  // Payment methods - TODO: Implement real payment method fetching from Stripe
+  const paymentMethods: Array<{
+    id: string;
+    type: string;
+    last4: string;
+    brand: string;
+    expiryMonth: number;
+    expiryYear: number;
+    isDefault: boolean;
+  }> = [];
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
@@ -94,8 +75,12 @@ const Billing = () => {
                   <DollarSign className="mr-3 text-emerald-400" size={24} />
                   Current Balance
                 </h2>
-                <div className="text-3xl font-bold text-white mb-2">$0.00</div>
-                <p className="text-gray-400">No outstanding balance</p>
+                <div className="text-3xl font-bold text-white mb-2">
+                  ${billingData?.totalRevenue ? billingData.totalRevenue.toFixed(2) : '0.00'}
+                </div>
+                <p className="text-gray-400">
+                  {billingError ? 'Error loading billing data' : billingLoading ? 'Loading...' : 'Total revenue'}
+                </p>
               </div>
 
               {/* Recent Invoices */}
@@ -112,7 +97,19 @@ const Billing = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {mockInvoices.map((invoice) => (
+                  {billingLoading && (
+                    <div className="text-center text-gray-400 py-8">Loading invoices...</div>
+                  )}
+                  {billingError && (
+                    <div className="text-center text-red-400 py-8">
+                      <AlertCircle className="mx-auto mb-2" size={24} />
+                      Error loading invoices: {billingError}
+                    </div>
+                  )}
+                  {!billingLoading && !billingError && invoices.length === 0 && (
+                    <div className="text-center text-gray-400 py-8">No invoices found</div>
+                  )}
+                  {invoices.map((invoice) => (
                     <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className={`p-2 rounded-lg ${
@@ -122,12 +119,12 @@ const Billing = () => {
                         </div>
                         <div>
                           <div className="text-white font-medium">{invoice.description}</div>
-                          <div className="text-gray-400 text-sm">Invoice #{invoice.id} • {invoice.date}</div>
+                          <div className="text-gray-400 text-sm">Invoice #{invoice.id} • {new Date(invoice.dueDate).toLocaleDateString()}</div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="text-white font-bold">${invoice.amount}</div>
+                          <div className="text-white font-bold">${invoice.amount.toFixed(2)}</div>
                           <div className={`text-sm ${
                             invoice.status === 'paid' ? 'text-green-400' : 'text-yellow-400'
                           }`}>
@@ -157,7 +154,10 @@ const Billing = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  {mockPaymentMethods.map((method) => (
+                  {paymentMethods.length === 0 && (
+                    <div className="text-center text-gray-400 py-4">No payment methods on file</div>
+                  )}
+                  {paymentMethods.map((method) => (
                     <div key={method.id} className="flex items-center justify-between p-3 bg-gray-700/30 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <CreditCard className="text-blue-400" size={20} />
@@ -186,11 +186,15 @@ const Billing = () => {
                   </div>
                   <div>
                     <label className="block text-gray-300 text-sm mb-1">Total Spent</label>
-                    <div className="text-white font-bold">${userStats?.totalSpent || '0.00'}</div>
+                    <div className="text-white font-bold">${billingData?.totalRevenue ? billingData.totalRevenue.toFixed(2) : userStats?.totalSpent || '0.00'}</div>
                   </div>
                   <div>
-                    <label className="block text-gray-300 text-sm mb-1">Next Billing Date</label>
-                    <div className="text-white">February 15, 2024</div>
+                    <label className="block text-gray-300 text-sm mb-1">Monthly Revenue</label>
+                    <div className="text-white">${billingData?.monthlyRevenue ? billingData.monthlyRevenue.toFixed(2) : '0.00'}</div>
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 text-sm mb-1">Active Subscriptions</label>
+                    <div className="text-white">{billingData?.activeSubscriptions || 0}</div>
                   </div>
                 </div>
               </div>

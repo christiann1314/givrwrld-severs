@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { useAuth } from './useAuth';
 import { pterodactylService } from '@/services/pterodactylService';
 
@@ -37,71 +37,17 @@ export const useLiveServerData = (refreshInterval: number = 30000) => {
     try {
       setError(null);
 
-      // Fetch user's servers from Supabase (orders table)
-      const { data: userServers, error: serversError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('item_type', 'game')
-        .in('status', ['paid', 'provisioned', 'active']);
+      // Fetch user's servers from API
+      const response = await api.getServers();
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to fetch server data');
+      }
 
-      if (serversError) {
-        console.error('Error fetching user servers:', serversError);
-        // Fallback to mock data for demo
-        const mockServers: ServerData[] = [
-          {
-            id: '1',
-            name: 'Minecraft Server',
-            game: 'Minecraft',
-            status: 'online',
-            players: Math.floor(Math.random() * 20),
-            maxPlayers: 20,
-            uptime: '99.9%',
-            pterodactylUrl: 'https://panel.givrwrldservers.com/server/1',
-            specs: '4GB RAM • 2 CPU Cores',
-            lastSeen: new Date().toISOString()
-          },
-          {
-            id: '2',
-            name: 'Palworld Server',
-            game: 'Palworld',
-            status: Math.random() > 0.3 ? 'online' : 'offline',
-            players: Math.floor(Math.random() * 16),
-            maxPlayers: 16,
-            uptime: '99.5%',
-            pterodactylUrl: 'https://panel.givrwrldservers.com/server/2',
-            specs: '8GB RAM • 4 CPU Cores',
-            lastSeen: new Date().toISOString()
-          },
-          {
-            id: '3',
-            name: 'Rust Server',
-            game: 'Rust',
-            status: Math.random() > 0.5 ? 'online' : 'offline',
-            players: Math.floor(Math.random() * 50),
-            maxPlayers: 50,
-            uptime: '98.7%',
-            pterodactylUrl: 'https://panel.givrwrldservers.com/server/3',
-            specs: '16GB RAM • 8 CPU Cores',
-            lastSeen: new Date().toISOString()
-          }
-        ];
+      const userServers = response.data.servers || [];
 
-        const totalServers = mockServers.length;
-        const onlineServers = mockServers.filter(s => s.status === 'online').length;
-        const totalPlayers = mockServers.reduce((sum, s) => sum + s.players, 0);
-        const averageUptime = mockServers.reduce((sum, s) => sum + parseFloat(s.uptime), 0) / totalServers;
-
-        setData({
-          servers: mockServers,
-          totalServers,
-          onlineServers,
-          totalPlayers,
-          averageUptime
-        });
-      } else {
-        // Process real server data from orders table with Pterodactyl integration
-        const servers: ServerData[] = await pterodactylService.getEnhancedServerData(userServers || []);
+      // Process real server data from orders table with Pterodactyl integration
+      const servers: ServerData[] = await pterodactylService.getEnhancedServerData(userServers || []);
 
         const totalServers = servers.length;
         const onlineServers = servers.filter(s => s.status === 'online').length;

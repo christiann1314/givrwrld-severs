@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, CreditCard, Shield, Clock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { config } from "@/config/environment";
+import { api } from "@/lib/api";
+import { stripeService } from "@/services/stripeService";
 
 interface Plan {
   id: string;
@@ -31,7 +31,7 @@ const Checkout = () => {
   const [loadingPlan, setLoadingPlan] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Fetch real plan data from Supabase
+  // Fetch real plan data from API
   React.useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -42,23 +42,35 @@ const Checkout = () => {
           throw new Error('Game type not specified');
         }
 
-        // Fetch plan from Supabase
-        const { data, error: fetchError } = await supabase
-          .from('plans')
-          .select('*')
-          .eq('game_type', game)
-          .eq('name', `${game}-8gb`) // Default to 8GB plan
-          .single();
-
-        if (fetchError) {
-          throw new Error(fetchError.message);
+        // Fetch plans from API
+        const response = await api.getPlans();
+        
+        if (!response.success || !response.data) {
+          throw new Error(response.error || 'Failed to load plans');
         }
 
-        if (!data) {
-          throw new Error('Plan not found');
+        // Find plan matching game type (default to 8GB)
+        const plans = response.data.plans || [];
+        const matchingPlan = plans.find((p: any) => 
+          p.game === game && p.id.includes('8gb')
+        ) || plans.find((p: any) => p.game === game);
+
+        if (!matchingPlan) {
+          throw new Error(`No plan found for ${game}`);
         }
 
-        setPlan(data);
+        // Map API plan format to component format
+        setPlan({
+          id: matchingPlan.id,
+          name: matchingPlan.display_name || matchingPlan.id,
+          game_type: matchingPlan.game,
+          ram: `${matchingPlan.ram_gb}GB`,
+          cpu: `${matchingPlan.vcores} vCPU`,
+          disk: `${matchingPlan.ssd_gb}GB SSD`,
+          location: 'us-central',
+          stripe_price_id: matchingPlan.stripe_price_id || '',
+          price: parseFloat(matchingPlan.price_monthly)
+        });
       } catch (error) {
         console.error('Error fetching plan:', error);
         setError(error instanceof Error ? error.message : 'Failed to load plan details');
@@ -83,38 +95,21 @@ const Checkout = () => {
       setLoading(true);
       setError(null);
       
-      // Get the user's JWT token
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('User not authenticated');
-      }
-
-      // Call create-checkout-session function
-      const response = await fetch(`${config.supabase.functionsUrl}/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          plan_id: plan.id,
-          region: region
-        })
+      // Use API to create checkout session
+      const checkoutData = await stripeService.createCheckoutSession({
+        plan_id: plan.id,
+        item_type: 'game',
+        region: region === 'east' ? 'us-east' : 'us-central',
+        server_name: `${game}-${Date.now()}`,
+        term: 'monthly'
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create checkout session');
-      }
-
-      const { url } = await response.json();
-      
-      if (!url) {
+      if (!checkoutData.checkout_url) {
         throw new Error('No checkout URL received');
       }
       
       // Redirect to Stripe Checkout
-      window.location.href = url;
+      window.location.href = checkoutData.checkout_url;
     } catch (error) {
       console.error('Checkout error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start checkout process';
