@@ -25,11 +25,26 @@ apt-get install -y mysql-server mysql-client
 
 # ============ Step 2: Secure MySQL ============
 echo ""
-echo "🔒 Step 2: Securing MySQL..."
-echo "⚠️  You will be prompted to set a root password and configure security options"
-mysql_secure_installation || {
-  echo "⚠️  mysql_secure_installation failed or was skipped. Continuing..."
-}
+echo "🔒 Step 2: Securing MySQL (non-interactive)..."
+# Non-interactive MySQL secure installation
+# Set root password if provided via MYSQL_ROOT_PASSWORD env var
+if [ -n "${MYSQL_ROOT_PASSWORD:-}" ]; then
+  echo "Setting MySQL root password..."
+  mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}';
+FLUSH PRIVILEGES;
+EOF
+fi
+
+# Remove anonymous users, disallow root remote login, remove test database
+mysql -u root ${MYSQL_ROOT_PASSWORD:+-p"${MYSQL_ROOT_PASSWORD}"} <<EOF
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+echo "✅ MySQL secured (non-interactive)"
 
 # ============ Step 3: Apply Configuration ============
 echo ""
@@ -83,17 +98,20 @@ done
 # ============ Step 4: Create Databases and Users ============
 echo ""
 echo "👥 Step 4: Creating databases and users..."
-echo "⚠️  IMPORTANT: Edit sql/grants.sql and replace all 'REPLACE_ME_*' passwords with strong random passwords!"
-read -p "Have you updated sql/grants.sql with strong passwords? (y/N): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo "⚠️  Please edit sql/grants.sql first, then run this script again"
-  exit 1
-fi
+echo "⚠️  IMPORTANT: Ensure sql/grants.sql has strong passwords (not 'REPLACE_ME_*')"
+echo "   You can set MYSQL_ROOT_PASSWORD env var to avoid prompts"
+echo "   Example: MYSQL_ROOT_PASSWORD='your-password' sudo -E bash scripts/setup-mysql.sh"
 
 if [ -f "$PROJECT_ROOT/sql/grants.sql" ]; then
-  mysql -u root < "$PROJECT_ROOT/sql/grants.sql"
-  echo "✅ Databases and users created"
+  # Check if grants.sql has placeholder passwords
+  if grep -q "REPLACE_ME" "$PROJECT_ROOT/sql/grants.sql"; then
+    echo "⚠️  WARNING: sql/grants.sql contains 'REPLACE_ME' placeholders!"
+    echo "   The script will continue, but you MUST update passwords manually after setup."
+    echo "   Run: mysql -u root < sql/grants.sql (after editing with real passwords)"
+  else
+    mysql -u root ${MYSQL_ROOT_PASSWORD:+-p"${MYSQL_ROOT_PASSWORD}"} < "$PROJECT_ROOT/sql/grants.sql"
+    echo "✅ Databases and users created"
+  fi
 else
   echo "❌ sql/grants.sql not found"
   exit 1

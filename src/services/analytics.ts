@@ -1,4 +1,7 @@
-import { supabase } from '@/integrations/supabase/client';
+// Analytics Service - MySQL-backed
+// Replaces Supabase analytics with MySQL API
+
+import api from '@/lib/api';
 
 export interface AnalyticsEvent {
   event_type: string;
@@ -19,39 +22,60 @@ export class AnalyticsService {
 
   async track(event: AnalyticsEvent): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      // Get current user from API if not provided
+      let userId = event.user_id;
+      if (!userId) {
+        try {
+          const user = await api.getCurrentUser();
+          userId = user?.id;
+        } catch (error) {
+          // User not authenticated, continue without user_id
+          console.debug('No authenticated user for analytics event');
+        }
+      }
+
       const eventData = {
         event_type: event.event_type,
-        user_id: user?.id || event.user_id,
+        user_id: userId || null,
         properties: event.properties || {},
         timestamp: event.timestamp || new Date().toISOString(),
-        created_at: new Date().toISOString()
       };
 
-      // Insert into analytics table
-      const { error } = await supabase
-        .from('analytics_events')
-        .insert([eventData]);
-
-      if (error) {
-        console.error('Analytics tracking error:', error);
-      } else {
-        console.log('Event tracked:', event.event_type);
+      // Send to MySQL API
+      // Note: Analytics endpoint needs to be implemented in API server
+      // For now, log to console in development
+      if (import.meta.env.DEV) {
+        console.log('📊 Analytics Event:', eventData);
       }
+
+      // TODO: Implement analytics endpoint in API server
+      // await api.post('/analytics/events', eventData);
     } catch (error) {
       console.error('Analytics service error:', error);
+      // Don't throw - analytics failures shouldn't break the app
     }
   }
 
   // Specific event tracking methods
+  async trackUserSignup(userData: any): Promise<void> {
+    await this.track({
+      event_type: 'user_signup',
+      properties: {
+        email: userData.email,
+        first_name: userData.firstName || userData.first_name,
+        last_name: userData.lastName || userData.last_name,
+        registration_method: 'email'
+      }
+    });
+  }
+
   async trackUserRegistration(userData: any): Promise<void> {
     await this.track({
       event_type: 'user_registration',
       properties: {
         email: userData.email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
+        first_name: userData.firstName || userData.first_name,
+        last_name: userData.lastName || userData.last_name,
         registration_method: 'email'
       }
     });
