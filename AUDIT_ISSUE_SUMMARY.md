@@ -1,102 +1,107 @@
-# Audit Issue: Server Not Showing in Dashboard
+# Audit Issue: Purchase Completed But No Server Created
 
 ## Problem
-- ✅ Server exists in Pterodactyl: `givrwrld-paper-1`
+- ✅ Payment completed successfully (user saw success page)
+- ❌ No server created in Pterodactyl
 - ❌ Dashboard shows "No Servers Yet"
-- ❌ User dashboard shows "0 Online Servers"
+- ⚠️  Note: `givrwrld-paper-1` in Pterodactyl is just a test server, not from this purchase
 
-## What We Know
+## What to Check
 
-### Server Exists
-- Pterodactyl panel shows server: `givrwrld-paper-1`
-- UUID: `8d110130-56b5-4f3b-aac2-6c4b5c49b97e`
-- Owner: `admin`
-- Status: Active
+### 1. Order Creation
+- Was an order created in the `orders` table?
+- Check `order_sessions` table for checkout session
+- Verify order has correct `user_id`, `plan_id`, `status`
 
-### Database Issues Found
-1. **Column Name Mismatch**: 
-   - Code references `pterodactyl_server_id` and `pterodactyl_server_identifier`
-   - But queries fail with: `ERROR 1054 (42S22): Unknown column 'pterodactyl_server_id'`
-   - Need to check actual column names in `orders` table
+### 2. Webhook Processing
+- Was Stripe webhook received?
+- Check `stripe_events_log` table for `checkout.session.completed` event
+- Verify webhook processed the payment correctly
 
-2. **User Lookup**:
-   - User email: `christianjn14@icloud.com`
-   - Need to verify user exists in `users` table
-   - Need to verify order is linked to correct user_id
+### 3. Provisioning Trigger
+- Did webhook call `provisionServer()` function?
+- Check API logs for provisioning attempts
+- Check for any errors in provisioning process
 
-## Files to Audit
+### 4. Database Schema
+- Verify `orders` table has correct columns
+- Check for `pterodactyl_server_id` and `pterodactyl_server_identifier` columns
+- Verify `status` column values
 
-### 1. Database Schema
-- `sql/app_core.sql` - Check `orders` table schema
-- Verify column names: `pterodactyl_server_id`, `pterodactyl_server_identifier`
+## Debugging Queries
 
-### 2. API Route
-- `api/routes/servers.js` - GET `/api/servers` endpoint
-- `api/utils/mysql.js` - `getUserServers()` function
-
-### 3. Frontend
-- `src/hooks/useUserServers.ts` - How servers are fetched
-- `src/lib/api.ts` - API client `getServers()` method
-
-## Expected Flow
-
-1. User completes payment
-2. Webhook creates order with `status = 'paid'`
-3. Webhook triggers provisioning
-4. Server created in Pterodactyl
-5. Order updated with `pterodactyl_server_id` and `pterodactyl_server_identifier`
-6. Frontend calls `GET /api/servers`
-7. API returns orders with `status = 'provisioned'`
-8. Frontend displays servers
-
-## Debugging Steps
-
-### Step 1: Check Orders Table Schema
+### Check Recent Orders
 ```sql
-DESCRIBE orders;
-```
-
-### Step 2: Find the Order
-```sql
-SELECT * FROM orders 
-WHERE server_name LIKE '%paper%' 
-   OR server_name LIKE '%givrwrld%'
+SELECT id, user_id, plan_id, status, server_name, created_at 
+FROM orders 
 ORDER BY created_at DESC 
 LIMIT 5;
 ```
 
-### Step 3: Check User
+### Check Stripe Events
 ```sql
-SELECT * FROM users 
-WHERE email LIKE '%christianjn14%' 
-   OR email LIKE '%icloud%';
+SELECT event_id, type, received_at 
+FROM stripe_events_log 
+ORDER BY received_at DESC 
+LIMIT 10;
 ```
 
-### Step 4: Check API Response
-```bash
-# Need valid JWT token
-curl -H "Authorization: Bearer <token>" http://localhost:3001/api/servers
+### Check Order Sessions
+```sql
+SELECT order_id, stripe_session_id, status, created_at 
+FROM order_sessions 
+ORDER BY created_at DESC 
+LIMIT 5;
 ```
 
-### Step 5: Check getUserServers Function
-- Verify it queries `orders` table correctly
-- Verify it filters by `user_id`
-- Verify it returns correct format
+### Check Orders Table Schema
+```sql
+DESCRIBE orders;
+```
+
+## Expected Flow
+
+1. User completes checkout → Order created (`status = 'pending'`)
+2. Payment completed → Webhook received
+3. Webhook updates order (`status = 'paid'`)
+4. Webhook calls `provisionServer(orderId)`
+5. Server created in Pterodactyl
+6. Order updated (`status = 'provisioned'`, `pterodactyl_server_id` set)
+7. Frontend fetches servers → Shows in dashboard
+
+## Files to Audit
+
+### 1. Webhook Handler
+- `api/routes/stripe.js` - Webhook processing
+- Verify it calls `provisionServer()` after payment
+- Check error handling
+
+### 2. Provisioning Function
+- `api/routes/servers.js` - `provisionServer()` function
+- Verify it creates server in Pterodactyl
+- Check error handling and logging
+
+### 3. Database Schema
+- `sql/app_core.sql` - Orders table definition
+- Verify all required columns exist
+
+### 4. API Logs
+- Check API server logs for errors
+- Look for provisioning attempts
+- Check for Pterodactyl API errors
 
 ## Likely Issues
 
-1. **Column Names**: `orders` table might use different column names
-2. **User ID Mismatch**: Order might be linked to wrong user
-3. **Status Filter**: API might be filtering out provisioned servers
-4. **Response Format**: API response might not match frontend expectations
+1. **Webhook not received**: Stripe webhook endpoint not configured correctly
+2. **Webhook not processing**: Webhook received but failed to process
+3. **Provisioning not triggered**: Webhook didn't call `provisionServer()`
+4. **Provisioning failed**: Server creation failed silently
+5. **Order not linked**: Order created but not linked to user correctly
 
 ## Next Steps
 
-1. ✅ All code pushed to repo
-2. ⏳ Codex audit needed to:
-   - Check `orders` table schema
-   - Verify `getUserServers()` function
-   - Check API response format
-   - Verify frontend expectations
-   - Fix any mismatches
-
+1. Check if order was created
+2. Check if webhook was received
+3. Check if provisioning was triggered
+4. Check API logs for errors
+5. Verify database schema matches code expectations
