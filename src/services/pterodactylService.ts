@@ -213,7 +213,7 @@ export class PterodactylService {
         players: 0, // Pterodactyl doesn't provide player count in resources endpoint
         maxPlayers: 20, // Default
         uptime: uptime,
-        pterodactylUrl: `${this.panelUrl}/server/${order.pterodactyl_server_identifier}`,
+        pterodactylUrl: `${this.panelUrl}/server/${order.ptero_identifier}`,
         specs: `${ram} RAM • 2 CPU Cores`,
         lastSeen: new Date().toISOString()
       });
