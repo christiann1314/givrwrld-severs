@@ -48,25 +48,21 @@ export async function provisionServer(orderId) {
        FROM orders o
        LEFT JOIN plans p ON p.id = o.plan_id
        WHERE o.id = ?`,
-      [order_id]
+      [orderId]
     );
 
     if (orders.length === 0) {
-      return res.status(404).json({
-        error: 'Order not found'
-      });
+      throw new Error('Order not found');
     }
 
     const order = orders[0];
 
     if (order.status !== 'paid') {
-      return res.status(400).json({
-        error: 'Order is not in paid status'
-      });
+      throw new Error('Order is not in paid status');
     }
 
     // Update status to provisioning
-    await updateOrderStatus(order_id, 'provisioning');
+    await updateOrderStatus(orderId, 'provisioning');
 
     // Get Pterodactyl API credentials
     const aesKey = process.env.AES_KEY;
@@ -83,19 +79,15 @@ export async function provisionServer(orderId) {
 
     // Validate plan has egg ID
     if (!order.ptero_egg_id) {
-      await updateOrderStatus(order_id, 'error', null, null, 'Plan does not have ptero_egg_id configured');
-      return res.status(400).json({
-        error: 'Plan does not have ptero_egg_id configured'
-      });
+      await updateOrderStatus(orderId, 'error', null, null, 'Plan does not have ptero_egg_id configured');
+      throw new Error('Plan does not have ptero_egg_id configured');
     }
 
     // Get node for region
     const node = await getNodeForRegion(order.region);
     if (!node) {
-      await updateOrderStatus(order_id, 'error', null, null, `No node found for region: ${order.region}`);
-      return res.status(400).json({
-        error: `No node found for region: ${order.region}`
-      });
+      await updateOrderStatus(orderId, 'error', null, null, `No node found for region: ${order.region}`);
+      throw new Error(`No node found for region: ${order.region}`);
     }
 
     // Get user details
@@ -105,10 +97,8 @@ export async function provisionServer(orderId) {
     );
 
     if (users.length === 0) {
-      await updateOrderStatus(order_id, 'error', null, null, 'User not found');
-      return res.status(404).json({
-        error: 'User not found'
-      });
+      await updateOrderStatus(orderId, 'error', null, null, 'User not found');
+      throw new Error('User not found');
     }
 
     const user = users[0];
@@ -131,10 +121,8 @@ export async function provisionServer(orderId) {
     );
 
     if (eggs.length === 0) {
-      await updateOrderStatus(order_id, 'error', null, null, `Egg not found: ${order.ptero_egg_id}`);
-      return res.status(404).json({
-        error: `Egg not found: ${order.ptero_egg_id}`
-      });
+      await updateOrderStatus(orderId, 'error', null, null, `Egg not found: ${order.ptero_egg_id}`);
+      throw new Error(`Egg not found: ${order.ptero_egg_id}`);
     }
 
     const egg = eggs[0];
@@ -194,11 +182,8 @@ export async function provisionServer(orderId) {
 
       if (!serverResponse.ok) {
         const errorText = await serverResponse.text();
-        await updateOrderStatus(order_id, 'error', null, null, `Pterodactyl API error: ${errorText}`);
-        return res.status(500).json({
-          error: 'Failed to create server in Pterodactyl',
-          message: errorText
-        });
+        await updateOrderStatus(orderId, 'error', null, null, `Pterodactyl API error: ${errorText}`);
+        throw new Error(`Failed to create server in Pterodactyl: ${errorText}`);
       }
 
       const serverData = await serverResponse.json();
@@ -207,7 +192,7 @@ export async function provisionServer(orderId) {
 
       // Update order with server details
       await updateOrderStatus(
-        order_id,
+        orderId,
         'provisioned',
         pteroServerId,
         pteroIdentifier

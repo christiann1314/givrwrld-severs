@@ -47,10 +47,11 @@ export function authenticate(req, res, next) {
  */
 export function optionalAuth(req, res, next) {
   try {
+    // Get token from Authorization header only
     const authHeader = req.headers.authorization;
     const token = authHeader?.startsWith('Bearer ')
       ? authHeader.substring(7)
-      : req.cookies?.token;
+      : null;
 
     if (token) {
       const decoded = verifyToken(token);

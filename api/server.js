@@ -4,10 +4,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-// Import routes
-import authRoutes from './routes/auth.js';
 import stripeRoutes from './routes/stripe.js';
+import authRoutes from './routes/auth.js';
 import checkoutRoutes from './routes/checkout.js';
 import plansRoutes from './routes/plans.js';
 import ordersRoutes from './routes/orders.js';
@@ -19,12 +17,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
-}));
+// CORS configuration - must be before other middleware
+const corsOptions = {
+  origin: process.env.FRONTEND_URL 
+    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    : (process.env.NODE_ENV === 'production' ? false : true),
+  credentials: process.env.FRONTEND_URL ? true : false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
+app.use(cors(corsOptions));
+
+// Stripe webhook must be mounted BEFORE express.json() to preserve raw body
+// Mount Stripe webhook route BEFORE body parsing middleware
+app.use('/api/stripe/webhook', stripeRoutes);
+
+// Body parsing middleware (for all other routes)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -38,8 +47,9 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+// Note: Stripe webhook already mounted above before body parsing
 app.use('/api/auth', authRoutes);
-app.use('/api/stripe', stripeRoutes);
+app.use('/api/stripe', stripeRoutes); // Other Stripe routes (if any, webhook already mounted above)
 app.use('/api/checkout', checkoutRoutes);
 app.use('/api/plans', plansRoutes);
 app.use('/api/orders', ordersRoutes);

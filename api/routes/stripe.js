@@ -9,6 +9,7 @@ import pool from '../config/database.js';
 const router = express.Router();
 
 // Stripe webhook endpoint (no auth required - uses signature verification)
+// This route is mounted BEFORE express.json() in server.js to preserve raw body
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {
     const signature = req.headers['stripe-signature'];

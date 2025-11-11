@@ -24,7 +24,36 @@ router.post('/create-session', authenticate, async (req, res) => {
       });
     }
 
-    // Create order first (pending status)
+    // Validate plan BEFORE creating order
+    const plan = await getPlan(plan_id);
+    if (!plan) {
+      return res.status(404).json({
+        error: 'Plan not found'
+      });
+    }
+
+    if (plan.item_type !== item_type) {
+      return res.status(400).json({
+        error: 'Plan item type mismatch',
+        message: `Plan is for ${plan.item_type}, but request is for ${item_type}`
+      });
+    }
+
+    if (!plan.is_active) {
+      return res.status(400).json({
+        error: 'Plan is inactive',
+        message: 'This plan is no longer available'
+      });
+    }
+
+    if (!plan.stripe_price_id) {
+      return res.status(400).json({
+        error: 'Plan not configured for payments',
+        message: 'This plan does not have a Stripe price configured'
+      });
+    }
+
+    // Create order after validation (pending status)
     const orderId = uuidv4();
     const serverName = server_name || `${plan_id.split('-')[0]}-${Date.now()}`;
     
@@ -33,14 +62,6 @@ router.post('/create-session', authenticate, async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
       [orderId, req.userId, item_type, plan_id, term || 'monthly', region || 'us-central', serverName]
     );
-
-    // Get plan from MySQL
-    const plan = await getPlan(plan_id);
-    if (!plan || plan.item_type !== item_type || !plan.is_active) {
-      return res.status(404).json({
-        error: 'Plan not found or inactive'
-      });
-    }
 
     // Get AES key and decrypt Stripe secret
     const aesKey = process.env.AES_KEY;

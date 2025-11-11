@@ -3,7 +3,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import pool from '../config/database.js';
-import { generateToken, generateRefreshToken } from '../utils/jwt.js';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -195,9 +195,8 @@ router.post('/refresh', async (req, res) => {
       });
     }
 
-    // Verify refresh token
-    const { verifyToken } = await import('../utils/jwt.js');
-    const decoded = verifyToken(refreshToken);
+    // Verify refresh token (uses separate secret)
+    const decoded = verifyRefreshToken(refreshToken);
 
     if (!decoded || !decoded.userId) {
       return res.status(401).json({

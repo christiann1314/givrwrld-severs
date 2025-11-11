@@ -1,22 +1,16 @@
 // Environment configuration for GIVRWRLD Servers
 export const config = {
-  // Supabase Configuration
-  supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL || 'https://mjhvkvnshnbnxojnandf.supabase.co',
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qaHZrdm5zaG5ibnhvam5hbmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MTU0MTksImV4cCI6MjA2OTM5MTQxOX0.GxI1VdNCKD0nxJ3Tlkvy63PHEqoiPlJUlfLMrSoM6Tw',
-    functionsUrl: import.meta.env.VITE_SUPABASE_FUNCTIONS_URL || 'https://mjhvkvnshnbnxojnandf.functions.supabase.co'
-  },
-  
-  // API Configuration
+  // API Configuration (MySQL-backed API server)
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.givrwrldservers.com/api'
+    // Use VITE_API_URL for consistency with api.ts
+    baseUrl: import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
   },
   
   // Stripe Configuration
   stripe: {
-    // IMPORTANT: Use LIVE key in production (pk_live_...)
-    // Set VITE_STRIPE_PUBLISHABLE_KEY environment variable
-    publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_live_51RZPGzB3VffY65l6PSOmZdnbQsnPQmXdaHvXkPwzq2Ieq5CvzY9PlQaxf97C8PMLj8YfhQtW9AUrK4rofbj7ZXTY004OFKWBqh'
+    // IMPORTANT: Set VITE_STRIPE_PUBLISHABLE_KEY environment variable
+    // Do NOT hardcode keys in source code
+    publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
   },
   
   // App Configuration

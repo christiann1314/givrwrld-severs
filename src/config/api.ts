@@ -2,5 +2,6 @@
 // This file provides the API base URL for the application
 import { config } from './environment';
 
-export const API_BASE_URL = config.supabase.functionsUrl;
+// Use the MySQL-backed API server URL
+export const API_BASE_URL = config.api.baseUrl;
 
