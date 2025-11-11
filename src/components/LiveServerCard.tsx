@@ -176,7 +176,7 @@ const LiveServerCard: React.FC<LiveServerCardProps> = ({ server, onServerAction 
         <h4 className="text-lg font-semibold text-white mb-4">Live Server Stats</h4>
         <ServerStatsWidget 
           serverId={server.id}
-          serverIdentifier={server.pterodactyl_server_identifier}
+          serverIdentifier={server.pterodactyl_server_identifier || server.ptero_identifier}
           serverLimits={{
             ram: server.ram,
             disk: server.disk

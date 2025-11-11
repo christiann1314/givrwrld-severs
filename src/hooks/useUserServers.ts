@@ -95,12 +95,12 @@ export const useUserServers = (userEmail?: string) => {
         cpu: '2 vCPU', // Default CPU
         disk: '40GB SSD', // Default disk
         location: order.region,
-        ip: order.pterodactyl_server_identifier ? `server-${order.pterodactyl_server_identifier}.givrwrldservers.com` : '',
-        port: order.pterodactyl_server_identifier ? '25565' : '',
-        pterodactylUrl: order.pterodactyl_server_identifier ? `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : '',
-        pterodactyl_url: order.pterodactyl_server_identifier ? `https://panel.givrwrldservers.com/server/${order.pterodactyl_server_identifier}` : '',
-        pterodactyl_server_id: order.pterodactyl_server_id,
-        pterodactyl_server_identifier: order.pterodactyl_server_identifier,
+        ip: order.ptero_identifier ? `server-${order.ptero_identifier}.givrwrldservers.com` : '',
+        port: order.ptero_identifier ? '25565' : '',
+        pterodactylUrl: order.ptero_identifier ? `https://panel.givrwrldservers.com/server/${order.ptero_identifier}` : '',
+        pterodactyl_url: order.ptero_identifier ? `https://panel.givrwrldservers.com/server/${order.ptero_identifier}` : '',
+        pterodactyl_server_id: order.ptero_server_id,
+        pterodactyl_server_identifier: order.ptero_identifier,
         bundle_id: 'none',
         live_stats: {}
       }));

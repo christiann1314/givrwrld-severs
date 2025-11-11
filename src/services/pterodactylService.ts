@@ -108,7 +108,7 @@ export class PterodactylService {
     const enhancedServers: PterodactylServer[] = [];
 
     for (const order of orders) {
-      if (!order.pterodactyl_server_identifier) {
+      if (!order.ptero_identifier) {
         // If no Pterodactyl server ID, create basic server data
         const planId = order.plan_id || '';
         let game = 'unknown';
@@ -159,7 +159,7 @@ export class PterodactylService {
       }
 
       // Fetch real stats from Pterodactyl
-      const stats = await this.getServerStats(order.pterodactyl_server_identifier);
+      const stats = await this.getServerStats(order.ptero_identifier);
       
       // Handle both old format (minecraft-4gb) and new format (mc-4gb)
       const planId = order.plan_id || '';
