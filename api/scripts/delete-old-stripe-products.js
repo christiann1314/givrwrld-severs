@@ -29,6 +29,7 @@ dotenv.config({ path: join(__dirname, '../.env') });
 // Configuration
 const CUTOFF_DATE = new Date('2025-11-06T00:00:00Z'); // November 6, 2025 UTC - Delete Nov 5 and earlier, keep Nov 6+
 const DRY_RUN = process.argv.includes('--dry-run');
+const AUTO_YES = process.argv.includes('--yes') || process.argv.includes('-y');
 
 // Initialize Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -109,17 +110,30 @@ async function deleteProduct(productId) {
       limit: 100
     });
 
-    // Archive/delete all prices first
+    // Delete all prices first (not just archive - Stripe requires deletion for user-created prices)
     for (const price of prices.data) {
-      if (!price.active) continue; // Already archived
-      
       try {
-        await stripe.prices.update(price.id, { active: false });
-        console.log(`   ✓ Archived price: ${price.id}`);
+        // Try to delete the price (Stripe may prevent this if price is in use)
+        await stripe.prices.del(price.id);
+        console.log(`   ✓ Deleted price: ${price.id}`);
       } catch (error) {
-        console.error(`   ✗ Failed to archive price ${price.id}:`, error.message);
+        // If deletion fails, try archiving as fallback
+        if (error.code === 'resource_in_use' || error.message.includes('in use')) {
+          console.log(`   ⚠ Price ${price.id} is in use, archiving instead...`);
+          try {
+            await stripe.prices.update(price.id, { active: false });
+            console.log(`   ✓ Archived price: ${price.id}`);
+          } catch (archiveError) {
+            console.error(`   ✗ Failed to archive price ${price.id}:`, archiveError.message);
+          }
+        } else {
+          console.error(`   ✗ Failed to delete price ${price.id}:`, error.message);
+        }
       }
     }
+
+    // Wait a moment for Stripe to process price deletions
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Delete the product
     await stripe.products.del(productId);
@@ -178,12 +192,16 @@ async function main() {
       return;
     }
 
-    const answer = await question(`⚠️  Are you sure you want to delete ${oldProducts.length} product(s)? (yes/no): `);
-    
-    if (answer.toLowerCase() !== 'yes') {
-      console.log('❌ Cancelled. No products deleted.');
-      rl.close();
-      return;
+    if (!AUTO_YES) {
+      const answer = await question(`⚠️  Are you sure you want to delete ${oldProducts.length} product(s)? (yes/no): `);
+      
+      if (answer.toLowerCase() !== 'yes') {
+        console.log('❌ Cancelled. No products deleted.');
+        rl.close();
+        return;
+      }
+    } else {
+      console.log(`⚠️  Auto-confirming deletion of ${oldProducts.length} product(s)...\n`);
     }
 
     // Delete products

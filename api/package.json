@@ -11,7 +11,8 @@
     "pm2:stop": "pm2 stop ecosystem.config.js",
     "pm2:restart": "pm2 restart ecosystem.config.js",
     "stripe:delete-old": "node scripts/delete-old-stripe-products.js",
-    "stripe:delete-old:dry-run": "node scripts/delete-old-stripe-products.js --dry-run"
+    "stripe:delete-old:dry-run": "node scripts/delete-old-stripe-products.js --dry-run",
+    "stripe:delete-old:yes": "node scripts/delete-old-stripe-products.js --yes"
   },
   "dependencies": {
     "express": "^4.18.2",
