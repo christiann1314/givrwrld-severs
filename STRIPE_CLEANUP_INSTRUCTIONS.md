@@ -2,7 +2,7 @@
 
 ## Overview
 
-This script will delete all Stripe products created before November 10, 2024.
+This script will delete all Stripe products created before November 10, 2025.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ npm run stripe:delete-old:dry-run
 
 This will:
 - List all products in your Stripe account
-- Show which ones were created before November 10, 2024
+- Show which ones were created before November 10, 2025
 - Display details about each product
 - **NOT delete anything**
 
@@ -55,13 +55,13 @@ This will:
 
 ## What Gets Deleted
 
-- **Products** created before November 10, 2024
+- **Products** created before November 10, 2025
 - **Associated prices** for those products (archived, not deleted)
 - **Product metadata** and descriptions
 
 ## What Does NOT Get Deleted
 
-- Products created on or after November 10, 2024
+- Products created on or after November 10, 2025
 - Active subscriptions using those products (Stripe will prevent deletion if products are in use)
 - Customer records
 - Payment history
@@ -114,14 +114,14 @@ If you prefer to delete products manually:
 🗑️  Stripe Product Cleanup Script
 ================================
 
-Cutoff Date: 2024-11-10
+Cutoff Date: 2025-11-10
 Mode: LIVE (products will be deleted)
 
 📦 Fetching all products from Stripe...
 
 ✅ Found 25 total products
 
-📅 Found 8 products created before 2024-11-10
+📅 Found 8 products created before 2025-11-10
 
 Products to be deleted:
 ────────────────────────────────────────────────────────────────────────────────

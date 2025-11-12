@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../.env') });
 
 // Configuration
-const CUTOFF_DATE = new Date('2024-11-10T00:00:00Z'); // November 10, 2024 UTC
+const CUTOFF_DATE = new Date('2025-11-10T00:00:00Z'); // November 10, 2025 UTC
 const DRY_RUN = process.argv.includes('--dry-run');
 
 // Initialize Stripe
