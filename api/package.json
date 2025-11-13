@@ -13,7 +13,8 @@
     "stripe:delete-old": "node scripts/delete-old-stripe-products.js",
     "stripe:delete-old:dry-run": "node scripts/delete-old-stripe-products.js --dry-run",
     "stripe:delete-old:yes": "node scripts/delete-old-stripe-products.js --yes",
-    "stripe:restore-terraria": "node scripts/restore-terraria-product.js"
+    "stripe:restore-terraria": "node scripts/restore-terraria-product.js",
+    "stripe:restore-palworld": "node scripts/restore-palworld-product.js"
   },
   "dependencies": {
     "express": "^4.18.2",
