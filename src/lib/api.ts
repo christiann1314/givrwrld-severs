@@ -1,191 +1,144 @@
-// API Client - Replacement for Supabase Client
-// Self-hosted API server client
+// src/lib/api.ts
+import { clearTokens, getAccessToken, refreshAccessToken, setTokens } from "./auth";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
+function getApiBase(): string {
+  // If you set VITE_API_BASE_URL, use it; otherwise same origin.
+  const v = (import.meta as any)?.env?.VITE_API_BASE_URL;
+  return typeof v === "string" ? v.replace(/\/$/, "") : "";
 }
 
-class ApiClient {
-  private baseUrl: string;
-  public token: string | null = null; // Made public for useAuth hook
+async function http<T>(
+  path: string,
+  options: {
+    method?: HttpMethod;
+    headers?: Record<string, string>;
+    body?: any;
+    retryOnAuthFail?: boolean;
+  } = {}
+): Promise<T> {
+  const apiBase = getApiBase();
+  const url = path.startsWith("http") ? path : `${apiBase}${path}`;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-    // Load token from localStorage
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token');
-    }
+  const method = options.method || "GET";
+  const headers: Record<string, string> = {
+    ...(options.headers || {}),
+  };
+
+  // If body is present and no content-type set, assume JSON
+  const hasBody = options.body !== undefined && options.body !== null;
+  if (hasBody && !headers["Content-Type"] && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
   }
 
-  setToken(token: string | null) {
-    this.token = token;
-    if (token && typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
-    } else if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-    }
+  // Attach bearer token (if present)
+  const token = getAccessToken();
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+  const res = await fetch(url, {
+    method,
+    headers,
+    credentials: "include",
+    body: hasBody ? (options.body instanceof FormData ? options.body : JSON.stringify(options.body)) : undefined,
+  });
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
+  // If unauthorized, attempt refresh once and retry request once
+  const retryEnabled = options.retryOnAuthFail !== false;
+  if (res.status === 401 && retryEnabled) {
+    const refreshed = await refreshAccessToken(apiBase);
+    if (refreshed?.token) {
+      setTokens(refreshed.token, refreshed.refreshToken ?? undefined);
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
+      const retryHeaders: Record<string, string> = { ...headers, Authorization: `Bearer ${refreshed.token}` };
+
+      const retryRes = await fetch(url, {
+        method,
+        headers: retryHeaders,
+        credentials: "include",
+        body: hasBody ? (options.body instanceof FormData ? options.body : JSON.stringify(options.body)) : undefined,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: data.error || 'Request failed',
-          message: data.message,
-        };
+      if (!retryRes.ok) {
+        const msg = await safeErrorMessage(retryRes);
+        throw new Error(msg);
       }
-
-      return {
-        success: true,
-        data: data,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Network error',
-      };
-    }
-  }
-
-  // Auth methods
-  async signUp(email: string, password: string, firstName?: string, lastName?: string) {
-    const response = await this.request<{
-      user: { id: string; email: string; display_name: string };
-      token: string;
-      refreshToken: string;
-    }>('/api/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, firstName, lastName }),
-    });
-
-    if (response.success && response.data) {
-      this.setToken(response.data.token);
+      return (await retryRes.json()) as T;
     }
 
-    return response;
+    // refresh failed -> clear tokens
+    clearTokens();
+    const msg = await safeErrorMessage(res);
+    throw new Error(msg || "Unauthorized");
   }
 
-  async signIn(email: string, password: string) {
-    const response = await this.request<{
-      user: { id: string; email: string; display_name: string };
-      token: string;
-      refreshToken: string;
-    }>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (response.success && response.data) {
-      this.setToken(response.data.token);
-    }
-
-    return response;
+  if (!res.ok) {
+    const msg = await safeErrorMessage(res);
+    throw new Error(msg);
   }
 
-  async signOut() {
-    const response = await this.request('/api/auth/logout', {
-      method: 'POST',
-    });
+  return (await res.json()) as T;
+}
 
-    this.setToken(null);
-    return response;
-  }
-
-  async getCurrentUser() {
-    return this.request<{
-      user: { id: string; email: string; display_name: string; is_email_verified: boolean };
-    }>('/api/auth/me');
-  }
-
-  // Plans
-  async getPlans() {
-    return this.request<{ plans: any[] }>('/api/plans');
-  }
-
-  // Orders
-  async getOrders() {
-    return this.request<{ orders: any[] }>('/api/orders');
-  }
-
-  // Servers
-  async getServers() {
-    return this.request<{ servers: any[] }>('/api/servers');
-  }
-
-  // Checkout
-  async createCheckoutSession(data: {
-    plan_id: string;
-    item_type: string;
-    term?: string;
-    region?: string;
-    server_name?: string;
-    addons?: any[];
-  }) {
-    return this.request<{ sessionId: string; url: string }>('/api/checkout/create-session', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  // Server actions
-  async startServer(serverId: string) {
-    return this.request(`/api/servers/${serverId}/start`, {
-      method: 'POST',
-    });
-  }
-
-  async stopServer(serverId: string) {
-    return this.request(`/api/servers/${serverId}/stop`, {
-      method: 'POST',
-    });
-  }
-
-  // Generic function invocation (for compatibility)
-  async invoke(functionName: string, options: { body?: any } = {}) {
-    // Map old Supabase function names to new API routes
-    const routeMap: Record<string, string> = {
-      'get-user-servers': '/api/servers',
-      'get-user-orders': '/api/orders',
-      'get-plans': '/api/plans',
-      'create-checkout-session': '/api/checkout/create-session',
-      'servers-provision': '/api/servers/provision',
-    };
-
-    const route = routeMap[functionName] || `/api/${functionName}`;
-    const method = options.body ? 'POST' : 'GET';
-
-    return this.request(route, {
-      method,
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+async function safeErrorMessage(res: Response): Promise<string> {
+  try {
+    const data = await res.json();
+    return data?.message || data?.error || `Request failed (${res.status})`;
+  } catch {
+    return `Request failed (${res.status})`;
   }
 }
 
-export const api = new ApiClient(API_URL);
+function normalizeAuthResponse(raw: any) {
+  // backend: { success:true, user:{...}, token:"...", refreshToken:"..." }
+  if (raw?.success && raw?.token && raw?.user) return raw;
+  // alternative shapes
+  if (raw?.token && raw?.user) return { success: true, ...raw };
+  return raw;
+}
+
+export const api = {
+  // Generic
+  http,
+
+  // Auth
+  async register(email: string, password: string, display_name?: string) {
+    const raw = await http<any>("/api/auth/signup", {
+      method: "POST",
+      body: { email, password, display_name },
+      retryOnAuthFail: false,
+    });
+    const norm = normalizeAuthResponse(raw);
+    if (norm?.token) setTokens(norm.token, norm.refreshToken);
+    return { success: !!norm?.success, user: norm?.user, token: norm?.token, refreshToken: norm?.refreshToken, message: norm?.message };
+  },
+
+  async login(email: string, password: string) {
+    const raw = await http<any>("/api/auth/login", {
+      method: "POST",
+      body: { email, password },
+      retryOnAuthFail: false,
+    });
+    const norm = normalizeAuthResponse(raw);
+    if (norm?.token) setTokens(norm.token, norm.refreshToken);
+    return { success: !!norm?.success, user: norm?.user, token: norm?.token, refreshToken: norm?.refreshToken, message: norm?.message };
+  },
+
+  logout() {
+    // Optional: you can also POST /api/auth/logout but local clear is the hard requirement
+    clearTokens();
+  },
+
+  // Data
+  async getOrders() {
+    return await http<any>("/api/orders", { method: "GET" });
+  },
+
+  async getServers() {
+    return await http<any>("/api/servers", { method: "GET" });
+  },
+};
+
 export default api;
