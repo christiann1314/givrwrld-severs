@@ -4,8 +4,9 @@ import { clearTokens, getAccessToken, refreshAccessToken, setTokens } from "./au
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 function getApiBase(): string {
-  // If you set VITE_API_BASE_URL, use it; otherwise same origin.
-  const v = (import.meta as any)?.env?.VITE_API_BASE_URL;
+  // Prefer VITE_API_URL, fallback to VITE_API_BASE_URL; otherwise same-origin.
+  const env = (import.meta as any)?.env;
+  const v = env?.VITE_API_URL || env?.VITE_API_BASE_URL;
   return typeof v === "string" ? v.replace(/\/$/, "") : "";
 }
 

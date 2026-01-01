@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { createRoot } from 'react-dom/client'
+import { AuthProvider } from "./context/AuthContext";
 
 import App from './App.tsx'
 import './index.css'
@@ -44,7 +45,9 @@ prefetchCommonData().then(() => {
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <SecureErrorBoundary>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </SecureErrorBoundary>
   </React.StrictMode>
 );
