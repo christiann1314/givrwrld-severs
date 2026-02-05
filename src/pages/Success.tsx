@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Server, CreditCard, Calendar } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import api from '@/lib/api';
 
 interface OrderDetails {
   id: string;
@@ -33,19 +33,32 @@ const Success = () => {
     const fetchOrderDetails = async () => {
       try {
         if (sessionId) {
-          // Fetch order details from Supabase
-          const { data, error } = await supabase
-            // Orders now come from MySQL via Edge Function
-            // Use get-user-orders-mysql Edge Function instead
-            .select('*')
-            .eq('stripe_session_id', sessionId)
-            .single();
-
-          if (error) {
-            console.error('Error fetching order:', error);
+          // Fetch order details from API
+          try {
+            const ordersResponse = await api.getOrders();
+            const orders = ordersResponse?.orders || [];
+            // Find order by session ID or just use the latest one
+            const order = orders.find((o: any) => o.stripe_session_id === sessionId) || orders[0];
+            
+            if (order) {
+              setOrderDetails({
+                id: order.id,
+                plan_name: order.plan_id || plan || 'Game Server',
+                ram: order.ram || ram || '1GB',
+                cpu: order.cpu || '1 vCPU',
+                disk: order.disk || '20GB',
+                location: order.region || 'US-East',
+                game_type: order.game_type || 'minecraft',
+                status: order.status || 'processing',
+                created_at: order.created_at || new Date().toISOString(),
+                total_amount: order.amount || 0
+              });
+            } else {
+              setError('Order not found');
+            }
+          } catch (apiError) {
+            console.error('Error fetching order:', apiError);
             setError('Failed to load order details');
-          } else {
-            setOrderDetails(data);
           }
         } else {
           // Fallback to URL params if no session ID

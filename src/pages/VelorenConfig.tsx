@@ -23,7 +23,7 @@ const VelorenConfig = () => {
       region,
       server_name: serverName.trim(),
       modpack_id: gameType,
-      term: billingTerm,
+      term: billingTerm as 'monthly' | 'quarterly' | 'semiannual' | 'yearly',
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/veloren`
     });

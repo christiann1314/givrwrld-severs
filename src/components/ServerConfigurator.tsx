@@ -11,6 +11,9 @@ import { useStripeCheckout } from '../hooks/useStripeCheckout';
 import { serviceBundles, getBundleEnvVars } from '../utils/bundleUtils';
 import PaymentModal from './PaymentModal';
 
+type BillingPeriodValue = 'monthly' | '3months' | '6months' | '12months';
+type BillingTerm = 'monthly' | 'quarterly' | 'semiannual' | 'yearly';
+
 interface ServerTypeOption {
   key: string;
   name: string;
@@ -35,6 +38,7 @@ interface GameData {
   serverTypes: ServerTypeOption[];
   modpacks: ModpackOption[];
   planOptions: Array<{
+    id?: string;
     ram: string;
     cpu: string;
     disk: string;
@@ -54,7 +58,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
   const { isAuthenticated } = useAuth();
   const { createCheckoutSession, isLoading } = useStripeCheckout();
   const [selectedPlan, setSelectedPlan] = useState(gameData.planOptions.find(plan => plan.recommended) || gameData.planOptions[0]);
-  const [billingPeriod, setBillingPeriod] = useState('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriodValue>('monthly');
   const [serverName, setServerName] = useState('');
   const [location, setLocation] = useState('us-west');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -122,6 +126,15 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       case '6months': return 6;
       case '12months': return 12;
       default: return 1;
+    }
+  };
+
+  const mapBillingPeriodToTerm = (): BillingTerm => {
+    switch (billingPeriod) {
+      case '3months': return 'quarterly';
+      case '6months': return 'semiannual';
+      case '12months': return 'yearly';
+      default: return 'monthly';
     }
   };
 
@@ -205,11 +218,11 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
       
       await createCheckoutSession({
         item_type: 'game',
-        plan_id: selectedPlan.id,
+        plan_id: selectedPlan.id || `${gameType}-${selectedPlan.ram.toLowerCase().replace(' ', '')}`,
         region: location,
         server_name: serverName,
         modpack_id: selectedModpack.key === 'vanilla' ? undefined : selectedModpack.key,
-        term: billingPeriod,
+        term: mapBillingPeriodToTerm(),
         addons: enabledAddons,
         success_url: `${window.location.origin}/success?plan=${gameData.name}&ram=${selectedPlan.ram}`,
         cancel_url: `${window.location.origin}/dashboard`,
@@ -563,7 +576,7 @@ const ServerConfigurator: React.FC<ServerConfiguratorProps> = ({ gameType, gameD
               {billingOptions.map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setBillingPeriod(option.value)}
+                  onClick={() => setBillingPeriod(option.value as BillingPeriodValue)}
                   className={`p-4 rounded-lg border transition-all ${
                     billingPeriod === option.value
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'

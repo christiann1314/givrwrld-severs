@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Check, Server, ExternalLink, ArrowRight } from 'lucide-react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import api from '@/lib/api';
 
 interface PurchaseData {
   id: string;
@@ -30,33 +28,28 @@ const PurchaseSuccess = () => {
 
       try {
         // Fetch the latest purchase for this user
-        const { data: purchases, error } = await supabase
-          .from('purchases')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (error) {
-          console.error('Error fetching purchase:', error);
+        const ordersResponse = await api.getOrders();
+        
+        if (!ordersResponse || !ordersResponse.orders) {
+          console.error('No orders found');
           setLoading(false);
           return;
         }
 
-        if (purchases && purchases.length > 0) {
-          const purchase = purchases[0];
+        const orders = ordersResponse.orders;
+        if (orders && orders.length > 0) {
+          const latestOrder = orders[0];
           
-          // Also fetch server data to get pterodactyl URL
-          const { data: servers } = await supabase
-            .from('user_servers')
-            .select('pterodactyl_url')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
+          // Get servers to find pterodactyl URL
+          const serversResponse = await api.getServers();
+          const servers = serversResponse?.servers || [];
 
           setPurchaseData({
-            ...purchase,
-            pterodactyl_url: servers?.[0]?.pterodactyl_url
+            id: latestOrder.id,
+            plan_name: latestOrder.plan_id || 'Game Server',
+            amount: latestOrder.amount || 0,
+            created_at: latestOrder.created_at,
+            pterodactyl_url: servers[0]?.pterodactyl_url
           });
         }
         setLoading(false);

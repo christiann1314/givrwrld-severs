@@ -46,10 +46,14 @@ const UpgradePaymentModal: React.FC<UpgradePaymentModalProps> = ({
       const amount = priceMatch ? Math.round(parseFloat(priceMatch[1]) * 100) : 0;
 
       await createCheckoutSession({
-        plan_name: packageData.name,
-        amount: amount,
+        item_type: 'upgrade' as const,
+        plan_id: packageData.name.toLowerCase().replace(/\s+/g, '-'),
+        region: 'us-west',
+        server_name: packageData.name,
+        term: 'monthly',
         success_url: `${window.location.origin}/purchase-confirmed?package=${encodeURIComponent(packageData.name)}`,
         cancel_url: window.location.href,
+        amount: amount,
       });
       
       onClose();

@@ -1,16 +1,19 @@
 
 import { api } from '@/lib/api';
 
+export type BillingTerm = 'monthly' | 'quarterly' | 'semiannual' | 'yearly';
+
 export interface CheckoutSessionData {
-  item_type: 'game' | 'vps';
+  item_type: 'game' | 'vps' | 'upgrade' | 'bundle';
   plan_id: string;
   region: string;
   server_name: string;
   modpack_id?: string;
-  term: 'monthly' | 'quarterly' | 'yearly';
+  term: BillingTerm;
   addons?: string[];
   success_url?: string;
   cancel_url?: string;
+  amount?: number;
 }
 
 export interface CheckoutSessionResponse {
