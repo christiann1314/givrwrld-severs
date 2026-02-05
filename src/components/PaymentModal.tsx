@@ -130,11 +130,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     
     try {
       const checkoutData = {
-        amount: Math.round(calculateActualTotal() * 100), // Convert to cents
-        plan_name: `${gameData.name} Server - ${selectedPlan.ram}`,
-        userEmail: user?.email, // Include user email for backend association
+        item_type: 'game' as const,
+        plan_id: `${gameData.name.toLowerCase()}-${selectedPlan.ram.toLowerCase().replace(' ', '')}`,
+        region: location || 'us-west',
+        server_name: serverName || `${gameData.name} Server`,
+        term: (billingPeriod === '3months' ? 'quarterly' : billingPeriod === '6months' ? 'semiannual' : billingPeriod === '12months' ? 'yearly' : 'monthly') as 'monthly' | 'quarterly' | 'semiannual' | 'yearly',
         success_url: `${window.location.origin}/success`,
-        cancel_url: `${window.location.origin}/dashboard`
+        cancel_url: `${window.location.origin}/dashboard`,
+        amount: Math.round(calculateActualTotal() * 100),
       };
       
       const response = await stripeService.createCheckoutSession(checkoutData);

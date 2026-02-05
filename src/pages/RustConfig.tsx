@@ -11,7 +11,7 @@ const RustConfig = () => {
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('rust-6gb');
   const [gameType, setGameType] = useState('rust-generic');
-   const [billingTerm, setBillingTerm] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [billingTerm, setBillingTerm] = useState<string>('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
     if (!user) throw new Error('Please sign in to continue');
@@ -23,7 +23,7 @@ const RustConfig = () => {
       region,
       server_name: serverName.trim(),
       modpack_id: gameType,
-       term: billingTerm as 'monthly' | 'quarterly' | 'yearly',
+      term: billingTerm as 'monthly' | 'quarterly' | 'semiannual' | 'yearly',
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/rust`
     });

@@ -27,7 +27,7 @@ interface Order {
   id: string;
   plan_id: string;
   status: string;
-  pterodactyl_server_identifier: string;
+  pterodactyl_server_identifier?: string | null;
   created_at: string;
 }
 
@@ -38,7 +38,7 @@ const ServerStats = ({ order }: { order: Order }) => {
   const [error, setError] = React.useState<string | null>(null);
 
   const fetchStats = React.useCallback(async () => {
-    if (!user || !order.ptero_identifier) return;
+    if (!user || !order.pterodactyl_server_identifier) return;
 
     try {
       setLoading(true);
@@ -48,7 +48,7 @@ const ServerStats = ({ order }: { order: Order }) => {
         `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/server-stats?order_id=${order.id}`,
         {
           headers: {
-            'Authorization': `Bearer ${user.access_token}`
+            'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
           }
         }
       );
@@ -65,16 +65,16 @@ const ServerStats = ({ order }: { order: Order }) => {
     } finally {
       setLoading(false);
     }
-  }, [user, order.id, order.ptero_identifier]);
+  }, [user, order.id, order.pterodactyl_server_identifier]);
 
   // Poll for stats every 5 seconds
   React.useEffect(() => {
-    if (order.status === 'provisioned' && order.ptero_identifier) {
+    if (order.status === 'provisioned' && order.pterodactyl_server_identifier) {
       fetchStats();
       const interval = setInterval(fetchStats, 5000);
       return () => clearInterval(interval);
     }
-  }, [fetchStats, order.status, order.ptero_identifier]);
+  }, [fetchStats, order.status, order.pterodactyl_server_identifier]);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -126,7 +126,7 @@ const ServerStats = ({ order }: { order: Order }) => {
     }
   };
 
-  if (order.status !== 'provisioned' || !order.ptero_identifier) {
+  if (order.status !== 'provisioned' || !order.pterodactyl_server_identifier) {
     return (
       <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6">

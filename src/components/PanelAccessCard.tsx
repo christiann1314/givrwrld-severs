@@ -77,11 +77,11 @@ const PanelAccessCard: React.FC = () => {
       // Get user profile for names
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name')
+        .select('first_name, last_name')
         .eq('user_id', user.id)
         .single();
 
-      const displayName = profile?.display_name || user.email?.split('@')[0] || 'User';
+      const displayName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : (user.email?.split('@')[0] || 'User');
       const [firstName, ...lastNameParts] = displayName.split(' ');
       const lastName = lastNameParts.join(' ') || 'User';
 

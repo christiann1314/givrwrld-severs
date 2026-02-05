@@ -11,7 +11,7 @@ const AmongUsConfig = () => {
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('among-us-2gb');
   const [gameType, setGameType] = useState('among-us-impostor');
-   const [billingTerm, setBillingTerm] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
+  const [billingTerm, setBillingTerm] = useState('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
     if (!user) throw new Error('Please sign in to continue');

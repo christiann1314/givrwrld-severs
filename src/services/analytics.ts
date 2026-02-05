@@ -27,7 +27,7 @@ export class AnalyticsService {
       if (!userId) {
         try {
           const user = await api.getCurrentUser();
-          userId = user?.id;
+          userId = user?.data?.user?.id;
         } catch (error) {
           // User not authenticated, continue without user_id
           console.debug('No authenticated user for analytics event');

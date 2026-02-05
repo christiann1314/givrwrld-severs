@@ -23,7 +23,7 @@ const MinecraftConfig = () => {
       region,
       server_name: serverName.trim(),
       modpack_id: gameType,
-      term: billingTerm,
+      term: billingTerm as 'monthly' | 'quarterly' | 'semiannual' | 'yearly',
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/minecraft`
     });
@@ -78,15 +78,6 @@ const MinecraftConfig = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-gray-900/30 to-gray-900/50"></div>
       </div>
-      
-      {/* Mobile responsive background */}
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .bg-fixed {
-            background-attachment: scroll !important;
-          }
-        }
-      `}</style>
       
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
