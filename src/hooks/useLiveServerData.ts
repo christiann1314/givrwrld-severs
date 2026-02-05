@@ -54,16 +54,15 @@ export const useLiveServerData = (refreshInterval: number = 30000) => {
         const totalPlayers = servers.reduce((sum, s) => sum + s.players, 0);
         const averageUptime = servers.reduce((sum, s) => sum + parseFloat(s.uptime), 0) / totalServers;
 
-        setData({
-          servers,
-          totalServers,
-          onlineServers,
-          totalPlayers,
-          averageUptime
-        });
-      }
-
-      setLastUpdated(new Date());
+         setData({
+           servers,
+           totalServers,
+           onlineServers,
+           totalPlayers,
+           averageUptime
+         });
+ 
+       setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch server data');
       console.error('Error fetching live server data:', err);

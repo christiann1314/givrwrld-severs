@@ -11,14 +11,11 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJ
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  },
-  functions: {
-    url: SUPABASE_FUNCTIONS_URL,
   },
   global: {
     headers: {
@@ -26,3 +23,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     },
   }
 });
+ 
+ // Export functions URL for manual use
+ export const FUNCTIONS_URL = SUPABASE_FUNCTIONS_URL;

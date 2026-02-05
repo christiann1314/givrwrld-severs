@@ -11,7 +11,7 @@ const FactorioConfig = () => {
   const [region, setRegion] = useState('us-west');
   const [planId, setPlanId] = useState('factorio-4gb');
   const [gameType, setGameType] = useState('factorio');
-  const [billingTerm, setBillingTerm] = useState('monthly');
+   const [billingTerm, setBillingTerm] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
 
   const { run: createCheckout, loading } = useAction(async () => {
     if (!user) throw new Error('Please sign in to continue');
@@ -23,7 +23,7 @@ const FactorioConfig = () => {
       region,
       server_name: serverName.trim(),
       modpack_id: gameType,
-      term: billingTerm,
+       term: billingTerm as 'monthly' | 'quarterly' | 'yearly',
       success_url: `${window.location.origin}/purchase-success`,
       cancel_url: `${window.location.origin}/configure/factorio`
     });
@@ -46,8 +46,7 @@ const FactorioConfig = () => {
   const billingTerms = [
     { id: 'monthly', name: 'Monthly', discount: 0 },
     { id: 'quarterly', name: '3 Months', discount: 5 },
-    { id: 'semiannual', name: '6 Months', discount: 10 },
-    { id: 'yearly', name: '12 Months', discount: 20 }
+     { id: 'yearly', name: 'Yearly', discount: 20 }
   ];
 
   const selectedPlan = plans.find(p => p.id === planId);
@@ -72,13 +71,6 @@ const FactorioConfig = () => {
       </div>
       
       {/* Mobile responsive background */}
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .bg-fixed {
-            background-attachment: scroll !important;
-          }
-        }
-      `}</style>
       
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useUserServers } from '../hooks/useUserServers';
 import { useAuth } from '../hooks/useAuth';
 import { useServerStats } from '../hooks/useServerStats';
-import { supabase } from '@/integrations/supabase/client';
+ import { api } from '@/lib/api';
 import { toast } from '@/components/ui/use-toast';
 import {
   ArrowLeft,
@@ -22,10 +22,14 @@ import {
   Upload,
   Trash2,
   Edit3,
-  Monitor
+   Monitor,
+   CheckCircle,
+   AlertCircle,
+   Clock
 } from 'lucide-react';
 import BundleBadge from '../components/BundleBadge';
 import LiveServerCard from '../components/LiveServerCard';
+ import { getBundleName } from '../utils/bundleUtils';
 
 import ServerCardSkeleton from '../components/ServerCardSkeleton';
 
@@ -42,11 +46,10 @@ const DashboardServices = () => {
     
     try {
       if (action === 'console') {
-        const { data, error } = await supabase.functions.invoke('get-server-console', {
-          body: { serverId }
-        });
-        
-        if (error) throw error;
+         const data = await api.http<any>('/api/servers/console', {
+           method: 'POST',
+           body: { serverId }
+         });
         
         // Open console in new tab
         window.open(data.consoleUrl, '_blank');
@@ -55,12 +58,10 @@ const DashboardServices = () => {
           description: `Opened console for ${serverName}`,
         });
       } else {
-        const functionName = action === 'start' ? 'start-server' : 'stop-server';
-        const { data, error } = await supabase.functions.invoke(functionName, {
-          body: { serverId }
-        });
-        
-        if (error) throw error;
+         await api.http<any>(`/api/servers/${action}`, {
+           method: 'POST',
+           body: { serverId }
+         });
         
         toast({
           title: `Server ${action} initiated`,
@@ -85,8 +86,7 @@ const DashboardServices = () => {
   const syncWithPterodactyl = async () => {
     setRepairing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-server-status');
-      if (error) throw error;
+       const data = await api.http<any>('/api/servers/sync');
       
       toast({
         title: 'Live data refreshed',

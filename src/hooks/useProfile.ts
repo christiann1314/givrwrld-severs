@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { config } from '@/config/environment'
-
-const supabase = createClient(config.supabase.url, config.supabase.anonKey)
+ import { useState, useEffect, useCallback } from 'react'
+ import { api } from '@/lib/api'
 
 export interface Profile {
   id: string
@@ -10,6 +7,7 @@ export interface Profile {
   email: string
   first_name?: string
   last_name?: string
+   display_name?: string
   avatar_url?: string
   created_at: string
   updated_at: string
@@ -20,118 +18,54 @@ export function useProfile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+   const getProfile = useCallback(async () => {
+     try {
+       setLoading(true)
+       setError(null)
+ 
+       const response = await api.getCurrentUser()
+       
+       if (!response.success || !response.data?.user) {
+         setProfile(null)
+         setLoading(false)
+         return
+       }
+ 
+       const user = response.data.user
+       setProfile({
+         id: user.id,
+         user_id: user.id,
+         email: user.email,
+         display_name: user.display_name,
+         first_name: user.display_name?.split(' ')[0],
+         last_name: user.display_name?.split(' ').slice(1).join(' '),
+         avatar_url: undefined,
+         created_at: new Date().toISOString(),
+         updated_at: new Date().toISOString()
+       })
+     } catch (err) {
+       setError(err instanceof Error ? err.message : 'Failed to load profile')
+     } finally {
+       setLoading(false)
+     }
+   }, [])
+ 
   useEffect(() => {
-    let mounted = true
-
-    async function getProfile() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
-        if (userError) {
-          throw userError
-        }
-
-        if (!user) {
-          if (mounted) {
-            setProfile(null)
-            setLoading(false)
-          }
-          return
-        }
-
-        // Get profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-
-        if (profileError) {
-          throw profileError
-        }
-
-        if (mounted) {
-          setProfile(profileData)
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load profile')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
     getProfile()
+   }, [getProfile])
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        getProfile()
-      } else if (event === 'SIGNED_OUT') {
-        setProfile(null)
-        setLoading(false)
-      }
-    })
-
-    // Subscribe to profile changes
-    const profileSubscription = supabase
-      .channel('profiles')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          if (payload.eventType === 'UPDATE' && payload.new) {
-            setProfile(payload.new as Profile)
-          }
-        }
-      )
-      .subscribe()
-
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-      profileSubscription.unsubscribe()
-    }
-  }, [])
-
-  const updateProfile = async (updates: Partial<Profile>) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('user_id', user.id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      setProfile(data)
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile')
-      throw err
-    }
+   const updateProfile = async (_updates: Partial<Profile>) => {
+     // TODO: Implement profile update via API
+     console.warn('Profile update not yet implemented')
+     return profile
   }
 
   return {
     profile,
     loading,
     error,
-    updateProfile
+     updateProfile,
+     refetch: getProfile
   }
 }
 

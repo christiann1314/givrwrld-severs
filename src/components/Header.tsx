@@ -1,9 +1,8 @@
 
-import * as React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings, LogOut, Server } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../integrations/supabase/client';
+ import * as React from 'react';
+ import { Link, useNavigate } from 'react-router-dom';
+ import { Home, Users, HelpCircle, MessageCircle, User, LogIn, UserPlus, ChevronDown, Settings, LogOut, Server } from 'lucide-react';
+ import { useAuth } from '../hooks/useAuth';
 
 const Header = () => {
   console.log('Header component mounting...');
@@ -20,21 +19,23 @@ const Header = () => {
   
   console.log('Header component initialized successfully');
 
-  const handleLogout = async () => {
-    setIsAccountOpen(false);
-    setIsLoggingOut(true);
-    
-    try {
-      await supabase.auth.signOut();
-      // Smooth redirect to home
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout error:', error);
-      window.location.href = '/';
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
+   const { signOut } = useAuth();
+ 
+   const handleLogout = async () => {
+     setIsAccountOpen(false);
+     setIsLoggingOut(true);
+     
+     try {
+       await signOut();
+       // Smooth redirect to home
+       window.location.href = '/';
+     } catch (error) {
+       console.error('Logout error:', error);
+       window.location.href = '/';
+     } finally {
+       setIsLoggingOut(false);
+     }
+   };
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-gray-900/70 border-b border-emerald-500/20">
@@ -126,10 +127,7 @@ const Header = () => {
                     <>
                       <div className="px-4 py-2 text-gray-300 border-b border-gray-600/50">
                         <div className="text-sm font-medium text-white">
-                          {user.user_metadata?.full_name || user.user_metadata?.first_name && user.user_metadata?.last_name 
-                            ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`.trim()
-                            : user.email?.split('@')[0] || 'User'
-                          }
+                           {user.display_name || user.email?.split('@')[0] || 'User'}
                         </div>
                         <div className="text-xs text-gray-400">Signed in</div>
                       </div>

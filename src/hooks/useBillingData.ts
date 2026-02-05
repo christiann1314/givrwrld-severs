@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client';
-import { API_BASE_URL } from '../config/api';
-import { toast } from '@/components/ui/use-toast';
+ import { useState, useEffect, useCallback } from 'react';
+ import { api } from '@/lib/api';
 import { getBundleName } from '../utils/bundleUtils';
 
 interface PaymentMethod {
@@ -58,56 +56,43 @@ export const useBillingData = (userEmail?: string) => {
     upcomingBills: [],
     loading: false
   });
-  // toast is now imported directly from sonner
 
-  const fetchBillingData = async () => {
+   const fetchBillingData = useCallback(async () => {
     if (!userEmail) return;
     
     setBillingData(prev => ({ ...prev, loading: true }));
     
     try {
-      // Fetch real data from Supabase
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+       const response = await api.getOrders();
+       
+       if (!response.success || !response.data) {
         setBillingData(prev => ({ ...prev, loading: false }));
         return;
       }
 
-      // Fetch purchases from Supabase
-      const { data: purchases, error } = await supabase
-        .from('purchases')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching purchases:', error);
-        setBillingData(prev => ({ ...prev, loading: false }));
-        return;
-      }
+       const orders = response.data.orders || [];
 
       // Calculate stats from real data
-      const totalSpent = purchases?.reduce((sum, purchase) => sum + Number(purchase.amount), 0) || 0;
-      const thisMonthSpent = purchases?.filter(p => {
-        const purchaseDate = new Date(p.created_at);
+       const thisMonthSpent = orders.filter((o: any) => {
+         const orderDate = new Date(o.created_at);
         const now = new Date();
-        return purchaseDate.getMonth() === now.getMonth() && purchaseDate.getFullYear() === now.getFullYear();
-      }).reduce((sum, purchase) => sum + Number(purchase.amount), 0) || 0;
+         return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+       }).reduce((sum: number, o: any) => sum + Number(o.total_amount || 0), 0);
 
       // Transform purchases to billing history
-      const billingHistory = purchases?.map(purchase => {
-        const bundleText = (purchase as any).bundle_id && (purchase as any).bundle_id !== 'none' 
-          ? ` + ${getBundleName((purchase as any).bundle_id)}` 
+       const billingHistory = orders.map((order: any) => {
+         const bundleText = order.bundle_id && order.bundle_id !== 'none' 
+           ? ` + ${getBundleName(order.bundle_id)}` 
           : '';
         return {
-          id: purchase.id,
-          date: new Date(purchase.created_at).toISOString().split('T')[0],
-          description: `${purchase.plan_name}${bundleText}`,
-          amount: `$${Number(purchase.amount).toFixed(2)}`,
-          status: purchase.status,
+           id: order.id,
+           date: new Date(order.created_at).toISOString().split('T')[0],
+           description: `${order.server_name} - ${order.plan_id}${bundleText}`,
+           amount: `$${Number(order.total_amount || 0).toFixed(2)}`,
+           status: order.status,
           method: 'Card Payment'
         };
-      }) || [];
+       });
 
       setBillingData({
         stats: {
@@ -135,38 +120,13 @@ export const useBillingData = (userEmail?: string) => {
       console.error('Failed to fetch billing data:', error);
       setBillingData(prev => ({ ...prev, loading: false }));
     }
-  };
+   }, [userEmail]);
 
   useEffect(() => {
     if (userEmail) {
       fetchBillingData();
     }
-  }, [userEmail]);
-
-  // Set up real-time subscription for purchases table
-  useEffect(() => {
-    if (!userEmail) return;
-
-    const channel = supabase
-      .channel('billing-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'purchases'
-        },
-        () => {
-          console.log('Billing data changed, refetching...');
-          fetchBillingData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userEmail]);
+   }, [userEmail, fetchBillingData]);
 
   return { billingData, refetchBilling: fetchBillingData };
 };
