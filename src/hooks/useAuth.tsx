@@ -8,6 +8,12 @@ interface User {
   email: string;
   display_name?: string;
   is_email_verified?: boolean;
+   // Legacy Supabase compatibility fields
+   user_metadata?: {
+     full_name?: string;
+     first_name?: string;
+     last_name?: string;
+   };
 }
 
 interface Session {

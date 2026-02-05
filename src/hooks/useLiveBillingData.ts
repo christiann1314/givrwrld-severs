@@ -68,16 +68,15 @@ export const useLiveBillingData = (refreshInterval: number = 60000) => {
           .filter(p => new Date(p.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
           .reduce((sum, p) => sum + p.amount, 0);
 
-        setData({
-          totalRevenue,
-          monthlyRevenue,
-          activeSubscriptions: payments.length,
-          recentPayments: payments,
-          upcomingInvoices: [] // TODO: Implement invoice fetching
-        });
-      }
-
-      setLastUpdated(new Date());
+         setData({
+           totalRevenue,
+           monthlyRevenue,
+           activeSubscriptions: payments.length,
+           recentPayments: payments,
+           upcomingInvoices: [] // TODO: Implement invoice fetching
+         });
+ 
+       setLastUpdated(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch billing data');
       console.error('Error fetching live billing data:', err);

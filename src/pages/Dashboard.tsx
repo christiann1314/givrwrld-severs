@@ -56,7 +56,7 @@ const Dashboard = () => {
   const userEmail = user?.email || null;
   
   // Debug profile data
-  console.log('🔍 Profile data:', { profile, profileLoading, user: user?.user_metadata });
+   console.log('🔍 Profile data:', { profile, profileLoading, user: user?.display_name });
   const { serversData } = useUserServers(userEmail);
   const { userStats } = useUserStats(userEmail);
   const { data: liveServerData, refresh: refreshServers } = useLiveServerData(30000);

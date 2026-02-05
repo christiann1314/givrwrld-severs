@@ -131,6 +131,32 @@ export const api = {
     // Optional: you can also POST /api/auth/logout but local clear is the hard requirement
     clearTokens();
   },
+ 
+   // Aliases for useAuth compatibility
+   async signUp(email: string, password: string, firstName?: string, lastName?: string) {
+     const display_name = [firstName, lastName].filter(Boolean).join(' ') || undefined;
+     const result = await this.register(email, password, display_name);
+     return { success: result.success, data: result.success ? { user: result.user, token: result.token } : undefined, error: result.message };
+   },
+ 
+   async signIn(email: string, password: string) {
+     const result = await this.login(email, password);
+     return { success: result.success, data: result.success ? { user: result.user, token: result.token } : undefined, error: result.message };
+   },
+ 
+   async signOut() {
+     this.logout();
+     return { success: true };
+   },
+ 
+   async getCurrentUser() {
+     try {
+       const result = await http<any>("/api/auth/me", { method: "GET" });
+       return { success: true, data: { user: result.user || result } };
+     } catch {
+       return { success: false, data: null };
+     }
+   },
 
   // Data
   async getOrders() {
@@ -140,6 +166,17 @@ export const api = {
   async getServers() {
     return await http<any>("/api/servers", { method: "GET" });
   },
+ 
+   async getPlans() {
+     return await http<any>("/api/plans", { method: "GET" });
+   },
+ 
+   async createCheckoutSession(data: any) {
+     return await http<any>("/api/checkout/create-session", {
+       method: "POST",
+       body: data
+     });
+   },
 };
 
 export default api;

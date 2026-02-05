@@ -16,46 +16,28 @@ export type Database = {
     Tables: {
       addons: {
         Row: {
-          category: string | null
-          created_at: string
-          description: string | null
+          created_at: string | null
+          display_name: string
           id: string
-          name: string
-          post_install_script: string | null
-          price_monthly: number
-          pterodactyl_env: Json | null
-          pterodactyl_limits_patch: Json | null
-          slug: string
-          stripe_price_id_monthly: string | null
-          updated_at: string
+          is_active: boolean | null
+          item_type: string
+          stripe_price_id: string
         }
         Insert: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          post_install_script?: string | null
-          price_monthly: number
-          pterodactyl_env?: Json | null
-          pterodactyl_limits_patch?: Json | null
-          slug: string
-          stripe_price_id_monthly?: string | null
-          updated_at?: string
+          created_at?: string | null
+          display_name: string
+          id: string
+          is_active?: boolean | null
+          item_type: string
+          stripe_price_id: string
         }
         Update: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
+          created_at?: string | null
+          display_name?: string
           id?: string
-          name?: string
-          post_install_script?: string | null
-          price_monthly?: number
-          pterodactyl_env?: Json | null
-          pterodactyl_limits_patch?: Json | null
-          slug?: string
-          stripe_price_id_monthly?: string | null
-          updated_at?: string
+          is_active?: boolean | null
+          item_type?: string
+          stripe_price_id?: string
         }
         Relationships: []
       }
@@ -80,6 +62,57 @@ export type Database = {
           id?: string
           updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      affiliates: {
+        Row: {
+          clicks: number | null
+          code: string
+          created_at: string | null
+          credits_cents: number | null
+          signups: number | null
+          user_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          code: string
+          created_at?: string | null
+          credits_cents?: number | null
+          signups?: number | null
+          user_id: string
+        }
+        Update: {
+          clicks?: number | null
+          code?: string
+          created_at?: string | null
+          credits_cents?: number | null
+          signups?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -382,7 +415,7 @@ export type Database = {
       financial_audit: {
         Row: {
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           operation: string
@@ -394,7 +427,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation: string
@@ -406,7 +439,7 @@ export type Database = {
         }
         Update: {
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation?: string
@@ -455,6 +488,7 @@ export type Database = {
           icon_url: string | null
           id: string
           name: string
+          nest_id: number | null
           slug: string
           startup_command: string | null
           updated_at: string
@@ -468,6 +502,7 @@ export type Database = {
           icon_url?: string | null
           id?: string
           name: string
+          nest_id?: number | null
           slug: string
           startup_command?: string | null
           updated_at?: string
@@ -481,11 +516,20 @@ export type Database = {
           icon_url?: string | null
           id?: string
           name?: string
+          nest_id?: number | null
           slug?: string
           startup_command?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "games_nest_id_fkey"
+            columns: ["nest_id"]
+            isOneToOne: false
+            referencedRelation: "pterodactyl_nests"
+            referencedColumns: ["nest_id"]
+          },
+        ]
       }
       gdpr_requests: {
         Row: {
@@ -519,244 +563,352 @@ export type Database = {
       }
       modpacks: {
         Row: {
-          created_at: string
-          description: string | null
-          download_url: string | null
-          game_id: string | null
+          created_at: string | null
+          display_name: string
+          game: string
           id: string
-          modpack_id: string | null
-          name: string
-          price_monthly: number | null
-          pterodactyl_env: Json | null
+          is_active: boolean | null
           slug: string
-          stripe_price_id_monthly: string | null
-          updated_at: string
-          version: string | null
         }
         Insert: {
-          created_at?: string
-          description?: string | null
-          download_url?: string | null
-          game_id?: string | null
-          id?: string
-          modpack_id?: string | null
-          name: string
-          price_monthly?: number | null
-          pterodactyl_env?: Json | null
+          created_at?: string | null
+          display_name: string
+          game: string
+          id: string
+          is_active?: boolean | null
           slug: string
-          stripe_price_id_monthly?: string | null
-          updated_at?: string
-          version?: string | null
         }
         Update: {
-          created_at?: string
-          description?: string | null
-          download_url?: string | null
-          game_id?: string | null
+          created_at?: string | null
+          display_name?: string
+          game?: string
           id?: string
-          modpack_id?: string | null
-          name?: string
-          price_monthly?: number | null
-          pterodactyl_env?: Json | null
+          is_active?: boolean | null
           slug?: string
-          stripe_price_id_monthly?: string | null
-          updated_at?: string
-          version?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "modpacks_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       orders: {
         Row: {
-          amount: number
-          created_at: string
-          currency: string | null
+          addons: Json | null
+          created_at: string | null
           id: string
-          order_payload: Json
-          server_id: string | null
-          status: string | null
-          stripe_session_id: string | null
-          stripe_subscription_id: string | null
-          updated_at: string
+          item_type: string
+          modpack_id: string | null
+          node_id: number | null
+          plan_id: string
+          pterodactyl_server_id: number | null
+          pterodactyl_server_identifier: string | null
+          region: string
+          server_name: string
+          status: string
+          stripe_sub_id: string | null
+          term: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          amount: number
-          created_at?: string
-          currency?: string | null
+          addons?: Json | null
+          created_at?: string | null
           id?: string
-          order_payload: Json
-          server_id?: string | null
-          status?: string | null
-          stripe_session_id?: string | null
-          stripe_subscription_id?: string | null
-          updated_at?: string
+          item_type: string
+          modpack_id?: string | null
+          node_id?: number | null
+          plan_id: string
+          pterodactyl_server_id?: number | null
+          pterodactyl_server_identifier?: string | null
+          region: string
+          server_name: string
+          status?: string
+          stripe_sub_id?: string | null
+          term: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          amount?: number
-          created_at?: string
-          currency?: string | null
+          addons?: Json | null
+          created_at?: string | null
           id?: string
-          order_payload?: Json
-          server_id?: string | null
-          status?: string | null
-          stripe_session_id?: string | null
-          stripe_subscription_id?: string | null
-          updated_at?: string
+          item_type?: string
+          modpack_id?: string | null
+          node_id?: number | null
+          plan_id?: string
+          pterodactyl_server_id?: number | null
+          pterodactyl_server_identifier?: string | null
+          region?: string
+          server_name?: string
+          status?: string
+          stripe_sub_id?: string | null
+          term?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "orders_server_id_fkey"
-            columns: ["server_id"]
+            foreignKeyName: "orders_modpack_id_fkey"
+            columns: ["modpack_id"]
             isOneToOne: false
-            referencedRelation: "user_servers"
+            referencedRelation: "modpacks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "ptero_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
       }
+      panel_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          panel_user_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          panel_user_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          panel_user_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       plans: {
         Row: {
-          bandwidth_tb: number | null
-          cpu_cores: number
-          created_at: string
-          description: string | null
-          disk_gb: number
-          game_id: string | null
+          created_at: string | null
+          display_name: string
+          game: string | null
           id: string
-          max_players: number | null
-          name: string
-          price_monthly: number
-          pterodactyl_env: Json | null
-          pterodactyl_limits: Json | null
+          is_active: boolean | null
+          item_type: string
+          plan_code: string | null
           ram_gb: number
-          slug: string
-          stripe_price_id_annual: string | null
-          stripe_price_id_biannual: string | null
-          stripe_price_id_monthly: string | null
-          stripe_price_id_quarterly: string | null
+          ssd_gb: number
+          stripe_price_id: string
+          vcores: number
+        }
+        Insert: {
+          created_at?: string | null
+          display_name: string
+          game?: string | null
+          id: string
+          is_active?: boolean | null
+          item_type: string
+          plan_code?: string | null
+          ram_gb: number
+          ssd_gb: number
+          stripe_price_id: string
+          vcores: number
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string
+          game?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_type?: string
+          plan_code?: string | null
+          ram_gb?: number
+          ssd_gb?: number
+          stripe_price_id?: string
+          vcores?: number
+        }
+        Relationships: []
+      }
+      pricing_items: {
+        Row: {
+          active: boolean
+          category: string
+          display_name: string
+          sku: string
+          stripe_price_id: string
           updated_at: string
         }
         Insert: {
-          bandwidth_tb?: number | null
-          cpu_cores: number
-          created_at?: string
-          description?: string | null
-          disk_gb: number
-          game_id?: string | null
-          id?: string
-          max_players?: number | null
-          name: string
-          price_monthly: number
-          pterodactyl_env?: Json | null
-          pterodactyl_limits?: Json | null
-          ram_gb: number
-          slug: string
-          stripe_price_id_annual?: string | null
-          stripe_price_id_biannual?: string | null
-          stripe_price_id_monthly?: string | null
-          stripe_price_id_quarterly?: string | null
+          active?: boolean
+          category: string
+          display_name: string
+          sku: string
+          stripe_price_id: string
           updated_at?: string
         }
         Update: {
-          bandwidth_tb?: number | null
-          cpu_cores?: number
+          active?: boolean
+          category?: string
+          display_name?: string
+          sku?: string
+          stripe_price_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ptero_nodes: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: number
+          last_seen_at: string | null
+          max_disk_gb: number
+          max_ram_gb: number
+          name: string
+          pterodactyl_node_id: number
+          region: string
+          reserved_headroom_gb: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: number
+          last_seen_at?: string | null
+          max_disk_gb: number
+          max_ram_gb: number
+          name: string
+          pterodactyl_node_id: number
+          region: string
+          reserved_headroom_gb?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: number
+          last_seen_at?: string | null
+          max_disk_gb?: number
+          max_ram_gb?: number
+          name?: string
+          pterodactyl_node_id?: number
+          region?: string
+          reserved_headroom_gb?: number | null
+        }
+        Relationships: []
+      }
+      pterodactyl_eggs: {
+        Row: {
+          config_files: Json | null
+          created_at: string
+          description: string | null
+          docker_image: string
+          egg_id: number
+          environment_variables: Json | null
+          id: number
+          name: string
+          nest_id: number
+          startup_command: string
+          updated_at: string
+        }
+        Insert: {
+          config_files?: Json | null
           created_at?: string
           description?: string | null
-          disk_gb?: number
-          game_id?: string | null
-          id?: string
-          max_players?: number | null
+          docker_image: string
+          egg_id: number
+          environment_variables?: Json | null
+          id?: number
+          name: string
+          nest_id: number
+          startup_command: string
+          updated_at?: string
+        }
+        Update: {
+          config_files?: Json | null
+          created_at?: string
+          description?: string | null
+          docker_image?: string
+          egg_id?: number
+          environment_variables?: Json | null
+          id?: number
           name?: string
-          price_monthly?: number
-          pterodactyl_env?: Json | null
-          pterodactyl_limits?: Json | null
-          ram_gb?: number
-          slug?: string
-          stripe_price_id_annual?: string | null
-          stripe_price_id_biannual?: string | null
-          stripe_price_id_monthly?: string | null
-          stripe_price_id_quarterly?: string | null
+          nest_id?: number
+          startup_command?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "plans_game_id_fkey"
-            columns: ["game_id"]
+            foreignKeyName: "pterodactyl_eggs_nest_id_fkey"
+            columns: ["nest_id"]
             isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
+            referencedRelation: "pterodactyl_nests"
+            referencedColumns: ["nest_id"]
           },
         ]
       }
-      profiles: {
+      pterodactyl_nests: {
         Row: {
+          author: string | null
           created_at: string
-          display_name: string | null
-          email: string
-          id: string
-          pterodactyl_password_encrypted: string | null
-          pterodactyl_user_id: number | null
+          description: string | null
+          id: number
+          name: string
+          nest_id: number
           updated_at: string
-          user_id: string | null
         }
         Insert: {
+          author?: string | null
           created_at?: string
-          display_name?: string | null
-          email: string
-          id?: string
-          pterodactyl_password_encrypted?: string | null
-          pterodactyl_user_id?: number | null
+          description?: string | null
+          id?: number
+          name: string
+          nest_id: number
           updated_at?: string
-          user_id?: string | null
         }
         Update: {
+          author?: string | null
           created_at?: string
-          display_name?: string | null
-          email?: string
-          id?: string
-          pterodactyl_password_encrypted?: string | null
-          pterodactyl_user_id?: number | null
+          description?: string | null
+          id?: number
+          name?: string
+          nest_id?: number
           updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      purchases: {
-        Row: {
-          amount: number
-          created_at: string
-          currency: string | null
-          id: string
-          plan_name: string
-          status: string | null
-          user_id: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          currency?: string | null
-          id?: string
-          plan_name: string
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          currency?: string | null
-          id?: string
-          plan_name?: string
-          status?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -850,6 +1002,89 @@ export type Database = {
           recommendations?: Json | null
           severity_counts?: Json | null
           status?: string
+        }
+        Relationships: []
+      }
+      server_stats_cache: {
+        Row: {
+          cpu_percent: number | null
+          disk_bytes: number | null
+          last_updated: string | null
+          memory_bytes: number | null
+          order_id: string
+          state: string
+          uptime_ms: number | null
+        }
+        Insert: {
+          cpu_percent?: number | null
+          disk_bytes?: number | null
+          last_updated?: string | null
+          memory_bytes?: number | null
+          order_id: string
+          state: string
+          uptime_ms?: number | null
+        }
+        Update: {
+          cpu_percent?: number | null
+          disk_bytes?: number | null
+          last_updated?: string | null
+          memory_bytes?: number | null
+          order_id?: string
+          state?: string
+          uptime_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_stats_cache_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servers: {
+        Row: {
+          allocation: number | null
+          created_at: string | null
+          game: string
+          id: string
+          modpack: string | null
+          name: string
+          panel_server_id: number
+          panel_user_id: number
+          plan_id: string
+          region: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          allocation?: number | null
+          created_at?: string | null
+          game: string
+          id?: string
+          modpack?: string | null
+          name: string
+          panel_server_id: number
+          panel_user_id: number
+          plan_id: string
+          region: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          allocation?: number | null
+          created_at?: string | null
+          game?: string
+          id?: string
+          modpack?: string | null
+          name?: string
+          panel_server_id?: number
+          panel_user_id?: number
+          plan_id?: string
+          region?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1011,165 +1246,12 @@ export type Database = {
         }
         Relationships: []
       }
-      user_servers: {
-        Row: {
-          addon_ids: string[] | null
-          billing_term: string | null
-          bundle_id: string | null
-          cpu: string
-          created_at: string
-          disk: string
-          env_vars: Json | null
-          game_type: string
-          id: string
-          ip: string | null
-          live_stats: Json | null
-          location: string
-          modpack_id: string | null
-          order_payload: Json | null
-          plan_id: string | null
-          port: string | null
-          pterodactyl_server_id: string | null
-          pterodactyl_url: string | null
-          ram: string
-          server_limits: Json | null
-          server_name: string
-          status: string
-          stripe_session_id: string | null
-          subscription_id: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          addon_ids?: string[] | null
-          billing_term?: string | null
-          bundle_id?: string | null
-          cpu: string
-          created_at?: string
-          disk: string
-          env_vars?: Json | null
-          game_type: string
-          id?: string
-          ip?: string | null
-          live_stats?: Json | null
-          location: string
-          modpack_id?: string | null
-          order_payload?: Json | null
-          plan_id?: string | null
-          port?: string | null
-          pterodactyl_server_id?: string | null
-          pterodactyl_url?: string | null
-          ram: string
-          server_limits?: Json | null
-          server_name: string
-          status?: string
-          stripe_session_id?: string | null
-          subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          addon_ids?: string[] | null
-          billing_term?: string | null
-          bundle_id?: string | null
-          cpu?: string
-          created_at?: string
-          disk?: string
-          env_vars?: Json | null
-          game_type?: string
-          id?: string
-          ip?: string | null
-          live_stats?: Json | null
-          location?: string
-          modpack_id?: string | null
-          order_payload?: Json | null
-          plan_id?: string | null
-          port?: string | null
-          pterodactyl_server_id?: string | null
-          pterodactyl_url?: string | null
-          ram?: string
-          server_limits?: Json | null
-          server_name?: string
-          status?: string
-          stripe_session_id?: string | null
-          subscription_id?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_servers_bundle_id_fkey"
-            columns: ["bundle_id"]
-            isOneToOne: false
-            referencedRelation: "bundles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_servers_modpack_id_fkey"
-            columns: ["modpack_id"]
-            isOneToOne: false
-            referencedRelation: "modpacks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_servers_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_stats: {
-        Row: {
-          active_servers: number | null
-          created_at: string
-          id: string
-          referrals: number | null
-          support_tickets: number | null
-          total_spent: number | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          active_servers?: number | null
-          created_at?: string
-          id?: string
-          referrals?: number | null
-          support_tickets?: number | null
-          total_spent?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          active_servers?: number | null
-          created_at?: string
-          id?: string
-          referrals?: number | null
-          support_tickets?: number | null
-          total_spent?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
-      user_financial_summary: {
-        Row: {
-          avg_order_value: number | null
-          last_purchase_date: string | null
-          total_orders: number | null
-          total_spent: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      admin_requires_2fa: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      admin_requires_2fa: { Args: never; Returns: boolean }
       calculate_next_audit_run: {
         Args: { frequency_param: string }
         Returns: string
@@ -1178,10 +1260,7 @@ export type Database = {
         Args: { max_ops?: number; operation_name: string }
         Returns: boolean
       }
-      cleanup_user_data: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      cleanup_user_data: { Args: never; Returns: Json }
       create_missing_profile_with_pterodactyl: {
         Args: {
           display_name_param?: string
@@ -1200,20 +1279,14 @@ export type Database = {
         }
         Returns: string
       }
-      create_user_stats: {
-        Args: { user_id_param: string }
-        Returns: string
-      }
+      create_user_stats: { Args: { user_id_param: string }; Returns: string }
       decrypt_sensitive_data: {
         Args: { encrypted_data: string }
         Returns: string
       }
-      encrypt_sensitive_data: {
-        Args: { data: string }
-        Returns: string
-      }
+      encrypt_sensitive_data: { Args: { data: string }; Returns: string }
       get_my_financial_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_order_value: number
           last_purchase_date: string
@@ -1222,7 +1295,7 @@ export type Database = {
         }[]
       }
       get_my_pterodactyl_credentials: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           panel_url: string
@@ -1231,7 +1304,7 @@ export type Database = {
         }[]
       }
       get_safe_financial_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           user_avg_order: number
           user_last_purchase: string
@@ -1246,18 +1319,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      hash_data: {
-        Args: { data: string }
-        Returns: string
-      }
-      initialize_user_data: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      is_admin: {
-        Args: { _user_id?: string }
-        Returns: boolean
-      }
+      hash_data: { Args: { data: string }; Returns: string }
+      initialize_user_data: { Args: never; Returns: Json }
+      is_admin: { Args: { _user_id?: string }; Returns: boolean }
       log_user_action: {
         Args: { action_name: string; details?: Json }
         Returns: boolean

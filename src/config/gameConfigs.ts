@@ -37,7 +37,6 @@ export const gameConfigs: Record<string, GameConfig> = {
       MAX_WORLD_SIZE: '29999984',
       ALLOW_NETHER: 'true',
       ANNOUNCE_PLAYER_ACHIEVEMENTS: 'true',
-      ENABLE_COMMAND_BLOCK: 'true',
       SPAWN_ANIMALS: 'true',
       SPAWN_MONSTERS: 'true',
       SPAWN_NPCS: 'true',
@@ -153,8 +152,6 @@ export const gameConfigs: Record<string, GameConfig> = {
       WORLD_DATA_SAVE_INTERVAL_MINUTES: '5.000000',
       GAME_TIMEOUT_MINUTES: '60.000000',
       SERVER_TICK_INTERVAL_SECONDS: '0.033000',
-      SERVER_NAME: 'GIVRwrld Palworld Server',
-      SERVER_DESCRIPTION: 'Welcome to GIVRwrld Palworld Server!',
     },
     limits: {
       memory: 8192,
